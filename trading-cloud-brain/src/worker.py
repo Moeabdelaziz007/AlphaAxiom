@@ -1,131 +1,158 @@
-from js import Response, Headers, fetch, JSON
+from js import Response, Headers, fetch, Object
 import json
+import re
 
 # ==========================================
-# 🧠 SENTINEL TRADING BRAIN - Cloudflare Worker
-# Real AI Chat with Groq + Alpaca Paper Trading
+# 🧠 SENTINEL TRADING BRAIN v3.0
+# Smart Chat + Intent Parsing + Alpaca Execution
 # ==========================================
 
-GROQ_BASE_URL = "https://api.groq.com/openai/v1/chat/completions"
-ALPACA_BASE_URL = "https://paper-api.alpaca.markets/v2"
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+ALPACA_API_URL = "https://paper-api.alpaca.markets/v2"
 
-SYSTEM_PROMPT = """You are Sentinel, an AI trading assistant for paper trading.
-You help users analyze markets and execute trades on Alpaca Paper Trading.
+SYSTEM_PROMPT = """You are Sentinel, an AI trading assistant for Alpaca Paper Trading.
+You can analyze markets and execute trades. Keep responses under 100 words.
 
-Available commands you can help with:
-- "Buy 10 AAPL" → Execute buy order
-- "Sell 5 SPY" → Execute sell order  
-- "Analyze SPY" → Provide market analysis
-- "What's my portfolio?" → Show positions
+IMPORTANT: When user wants to trade, respond with a JSON block like this:
+```json
+{"action": "trade", "symbol": "AAPL", "side": "buy", "qty": 10}
+```
 
-Always be helpful, concise, and professional. Confirm trades before execution.
-Remember: This is PAPER TRADING - no real money involved."""
+For analysis, just provide your insights naturally.
+For rules like "buy if drops 2%", respond with:
+```json
+{"action": "rule", "symbol": "SPY", "condition": "price_drop", "value": 2, "trade_side": "buy", "qty": 10}
+```
+
+Always confirm before executing trades."""
 
 
-def on_fetch(request, env):
-    """Main request handler with real AI integration"""
+async def on_fetch(request, env):
+    """Main async handler"""
     url = str(request.url)
     method = str(request.method)
     
-    # CORS Headers
-    headers = Headers.new({
+    cors_headers = {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type"
-    }.items())
+    }
+    headers = Headers.new(cors_headers.items())
     
-    # Handle CORS preflight
     if method == "OPTIONS":
         return Response.new("", headers=headers)
     
-    # ============ API ROUTES ============
-    
-    # Chat endpoint - REAL AI with Groq
     if "api/chat" in url:
-        return handle_chat(request, env, headers)
+        return await handle_smart_chat(request, env, headers)
     
-    # Trade endpoint - Alpaca Paper Trading
     if "api/trade" in url:
-        return handle_trade(request, env, headers)
+        return await handle_trade(request, env, headers)
     
-    # Status endpoint
-    if "api/status" in url:
-        result = {
-            "status": "online",
-            "ai_engine": "Groq Llama 3.3 70B",
-            "broker": "Alpaca Paper Trading",
-            "mode": "paper",
-            "message": "🧠 Sentinel Brain Online - Real AI Active"
-        }
-        return Response.new(json.dumps(result), headers=headers)
+    if "api/positions" in url:
+        return await get_positions(env, headers)
     
-    # Account endpoint
     if "api/account" in url:
-        return handle_account(env, headers)
+        return await get_account(env, headers)
     
-    # Market data endpoint
-    if "api/market" in url:
-        return handle_market(env, headers)
-    
-    # Brain status
-    if "api/brain" in url:
-        result = {
-            "strategic_engine": {"model": "Groq Llama 3.3 70B", "status": "active"},
-            "execution_engine": {"model": "Gemini Flash", "status": "standby"},
-            "broker": {"name": "Alpaca", "mode": "paper", "status": "connected"}
-        }
+    if "api/status" in url:
+        result = {"status": "online", "ai": "Groq Llama 3.3", "broker": "Alpaca", "version": "3.0"}
         return Response.new(json.dumps(result), headers=headers)
     
-    # Default response
-    result = {
-        "status": "online",
-        "message": "🧠 Sentinel Trading Brain v2.0 - Real AI Powered",
-        "endpoints": ["/api/chat", "/api/trade", "/api/market", "/api/status", "/api/brain", "/api/account"]
-    }
+    if "api/market" in url:
+        return await get_market_data(request, env, headers)
+
+    result = {"status": "online", "message": "Sentinel AI v3.0 - Smart Trading"}
     return Response.new(json.dumps(result), headers=headers)
 
 
-def handle_chat(request, env, headers):
-    """Handle chat with real Groq AI"""
+async def handle_smart_chat(request, env, headers):
+    """Smart chat with intent parsing and trade execution"""
     try:
-        # For GET requests, return a default message
         method = str(request.method)
-        if method == "GET":
-            result = {
-                "reply": "👋 Hi! I'm Sentinel, your AI trading assistant. Try saying 'Analyze SPY' or 'Buy 10 AAPL'!",
-                "status": "success"
-            }
+        user_message = "Hello"
+        
+        if method == "POST":
+            try:
+                body = await request.json()
+                user_message = body.get("message", "Hello")
+            except:
+                pass
+        else:
+            url = str(request.url)
+            if "message=" in url:
+                user_message = url.split("message=")[1].split("&")[0]
+                user_message = user_message.replace("%20", " ").replace("+", " ")
+        
+        groq_key = str(getattr(env, 'GROQ_API_KEY', ''))
+        
+        if not groq_key:
+            result = {"reply": "⚠️ Groq API key not configured", "status": "error"}
             return Response.new(json.dumps(result), headers=headers)
         
-        # For POST, we need async handling which is limited in Cloudflare Python Workers
-        # For now, return a smart demo response based on common queries
-        url = str(request.url)
+        # Call Groq for AI response
+        request_body = json.dumps({
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_message}
+            ],
+            "max_tokens": 300,
+            "temperature": 0.7
+        })
         
-        # Check for common trading intents in URL params
-        if "buy" in url.lower():
-            result = {
-                "reply": "📈 I can help you buy! To execute: tell me the symbol and quantity. Example: 'Buy 10 AAPL'. I'll confirm before executing on Alpaca Paper Trading.",
-                "status": "success",
-                "intent": "buy"
-            }
-        elif "sell" in url.lower():
-            result = {
-                "reply": "📉 Ready to sell! Tell me what symbol and how many shares. Example: 'Sell 5 SPY'. I'll confirm before executing.",
-                "status": "success", 
-                "intent": "sell"
-            }
-        elif "analyze" in url.lower() or "analysis" in url.lower():
-            result = {
-                "reply": "📊 **Market Analysis Ready**\n\nI'm connected to Groq's Llama 3.3 70B for deep analysis. Currently in demo mode - full AI analysis coming in next update!\n\n**SPY Outlook:** Bullish momentum detected\n**AAPL:** Strong support at $240\n**GLD:** Gold showing strength",
-                "status": "success",
-                "intent": "analyze"
-            }
-        else:
-            result = {
-                "reply": "🧠 **Sentinel AI Online**\n\nI'm your trading assistant powered by Groq Llama 3.3.\n\n**Try these commands:**\n• 'Buy 10 AAPL' - Execute trade\n• 'Analyze SPY' - Get market analysis\n• 'What's my portfolio?' - View positions\n\n*Connected to Alpaca Paper Trading*",
-                "status": "success"
-            }
+        request_headers = Headers.new({
+            "Authorization": f"Bearer {groq_key}",
+            "Content-Type": "application/json"
+        }.items())
+        
+        response = await fetch(GROQ_API_URL, method="POST", headers=request_headers, body=request_body)
+        response_text = await response.text()
+        
+        if not response.ok:
+            result = {"reply": f"API Error: {str(response_text)[:100]}", "status": "error"}
+            return Response.new(json.dumps(result), headers=headers)
+        
+        data = json.loads(str(response_text))
+        ai_reply = data["choices"][0]["message"]["content"]
+        
+        # Parse for trade intent
+        trade_result = None
+        json_match = re.search(r'```json\s*(\{[^`]+\})\s*```', ai_reply)
+        
+        if json_match:
+            try:
+                intent = json.loads(json_match.group(1))
+                
+                if intent.get("action") == "trade":
+                    # Execute the trade
+                    trade_result = await execute_alpaca_trade(
+                        env, 
+                        intent.get("symbol", "AAPL"),
+                        intent.get("side", "buy"),
+                        intent.get("qty", 1)
+                    )
+                    
+                elif intent.get("action") == "rule":
+                    # Save rule to KV (placeholder)
+                    trade_result = {
+                        "action": "rule_saved",
+                        "rule": intent,
+                        "message": f"✅ Rule created: {intent.get('trade_side')} {intent.get('qty')} {intent.get('symbol')} when {intent.get('condition')} {intent.get('value')}%"
+                    }
+            except:
+                pass
+        
+        # Clean up the reply (remove JSON block for display)
+        clean_reply = re.sub(r'```json\s*\{[^`]+\}\s*```', '', ai_reply).strip()
+        
+        result = {
+            "reply": clean_reply if clean_reply else ai_reply,
+            "status": "success",
+            "model": "llama-3.3-70b-versatile",
+            "source": "groq_live",
+            "trade_executed": trade_result
+        }
         
         return Response.new(json.dumps(result), headers=headers)
         
@@ -134,72 +161,144 @@ def handle_chat(request, env, headers):
         return Response.new(json.dumps(result), status=500, headers=headers)
 
 
-def handle_trade(request, env, headers):
+async def execute_alpaca_trade(env, symbol, side, qty):
     """Execute trade on Alpaca Paper Trading"""
     try:
-        url = str(request.url)
+        alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
+        alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
         
-        # Parse trade params from URL or defaults
-        symbol = "AAPL"
-        side = "buy"
-        qty = "1"
+        if not alpaca_key or not alpaca_secret:
+            return {"status": "error", "message": "Alpaca keys not configured"}
         
-        if "symbol=" in url:
-            symbol = url.split("symbol=")[1].split("&")[0]
-        if "side=" in url:
-            side = url.split("side=")[1].split("&")[0]
-        if "qty=" in url:
-            qty = url.split("qty=")[1].split("&")[0]
+        order_body = json.dumps({
+            "symbol": symbol.upper(),
+            "qty": str(qty),
+            "side": side.lower(),
+            "type": "market",
+            "time_in_force": "day"
+        })
         
-        # Build response showing what would be executed
-        result = {
-            "status": "success",
-            "broker": "Alpaca Paper Trading",
-            "order": {
+        order_headers = Headers.new({
+            "APCA-API-KEY-ID": alpaca_key,
+            "APCA-API-SECRET-KEY": alpaca_secret,
+            "Content-Type": "application/json"
+        }.items())
+        
+        response = await fetch(
+            f"{ALPACA_API_URL}/orders",
+            method="POST",
+            headers=order_headers,
+            body=order_body
+        )
+        
+        response_text = await response.text()
+        
+        if response.ok:
+            order_data = json.loads(str(response_text))
+            return {
+                "status": "success",
+                "order_id": order_data.get("id"),
                 "symbol": symbol.upper(),
-                "qty": qty,
                 "side": side,
-                "type": "market",
-                "time_in_force": "day"
-            },
-            "message": f"✅ Paper Trade: {side.upper()} {qty} {symbol.upper()}",
-            "note": "Order submitted to Alpaca Paper Trading API",
-            "api_configured": hasattr(env, 'ALPACA_KEY')
-        }
-        
-        return Response.new(json.dumps(result), headers=headers)
-        
+                "qty": qty,
+                "message": f"✅ Order executed: {side.upper()} {qty} {symbol.upper()}"
+            }
+        else:
+            return {
+                "status": "error",
+                "message": f"Alpaca error: {str(response_text)[:100]}"
+            }
+            
     except Exception as e:
-        result = {"status": "error", "error": str(e)}
-        return Response.new(json.dumps(result), status=500, headers=headers)
+        return {"status": "error", "message": str(e)}
 
 
-def handle_account(env, headers):
-    """Get Alpaca account info"""
-    result = {
-        "broker": "Alpaca Paper Trading",
-        "status": "connected",
-        "buying_power": "$100,000.00",
-        "portfolio_value": "$100,000.00",
-        "cash": "$100,000.00",
-        "mode": "paper",
-        "note": "Paper trading - no real money"
-    }
+async def handle_trade(request, env, headers):
+    """Direct trade endpoint"""
+    url = str(request.url)
+    
+    symbol = "AAPL"
+    side = "buy"
+    qty = "1"
+    
+    if "symbol=" in url:
+        symbol = url.split("symbol=")[1].split("&")[0]
+    if "side=" in url:
+        side = url.split("side=")[1].split("&")[0]
+    if "qty=" in url:
+        qty = url.split("qty=")[1].split("&")[0]
+    
+    result = await execute_alpaca_trade(env, symbol, side, int(qty))
     return Response.new(json.dumps(result), headers=headers)
 
 
-def handle_market(env, headers):
-    """Get market data"""
+async def get_positions(env, headers):
+    """Get current positions from Alpaca"""
+    try:
+        alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
+        alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
+        
+        req_headers = Headers.new({
+            "APCA-API-KEY-ID": alpaca_key,
+            "APCA-API-SECRET-KEY": alpaca_secret
+        }.items())
+        
+        response = await fetch(f"{ALPACA_API_URL}/positions", method="GET", headers=req_headers)
+        response_text = await response.text()
+        
+        if response.ok:
+            positions = json.loads(str(response_text))
+            return Response.new(json.dumps({"positions": positions, "status": "success"}), headers=headers)
+        else:
+            return Response.new(json.dumps({"positions": [], "error": str(response_text)[:100]}), headers=headers)
+            
+    except Exception as e:
+        return Response.new(json.dumps({"positions": [], "error": str(e)}), headers=headers)
+
+
+async def get_account(env, headers):
+    """Get Alpaca account info"""
+    try:
+        alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
+        alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
+        
+        req_headers = Headers.new({
+            "APCA-API-KEY-ID": alpaca_key,
+            "APCA-API-SECRET-KEY": alpaca_secret
+        }.items())
+        
+        response = await fetch(f"{ALPACA_API_URL}/account", method="GET", headers=req_headers)
+        response_text = await response.text()
+        
+        if response.ok:
+            account = json.loads(str(response_text))
+            return Response.new(json.dumps({
+                "buying_power": account.get("buying_power"),
+                "portfolio_value": account.get("portfolio_value"),
+                "cash": account.get("cash"),
+                "status": "success"
+            }), headers=headers)
+        else:
+            return Response.new(json.dumps({"error": str(response_text)[:100]}), headers=headers)
+            
+    except Exception as e:
+        return Response.new(json.dumps({"error": str(e)}), headers=headers)
+
+
+async def get_market_data(request, env, headers):
+    """Get market data for a symbol"""
+    url = str(request.url)
+    symbol = "SPY"
+    
+    if "symbol=" in url:
+        symbol = url.split("symbol=")[1].split("&")[0]
+    
+    # Return demo data for now (Alpaca market data needs subscription)
     result = {
-        "symbol": "SPY",
+        "symbol": symbol.upper(),
         "price": 595.50,
         "change": 2.30,
         "change_percent": 0.39,
-        "high": 597.20,
-        "low": 592.10,
-        "volume": 45000000,
-        "asset_type": "etf",
-        "timestamp": "2025-12-06T16:00:00Z",
-        "source": "demo_data"
+        "status": "demo_data"
     }
     return Response.new(json.dumps(result), headers=headers)
