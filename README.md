@@ -1,180 +1,138 @@
-# 🚀 Quantum Trading Terminal v0.1
 
-<div align="center">
+# 🌌 ANTIGRAVITY TERMINAL (v0.1)
 
-![Trading Terminal](https://img.shields.io/badge/Status-Demo%20Ready-00ff9d?style=for-the-badge)
-![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi)
-![Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-000000?style=for-the-badge&logo=next.js)
-![Docker](https://img.shields.io/badge/Deploy-Docker-2496ED?style=for-the-badge&logo=docker)
+### The Zero-Resistance, AI-Powered Autonomous Trading System
 
-**نظام تداول متعدد الأصول مع واجهة Hedge Fund Terminal**
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.11%2B-yellow.svg)
+![Next.js](https://img.shields.io/badge/Frontend-Next.js_14-black)
+![Cloudflare](https://img.shields.io/badge/Infrastructure-Cloudflare_Edge-orange)
+![AI](https://img.shields.io/badge/Brain-DeepSeek_%2B_Gemini-magenta)
 
-</div>
-
----
-
-## ✨ المميزات
-
-| الميزة | الوصف |
-|--------|-------|
-| 📈 **تداول متعدد الأصول** | أسهم، ذهب، عملات رقمية |
-| ⚡ **تحديثات لحظية** | WebSocket للأسعار والصفقات |
-| 🤖 **Sentinel AI** | سجلات ذكاء اصطناعي للتحليل |
-| 💎 **تصميم Glassmorphism** | واجهة فاخرة بتأثيرات النيون |
-| 🐳 **Docker Ready** | تشغيل بأمر واحد |
+> **"Remove emotion from the equation. Trade with pure mathematics."**
 
 ---
 
-## 🚀 التشغيل السريع
+## 🦅 Vision & Overview
 
-### المتطلبات
+**Antigravity Terminal** is an institutional-grade, multi-asset trading platform designed for the retail trader. It leverages a **Dual-Core AI Architecture** to analyze market momentum (The Antigravity Effect) and execute trades with surgical precision.
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [Git](https://git-scm.com/)
+Unlike traditional bots that run on costly servers, Antigravity utilizes a **Serverless Edge Architecture** (Cloudflare Workers), allowing it to run **24/7 at $0.00 cost**.
 
-### الخطوات
+---
+
+## 🧠 The Dual-Core Brain Architecture
+
+The system mimics a hedge fund's operating structure by splitting intelligence into two cores:
+
+| Component | AI Model | Role | Function |
+| :--- | :--- | :--- | :--- |
+| **The Strategist** | **DeepSeek-V3** | Macro Analysis | Runs periodically on the Edge. Analyzes complex patterns, volume anomalies, and sets the daily bias (Bullish/Bearish). |
+| **The Operator** | **Gemini 1.5 Flash** | Execution & Chat | Runs in real-time. Handles user interaction, executes orders instantly, and reacts to live price feeds. |
+
+---
+
+## ⚡ Key Capabilities
+
+### 🖥️ 1. The Hedge Fund Dashboard (Frontend)
+
+* **Tech:** Next.js 14, Tailwind CSS, Lightweight Charts.
+* **Visuals:** "Midnight Black" glassmorphism UI with neon indicators.
+* **Features:**
+  * Live Tickers (Crypto, Stocks, Gold).
+  * **Antigravity Gauge:** Visual representation of market momentum.
+  * **Sentinel Chat:** Talk to your bot using natural language.
+
+### ☁️ 2. Zero-Cost Edge Infrastructure (Backend)
+
+* **Tech:** Cloudflare Workers (Python) + KV Store.
+* **Mechanism:**
+  * **Heartbeat Protocol:** A Cron Trigger wakes the bot every 60 seconds.
+  * **Global State:** Strategy and open positions are stored in Cloudflare KV (Low latency database).
+  * **No VPS Required:** No AWS EC2, no DigitalOcean. Pure serverless.
+
+### 🛡️ 3. Risk Management Engine
+
+* **Hard Stop:** Automatic Stop Loss placement on every trade.
+* **Take Profit:** Trailing stop logic to maximize runs.
+* **Panic Protocol:** One-click "Flatten All" button to liquidate positions instantly.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+graph TD
+    User[User Dashboard] -->|Chat & Commands| Cloudflare[Cloudflare Worker (Edge)]
+    Cron[Cron Trigger (1 min)] -->|Wake Up Signal| Cloudflare
+    
+    subgraph "The Dual Brain"
+        Cloudflare -->|Deep Analysis| DeepSeek[DeepSeek V3 API]
+        Cloudflare -->|Fast Response| Gemini[Gemini Flash API]
+    end
+    
+    subgraph "Execution"
+        Cloudflare -->|Market Data| CoinGecko[Data Feeds]
+        Cloudflare -->|Execute Orders| Alpaca[Alpaca/Jesse Exchange]
+        Cloudflare -->|Store State| KV[(Cloudflare KV)]
+    end
+```
+
+## 🚀 Quick Start Guide
+
+### Prerequisites
+
+* Node.js & npm
+* Python 3.10+
+* Cloudflare Account (Free Tier)
+* API Keys (DeepSeek, Gemini, Alpaca)
+
+### 1. Local Development (Docker Mode)
+
+Run the full stack locally for testing and UI development.
 
 ```bash
-# 1. استنسخ المشروع
-git clone <repository-url>
-cd Trading.System-0.1
+# Clone the repo
+git clone https://github.com/Moeabdelaziz007/Trading-Bot-System-v0.01.git
+cd Trading-Bot-System-v0.01
 
-# 2. أنشئ ملف البيئة
-cp backend/.env.example backend/.env
+# Setup Environment
+cp .env.example backend/.env
+# (Add your API keys in backend/.env)
 
-# 3. شغّل النظام
-docker compose up --build
+# Launch System
+docker-compose up --build
 ```
 
-### الوصول
+Access the dashboard at <http://localhost:3000>
 
-- **Frontend**: <http://localhost:3000>
-- **Backend API**: <http://localhost:8000>
-- **API Docs**: <http://localhost:8000/docs>
-
----
-
-## ⚙️ إعداد Alpaca Paper Trading
-
-1. أنشئ حساب مجاني على [Alpaca](https://alpaca.markets/)
-2. انتقل إلى **Paper Trading** → **API Keys**
-3. انسخ المفاتيح إلى `backend/.env`:
-
-```env
-ALPACA_API_KEY=your_api_key_here
-ALPACA_SECRET_KEY=your_secret_key_here
-ALPACA_BASE_URL=https://paper-api.alpaca.markets
-```
-
-> 💡 **ملاحظة**: حساب Paper Trading يأتي برصيد تجريبي $100,000
-
----
-
-## 📁 بنية المشروع
-
-```
-Trading.System-0.1/
-├── 🐳 docker-compose.yml      # تنسيق Docker
-├── 📂 backend/
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── .env                   # مفاتيح API (لا ترفعها لـ Git!)
-│   └── app/
-│       └── main.py            # FastAPI Server
-├── 📂 frontend/
-│   ├── Dockerfile
-│   ├── package.json
-│   ├── tailwind.config.ts     # ألوان النيون
-│   └── src/
-│       ├── app/
-│       │   ├── page.tsx       # Dashboard الرئيسي
-│       │   └── globals.css    # Glassmorphism CSS
-│       ├── components/
-│       │   └── Dashboard/
-│       │       ├── LivePrice.tsx
-│       │       ├── MainChart.tsx
-│       │       ├── MomentumGauge.tsx
-│       │       ├── SentinelAI.tsx
-│       │       └── ConnectionHeartbeat.tsx
-│       ├── hooks/
-│       │   └── useMarketData.ts
-│       └── lib/
-│           ├── api.ts
-│           └── types.ts
-└── 📄 README.md
-```
-
----
-
-## 🎨 نظام التصميم
-
-### ألوان النيون
-
-| اللون | الكود | الاستخدام |
-|-------|-------|-----------|
-| 🔵 Neon Cyan | `#00f2ea` | أوامر، حدود |
-| 🟢 Neon Green | `#00ff9d` | ربح، صعود |
-| 🔴 Neon Red | `#ff0055` | خسارة، هبوط |
-| 🟡 Neon Gold | `#ffd700` | ذهب، تحذيرات |
-
-### CSS Classes
-
-```css
-.glass-panel      /* خلفية زجاجية */
-.neon-border      /* حدود نيون سماوي */
-.glow-cyan        /* توهج نصي سماوي */
-.price-up         /* حركة صعود السعر */
-.price-down       /* حركة هبوط السعر */
-.heartbeat        /* نبض الاتصال */
-```
-
----
-
-## 🔌 API Endpoints
-
-| Method | Endpoint | الوصف |
-|--------|----------|-------|
-| GET | `/api/status` | حالة النظام |
-| GET | `/api/market/{symbol}` | بيانات السوق |
-| GET | `/api/account` | معلومات الحساب |
-| POST | `/api/trade` | تنفيذ صفقة |
-| GET | `/api/positions` | الصفقات المفتوحة |
-| DELETE | `/api/positions` | إغلاق جميع الصفقات |
-| WS | `/ws` | WebSocket للتحديثات |
-
----
-
-## 🧪 الاختبار
+### 2. Deploying the Brain to Cloudflare (24/7 Mode)
 
 ```bash
-# اختبار Backend
-cd backend
-pytest
+# Install Wrangler
+npm install -g wrangler
+wrangler login
 
-# اختبار Frontend (Playwright)
-cd frontend
-npx playwright test
+# Deploy the Worker
+cd trading-cloud-brain
+npx wrangler deploy
 ```
 
+## 📂 Project Structure
+
+```plaintext
+/
+├── frontend/             # Next.js Dashboard (The Cockpit)
+│   ├── src/components/   # UI Widgets (Charts, Chat, Stats)
+│   └── src/hooks/        # Live Data Hooks
+├── backend/              # Python FastAPI (Local Brain)
+├── trading-cloud-brain/  # Cloudflare Worker (24/7 Edge Brain)
+└── docker-compose.yml    # Orchestration
+```
+
+## ⚠️ Disclaimer
+
+This software is for educational purposes only. Do not risk money you cannot afford to lose. The "Antigravity" algorithm does not guarantee profits. Use paper trading first.
+
 ---
-
-## 📞 الدعم
-
-للمساعدة أو الاستفسارات:
-
-- 📧 Email: <support@trading-system.com>
-- 💬 Telegram: @TradingSupport
-
----
-
-## ⚠️ تنبيه قانوني
-
-هذا النظام للأغراض التعليمية والتجريبية فقط. التداول ينطوي على مخاطر مالية عالية. لا نتحمل أي مسؤولية عن الخسائر الناتجة عن استخدام هذا النظام.
-
----
-
-<div align="center">
-
-**صُنع بـ ❤️ باستخدام Gemini AI + FastAPI + Next.js**
-
-</div>
+Built with 💻 & ☕ by [Moe Abdelaziz]
