@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
-import { Wallet, TrendingUp, TrendingDown, DollarSign, PieChart, RefreshCw } from 'lucide-react';
+import { DashboardLayout, StatCard, TableSkeleton, EmptyState } from '@/components/DashboardLayout';
+import { Wallet, TrendingUp, TrendingDown, DollarSign, PieChart, RefreshCw, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 const API_BASE = "https://trading-brain-v1.amrikyy1.workers.dev";
 
@@ -39,101 +40,102 @@ export default function PortfolioPage() {
     const totalPL = positions.reduce((acc, p) => acc + parseFloat(p.unrealized_pl || '0'), 0);
 
     return (
-        <div className="p-8 h-full overflow-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold text-white">Portfolio</h1>
-                    <p className="text-gray-500 text-sm">Your holdings and performance</p>
-                </div>
-                <button onClick={fetchData} className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors">
-                    <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    Refresh
-                </button>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-6">
-                    <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
-                        <Wallet size={16} /> Portfolio Value
-                    </div>
-                    <p className="text-3xl font-bold text-white">
-                        ${portfolio ? parseFloat(portfolio.portfolio_value).toLocaleString() : '100,000'}
-                    </p>
-                </div>
-
-                <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-6">
-                    <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
-                        <DollarSign size={16} /> Buying Power
-                    </div>
-                    <p className="text-3xl font-bold text-green-400">
-                        ${portfolio ? parseFloat(portfolio.buying_power).toLocaleString() : '200,000'}
-                    </p>
+        <DashboardLayout title="Portfolio" subtitle="Your holdings and performance">
+            <div className="p-6">
+                {/* Stats Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <StatCard
+                        label="Portfolio Value"
+                        value={`$${portfolio ? parseFloat(portfolio.portfolio_value).toLocaleString() : '100,000'}`}
+                        icon={Wallet}
+                        color="cyan"
+                    />
+                    <StatCard
+                        label="Buying Power"
+                        value={`$${portfolio ? parseFloat(portfolio.buying_power).toLocaleString() : '200,000'}`}
+                        icon={DollarSign}
+                        color="green"
+                    />
+                    <StatCard
+                        label="Positions"
+                        value={positions.length}
+                        icon={PieChart}
+                        color="cyan"
+                    />
+                    <StatCard
+                        label="Unrealized P&L"
+                        value={`${totalPL >= 0 ? '+' : ''}$${totalPL.toFixed(2)}`}
+                        icon={totalPL >= 0 ? TrendingUp : TrendingDown}
+                        color={totalPL >= 0 ? 'green' : 'red'}
+                    />
                 </div>
 
-                <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-6">
-                    <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
-                        <PieChart size={16} /> Positions
-                    </div>
-                    <p className="text-3xl font-bold text-cyan-400">{positions.length}</p>
-                </div>
-
-                <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-6">
-                    <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
-                        {totalPL >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />} Unrealized P&L
-                    </div>
-                    <p className={`text-3xl font-bold ${totalPL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {totalPL >= 0 ? '+' : ''}${totalPL.toFixed(2)}
-                    </p>
-                </div>
-            </div>
-
-            {/* Positions Table */}
-            <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl overflow-hidden">
-                <div className="p-4 border-b border-gray-800">
-                    <h2 className="font-bold text-white">Open Positions</h2>
-                </div>
-
-                {positions.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">
-                        No open positions. Start trading to see your holdings here.
+                {/* Positions Table */}
+                {loading ? (
+                    <TableSkeleton rows={5} />
+                ) : positions.length === 0 ? (
+                    <div className="glass-card">
+                        <EmptyState
+                            icon={Wallet}
+                            title="No Open Positions"
+                            description="Start trading to see your holdings here. Use the Terminal to execute your first trade."
+                            actionLabel="Go to Terminal"
+                            action={() => window.location.href = '/trade'}
+                        />
                     </div>
                 ) : (
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-900/50 text-gray-400 uppercase text-xs">
-                            <tr>
-                                <th className="p-4">Symbol</th>
-                                <th className="p-4">Qty</th>
-                                <th className="p-4">Entry Price</th>
-                                <th className="p-4">Current Price</th>
-                                <th className="p-4">P&L</th>
-                                <th className="p-4">P&L %</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {positions.map((pos, i) => {
-                                const pl = parseFloat(pos.unrealized_pl || '0');
-                                const plpc = parseFloat(pos.unrealized_plpc || '0') * 100;
-                                return (
-                                    <tr key={i} className="border-b border-gray-800 hover:bg-gray-900/50">
-                                        <td className="p-4 font-bold text-white">{pos.symbol}</td>
-                                        <td className="p-4 text-gray-300">{pos.qty}</td>
-                                        <td className="p-4 text-gray-300">${parseFloat(pos.avg_entry_price).toFixed(2)}</td>
-                                        <td className="p-4 text-gray-300">${parseFloat(pos.current_price).toFixed(2)}</td>
-                                        <td className={`p-4 font-bold ${pl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            {pl >= 0 ? '+' : ''}${pl.toFixed(2)}
-                                        </td>
-                                        <td className={`p-4 ${plpc >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            {plpc >= 0 ? '+' : ''}{plpc.toFixed(2)}%
-                                        </td>
+                    <div className="glass-card overflow-hidden">
+                        <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                            <h2 className="font-semibold text-white">Open Positions</h2>
+                            <button onClick={fetchData} className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                                Refresh
+                            </button>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-black/30 text-gray-400 uppercase text-xs">
+                                    <tr>
+                                        <th className="p-4">Symbol</th>
+                                        <th className="p-4">Qty</th>
+                                        <th className="p-4">Entry Price</th>
+                                        <th className="p-4">Current Price</th>
+                                        <th className="p-4">P&L</th>
+                                        <th className="p-4">P&L %</th>
                                     </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    {positions.map((pos, i) => {
+                                        const pl = parseFloat(pos.unrealized_pl || '0');
+                                        const plpc = parseFloat(pos.unrealized_plpc || '0') * 100;
+                                        return (
+                                            <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                                                <td className="p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${pl >= 0 ? 'bg-emerald-500/20' : 'bg-rose-500/20'}`}>
+                                                            {pl >= 0 ? <ArrowUpRight size={16} className="text-emerald-400" /> : <ArrowDownRight size={16} className="text-rose-400" />}
+                                                        </div>
+                                                        <span className="font-mono font-semibold text-white">{pos.symbol}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="p-4 font-mono text-gray-300">{pos.qty}</td>
+                                                <td className="p-4 font-mono text-gray-300">${parseFloat(pos.avg_entry_price).toFixed(2)}</td>
+                                                <td className="p-4 font-mono text-white">${parseFloat(pos.current_price).toFixed(2)}</td>
+                                                <td className={`p-4 font-mono font-semibold ${pl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                    {pl >= 0 ? '+' : ''}${pl.toFixed(2)}
+                                                </td>
+                                                <td className={`p-4 font-mono ${plpc >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                    {plpc >= 0 ? '+' : ''}{plpc.toFixed(2)}%
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 )}
             </div>
-        </div>
+        </DashboardLayout>
     );
 }
