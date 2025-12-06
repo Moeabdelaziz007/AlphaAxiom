@@ -1,12 +1,11 @@
-from js import Response, Headers, fetch, Object
+from js import Response, Headers, fetch
 import json
 import re
-import time
 
 # ==========================================
-# 🧠 ANTIGRAVITY TRADING BRAIN v4.0
-# Smart Chat + State Persistence + Circuit Breakers
-# Based on Deep Research Architecture
+# 🧠 ANTIGRAVITY TRADING BRAIN v5.0
+# D1 Database + Smart Chat + Alpaca Execution
+# The Master Controller
 # ==========================================
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -14,34 +13,33 @@ ALPACA_API_URL = "https://paper-api.alpaca.markets/v2"
 
 # Circuit Breaker Limits
 MAX_TRADES_PER_DAY = 10
-MAX_DRAWDOWN_PERCENT = 5
 
-SYSTEM_PROMPT = """You are ANTIGRAVITY AI, an elite trading assistant.
-Keep responses under 100 words. Be professional and precise.
+SYSTEM_PROMPT = """You are the Architect of a Trading Bot. Translate user commands into strict JSON.
 
-CAPABILITIES:
-1. Trade Execution: "Buy 10 AAPL" → Execute on Alpaca
-2. Market Analysis: "Analyze SPY" → Provide insights
-3. Create Rules: "If RSI drops below 30, buy" → Save automation rule
+OUTPUT FORMAT:
+{
+  "type": "CREATE_RULE" | "EXECUTE_TRADE" | "CHAT" | "ANALYZE",
+  "response_text": "Brief confirmation to user...",
+  "trade_data": { "ticker": "AAPL", "side": "buy", "qty": 10 },
+  "rule_data": { "ticker": "SPY", "logic_json": { "condition": "RSI_BELOW", "trigger": 30, "action": "BUY", "qty": 5 } }
+}
 
-For trades, respond with:
-```json
-{"action": "trade", "symbol": "AAPL", "side": "buy", "qty": 10}
-```
+Examples:
+- "Buy 10 AAPL" → type="EXECUTE_TRADE", trade_data={ticker:"AAPL", side:"buy", qty:10}
+- "If RSI drops below 30, buy SPY" → type="CREATE_RULE", rule_data={...}
+- "Analyze TSLA" → type="ANALYZE", response_text="Market analysis..."
+- "Hello" → type="CHAT", response_text="Hello! I'm your trading assistant..."
 
-For rules, respond with:
-```json
-{"action": "rule", "symbol": "SPY", "condition": "RSI < 30", "trade": {"side": "buy", "qty": 5}}
-```
-
-Always confirm before executing. Remember: Paper Trading only."""
+For trades, set trade_data. For rules, set rule_data. For chat/analyze, set response_text only."""
 
 
 async def on_fetch(request, env):
-    """Main async handler with state persistence"""
+    """Master Controller: Chat → AI → D1 → Alpaca"""
+    
     url = str(request.url)
     method = str(request.method)
     
+    # CORS Headers
     cors_headers = {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
@@ -59,132 +57,67 @@ async def on_fetch(request, env):
         return await handle_smart_chat(request, env, headers)
     
     if "api/trade" in url:
-        return await handle_trade(request, env, headers)
+        return await handle_direct_trade(request, env, headers)
     
-    if "api/positions" in url:
-        return await get_positions(env, headers)
+    if "api/rules" in url:
+        return await get_rules(env, headers)
+    
+    if "api/logs" in url:
+        return await get_logs(env, headers)
     
     if "api/account" in url:
         return await get_account(env, headers)
     
-    if "api/rules" in url:
-        return await handle_rules(request, env, headers)
-    
-    if "api/logs" in url:
-        return await get_trade_logs(env, headers)
+    if "api/positions" in url:
+        return await get_positions(env, headers)
     
     if "api/status" in url:
-        trades_today = await get_kv(env, "trades_today") or "0"
-        kill_switch = await get_kv(env, "kill_switch") or "false"
+        trades_today = await get_trades_count(env)
         result = {
             "status": "online",
+            "version": "5.0",
             "ai": "Groq Llama 3.3",
+            "database": "D1 Connected",
             "broker": "Alpaca Paper",
-            "version": "4.0",
-            "trades_today": int(trades_today),
-            "max_trades": MAX_TRADES_PER_DAY,
-            "kill_switch": kill_switch == "true"
+            "trades_today": trades_today,
+            "max_trades": MAX_TRADES_PER_DAY
         }
         return Response.new(json.dumps(result), headers=headers)
     
-    if "api/market" in url:
-        return await get_market_data(request, env, headers)
-    
-    if "api/killswitch" in url:
-        return await toggle_kill_switch(request, env, headers)
+    return Response.new(json.dumps({"message": "🦅 Antigravity D1 Brain Online v5.0"}), headers=headers)
 
-    result = {"status": "online", "message": "ANTIGRAVITY v4.0 - Zero Cost Trading Brain"}
-    return Response.new(json.dumps(result), headers=headers)
-
-
-# ============ KV HELPERS ============
-
-async def get_kv(env, key):
-    """Get value from KV store"""
-    try:
-        kv = env.BRAIN_MEMORY
-        return await kv.get(key)
-    except:
-        return None
-
-async def put_kv(env, key, value):
-    """Put value to KV store"""
-    try:
-        kv = env.BRAIN_MEMORY
-        await kv.put(key, str(value))
-        return True
-    except:
-        return False
-
-
-# ============ CIRCUIT BREAKERS ============
-
-async def check_circuit_breakers(env):
-    """Check if trading is allowed"""
-    # Check kill switch
-    kill_switch = await get_kv(env, "kill_switch")
-    if kill_switch == "true":
-        return False, "🛑 Kill Switch ACTIVE - Trading paused"
-    
-    # Check daily trade limit
-    trades_today = await get_kv(env, "trades_today") or "0"
-    if int(trades_today) >= MAX_TRADES_PER_DAY:
-        return False, f"🛡️ Max trades reached ({MAX_TRADES_PER_DAY}/day)"
-    
-    return True, "OK"
-
-
-async def increment_trade_count(env):
-    """Increment daily trade counter"""
-    trades_today = await get_kv(env, "trades_today") or "0"
-    await put_kv(env, "trades_today", str(int(trades_today) + 1))
-
-
-# ============ SMART CHAT ============
 
 async def handle_smart_chat(request, env, headers):
-    """Smart AI chat with intent parsing and execution"""
+    """Smart AI Chat with D1 Storage"""
     try:
         method = str(request.method)
-        user_message = "Hello"
+        user_msg = "Hello"
         
         if method == "POST":
             try:
                 body = await request.json()
-                user_message = body.get("message", "Hello")
+                user_msg = body.get("message", "Hello")
             except:
                 pass
         else:
             url = str(request.url)
             if "message=" in url:
-                user_message = url.split("message=")[1].split("&")[0]
-                user_message = user_message.replace("%20", " ").replace("+", " ")
+                user_msg = url.split("message=")[1].split("&")[0]
+                user_msg = user_msg.replace("%20", " ").replace("+", " ")
         
         groq_key = str(getattr(env, 'GROQ_API_KEY', ''))
-        
         if not groq_key:
-            result = {"reply": "⚠️ Groq API key not configured", "status": "error"}
-            return Response.new(json.dumps(result), headers=headers)
+            return Response.new(json.dumps({"reply": "⚠️ Groq API not configured"}), headers=headers)
         
-        # Get chat history from KV (last 5 messages for context)
-        chat_history = await get_kv(env, "chat_history")
-        messages = []
-        if chat_history:
-            try:
-                messages = json.loads(chat_history)[-5:]
-            except:
-                messages = []
-        
-        # Build request
-        full_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-        full_messages.extend(messages)
-        full_messages.append({"role": "user", "content": user_message})
-        
+        # Call Groq with JSON mode
         request_body = json.dumps({
             "model": "llama-3.3-70b-versatile",
-            "messages": full_messages,
-            "max_tokens": 300,
-            "temperature": 0.7
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_msg}
+            ],
+            "response_format": {"type": "json_object"},
+            "max_tokens": 400
         })
         
         request_headers = Headers.new({
@@ -196,70 +129,87 @@ async def handle_smart_chat(request, env, headers):
         response_text = await response.text()
         
         if not response.ok:
-            result = {"reply": f"API Error: {str(response_text)[:100]}", "status": "error"}
-            return Response.new(json.dumps(result), headers=headers)
+            return Response.new(json.dumps({"reply": f"API Error: {str(response_text)[:100]}"}), headers=headers)
         
         data = json.loads(str(response_text))
-        ai_reply = data["choices"][0]["message"]["content"]
+        ai_content = data["choices"][0]["message"]["content"]
+        parsed_intent = json.loads(ai_content)
         
-        # Parse for actions
+        # ============ SAVE TO D1 ============
+        db = env.TRADING_DB
+        
+        # 1. Save user message to context
+        await db.prepare(
+            "INSERT INTO user_context (session_id, role, content) VALUES (?, ?, ?)"
+        ).bind("web_session", "user", user_msg).run()
+        
         trade_result = None
         rule_result = None
-        json_match = re.search(r'```json\s*(\{[^`]+\})\s*```', ai_reply)
         
-        if json_match:
-            try:
-                intent = json.loads(json_match.group(1))
+        # 2. Handle based on intent type
+        intent_type = parsed_intent.get("type", "CHAT")
+        
+        if intent_type == "EXECUTE_TRADE":
+            trade_data = parsed_intent.get("trade_data", {})
+            if trade_data:
+                # Check circuit breaker
+                trades_today = await get_trades_count(env)
+                if trades_today >= MAX_TRADES_PER_DAY:
+                    trade_result = {"status": "blocked", "message": f"🛡️ Max trades reached ({MAX_TRADES_PER_DAY}/day)"}
+                else:
+                    trade_result = await execute_alpaca_trade(
+                        env,
+                        trade_data.get("ticker", "AAPL"),
+                        trade_data.get("side", "buy"),
+                        trade_data.get("qty", 1)
+                    )
+                    if trade_result.get("status") == "success":
+                        # Log trade to D1
+                        await db.prepare(
+                            "INSERT INTO trade_logs (ticker, action, qty, order_id, trigger_reason) VALUES (?, ?, ?, ?, ?)"
+                        ).bind(
+                            trade_data.get("ticker"),
+                            trade_data.get("side"),
+                            trade_data.get("qty"),
+                            trade_result.get("order_id", ""),
+                            "chat_command"
+                        ).run()
+        
+        elif intent_type == "CREATE_RULE":
+            rule_data = parsed_intent.get("rule_data", {})
+            if rule_data:
+                import time
+                rule_id = f"rule_{int(time.time())}"
+                logic_str = json.dumps(rule_data.get("logic_json", {}))
                 
-                if intent.get("action") == "trade":
-                    # Check circuit breakers first
-                    can_trade, message = await check_circuit_breakers(env)
-                    if not can_trade:
-                        trade_result = {"status": "blocked", "message": message}
-                    else:
-                        trade_result = await execute_alpaca_trade(
-                            env, 
-                            intent.get("symbol", "AAPL"),
-                            intent.get("side", "buy"),
-                            intent.get("qty", 1)
-                        )
-                        if trade_result.get("status") == "success":
-                            await increment_trade_count(env)
-                            await log_trade(env, trade_result)
-                    
-                elif intent.get("action") == "rule":
-                    rule_result = await save_rule(env, intent)
-                    
-            except Exception as e:
-                pass
+                await db.prepare(
+                    "INSERT INTO trading_rules (rule_id, ticker, logic_json, status) VALUES (?, ?, ?, ?)"
+                ).bind(rule_id, rule_data.get("ticker", ""), logic_str, "active").run()
+                
+                rule_result = {"rule_id": rule_id, "status": "saved"}
+                parsed_intent["response_text"] = f"{parsed_intent.get('response_text', '')} [Saved Rule ID: {rule_id}]"
         
-        # Save to chat history
-        messages.append({"role": "user", "content": user_message})
-        messages.append({"role": "assistant", "content": ai_reply})
-        await put_kv(env, "chat_history", json.dumps(messages[-10:]))
-        
-        # Clean reply
-        clean_reply = re.sub(r'```json\s*\{[^`]+\}\s*```', '', ai_reply).strip()
+        # 3. Save assistant response
+        await db.prepare(
+            "INSERT INTO user_context (session_id, role, content) VALUES (?, ?, ?)"
+        ).bind("web_session", "assistant", parsed_intent.get("response_text", "")).run()
         
         result = {
-            "reply": clean_reply if clean_reply else ai_reply,
-            "status": "success",
-            "model": "llama-3.3-70b-versatile",
+            "reply": parsed_intent.get("response_text", ""),
+            "type": intent_type,
             "trade_executed": trade_result,
-            "rule_saved": rule_result
+            "rule_saved": rule_result,
+            "model": "llama-3.3-70b-versatile"
         }
         
         return Response.new(json.dumps(result), headers=headers)
         
     except Exception as e:
-        result = {"reply": f"Error: {str(e)}", "status": "error"}
-        return Response.new(json.dumps(result), status=500, headers=headers)
+        return Response.new(json.dumps({"reply": f"Error: {str(e)}", "status": "error"}), status=500, headers=headers)
 
-
-# ============ TRADE EXECUTION ============
 
 async def execute_alpaca_trade(env, symbol, side, qty):
-    """Execute trade on Alpaca with circuit breaker check"""
+    """Execute trade on Alpaca"""
     try:
         alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
         alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
@@ -281,13 +231,7 @@ async def execute_alpaca_trade(env, symbol, side, qty):
             "Content-Type": "application/json"
         }.items())
         
-        response = await fetch(
-            f"{ALPACA_API_URL}/orders",
-            method="POST",
-            headers=order_headers,
-            body=order_body
-        )
-        
+        response = await fetch(f"{ALPACA_API_URL}/orders", method="POST", headers=order_headers, body=order_body)
         response_text = await response.text()
         
         if response.ok:
@@ -302,131 +246,60 @@ async def execute_alpaca_trade(env, symbol, side, qty):
             }
         else:
             return {"status": "error", "message": f"Alpaca: {str(response_text)[:100]}"}
-            
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
 
-async def log_trade(env, trade_data):
-    """Log trade to KV"""
-    try:
-        logs = await get_kv(env, "trade_logs")
-        log_list = json.loads(logs) if logs else []
-        log_list.append({
-            "timestamp": str(int(time.time())),
-            **trade_data
-        })
-        await put_kv(env, "trade_logs", json.dumps(log_list[-50:]))
-    except:
-        pass
-
-
-# ============ RULES ENGINE ============
-
-async def save_rule(env, rule_data):
-    """Save trading rule to KV"""
-    try:
-        rules = await get_kv(env, "trading_rules")
-        rule_list = json.loads(rules) if rules else []
-        rule_id = f"rule_{len(rule_list)+1}"
-        rule_data["rule_id"] = rule_id
-        rule_data["status"] = "active"
-        rule_list.append(rule_data)
-        await put_kv(env, "trading_rules", json.dumps(rule_list))
-        return {"status": "success", "rule_id": rule_id, "message": f"✅ Rule saved: {rule_id}"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-async def handle_rules(request, env, headers):
-    """Get or manage trading rules"""
-    rules = await get_kv(env, "trading_rules")
-    rule_list = json.loads(rules) if rules else []
-    return Response.new(json.dumps({"rules": rule_list, "count": len(rule_list)}), headers=headers)
-
-
-async def get_trade_logs(env, headers):
-    """Get trade logs"""
-    logs = await get_kv(env, "trade_logs")
-    log_list = json.loads(logs) if logs else []
-    return Response.new(json.dumps({"logs": log_list, "count": len(log_list)}), headers=headers)
-
-
-# ============ KILL SWITCH ============
-
-async def toggle_kill_switch(request, env, headers):
-    """Toggle kill switch"""
-    current = await get_kv(env, "kill_switch") or "false"
-    new_value = "false" if current == "true" else "true"
-    await put_kv(env, "kill_switch", new_value)
-    
-    if new_value == "true":
-        # Cancel all open orders
-        try:
-            alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
-            alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
-            order_headers = Headers.new({
-                "APCA-API-KEY-ID": alpaca_key,
-                "APCA-API-SECRET-KEY": alpaca_secret
-            }.items())
-            await fetch(f"{ALPACA_API_URL}/orders", method="DELETE", headers=order_headers)
-        except:
-            pass
-    
-    return Response.new(json.dumps({
-        "kill_switch": new_value == "true",
-        "message": "🛑 KILL SWITCH ACTIVATED" if new_value == "true" else "✅ Trading resumed"
-    }), headers=headers)
-
-
-# ============ OTHER ENDPOINTS ============
-
-async def handle_trade(request, env, headers):
+async def handle_direct_trade(request, env, headers):
     """Direct trade endpoint"""
     url = str(request.url)
-    
     symbol = "AAPL"
     side = "buy"
-    qty = "1"
+    qty = 1
     
     if "symbol=" in url:
         symbol = url.split("symbol=")[1].split("&")[0]
     if "side=" in url:
         side = url.split("side=")[1].split("&")[0]
     if "qty=" in url:
-        qty = url.split("qty=")[1].split("&")[0]
+        qty = int(url.split("qty=")[1].split("&")[0])
     
-    can_trade, message = await check_circuit_breakers(env)
-    if not can_trade:
-        return Response.new(json.dumps({"status": "blocked", "message": message}), headers=headers)
-    
-    result = await execute_alpaca_trade(env, symbol, side, int(qty))
-    if result.get("status") == "success":
-        await increment_trade_count(env)
-        await log_trade(env, result)
+    result = await execute_alpaca_trade(env, symbol, side, qty)
     return Response.new(json.dumps(result), headers=headers)
 
 
-async def get_positions(env, headers):
-    """Get current positions"""
+async def get_trades_count(env):
+    """Get today's trade count from D1"""
     try:
-        alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
-        alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
-        
-        req_headers = Headers.new({
-            "APCA-API-KEY-ID": alpaca_key,
-            "APCA-API-SECRET-KEY": alpaca_secret
-        }.items())
-        
-        response = await fetch(f"{ALPACA_API_URL}/positions", method="GET", headers=req_headers)
-        response_text = await response.text()
-        
-        if response.ok:
-            positions = json.loads(str(response_text))
-            return Response.new(json.dumps({"positions": positions}), headers=headers)
-        return Response.new(json.dumps({"positions": []}), headers=headers)
+        db = env.TRADING_DB
+        result = await db.prepare(
+            "SELECT COUNT(*) as count FROM trade_logs WHERE date(executed_at) = date('now')"
+        ).all()
+        return result.results[0]["count"] if result.results else 0
     except:
-        return Response.new(json.dumps({"positions": []}), headers=headers)
+        return 0
+
+
+async def get_rules(env, headers):
+    """Get all trading rules from D1"""
+    try:
+        db = env.TRADING_DB
+        result = await db.prepare("SELECT * FROM trading_rules WHERE status = 'active'").all()
+        rules = [dict(r) for r in result.results] if result.results else []
+        return Response.new(json.dumps({"rules": rules, "count": len(rules)}), headers=headers)
+    except Exception as e:
+        return Response.new(json.dumps({"rules": [], "error": str(e)}), headers=headers)
+
+
+async def get_logs(env, headers):
+    """Get trade logs from D1"""
+    try:
+        db = env.TRADING_DB
+        result = await db.prepare("SELECT * FROM trade_logs ORDER BY executed_at DESC LIMIT 50").all()
+        logs = [dict(r) for r in result.results] if result.results else []
+        return Response.new(json.dumps({"logs": logs, "count": len(logs)}), headers=headers)
+    except Exception as e:
+        return Response.new(json.dumps({"logs": [], "error": str(e)}), headers=headers)
 
 
 async def get_account(env, headers):
@@ -451,17 +324,28 @@ async def get_account(env, headers):
                 "cash": account.get("cash"),
                 "status": "success"
             }), headers=headers)
-        return Response.new(json.dumps({"error": "Failed to fetch"}), headers=headers)
+        return Response.new(json.dumps({"error": "Failed"}), headers=headers)
     except Exception as e:
         return Response.new(json.dumps({"error": str(e)}), headers=headers)
 
 
-async def get_market_data(request, env, headers):
-    """Get market data"""
-    url = str(request.url)
-    symbol = "SPY"
-    if "symbol=" in url:
-        symbol = url.split("symbol=")[1].split("&")[0]
-    
-    result = {"symbol": symbol.upper(), "price": 595.50, "change": 2.30, "status": "demo"}
-    return Response.new(json.dumps(result), headers=headers)
+async def get_positions(env, headers):
+    """Get positions from Alpaca"""
+    try:
+        alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
+        alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
+        
+        req_headers = Headers.new({
+            "APCA-API-KEY-ID": alpaca_key,
+            "APCA-API-SECRET-KEY": alpaca_secret
+        }.items())
+        
+        response = await fetch(f"{ALPACA_API_URL}/positions", method="GET", headers=req_headers)
+        response_text = await response.text()
+        
+        if response.ok:
+            positions = json.loads(str(response_text))
+            return Response.new(json.dumps({"positions": positions}), headers=headers)
+        return Response.new(json.dumps({"positions": []}), headers=headers)
+    except:
+        return Response.new(json.dumps({"positions": []}), headers=headers)
