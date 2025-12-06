@@ -58,7 +58,7 @@ export default function SentinelChat() {
         setIsTyping(true);
 
         try {
-            const response = await fetch('http://localhost:8000/api/ai/chat', {
+            const response = await fetch('https://trading-brain-v1.amrikyy1.workers.dev/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: userInput })
@@ -101,7 +101,7 @@ export default function SentinelChat() {
         setIsTyping(true);
 
         try {
-            const response = await fetch('http://localhost:8000/api/trade', {
+            const response = await fetch('https://trading-brain-v1.amrikyy1.workers.dev/api/trade', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
