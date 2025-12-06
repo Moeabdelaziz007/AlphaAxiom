@@ -32,7 +32,7 @@ export default function TopBar() {
                         <p className="text-sm font-bold text-neon-green font-mono glow-green">$124,580.45</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-xs text-gray-500">Today's P&L</p>
+                        <p className="text-xs text-gray-500">Today&apos;s P&amp;L</p>
                         <p className="text-sm font-bold text-neon-green font-mono">+$1,240.80</p>
                     </div>
                 </div>

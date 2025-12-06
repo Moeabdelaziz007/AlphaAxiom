@@ -278,7 +278,7 @@ export default function SentinelChat() {
                                             <p>Side: <span className={msg.tradeData.side === 'buy' ? 'text-neon-green' : 'text-neon-red'}>{msg.tradeData.side.toUpperCase()}</span></p>
                                             <p>Qty: <span className="text-white">{msg.tradeData.qty}</span></p>
                                             <p>Price: <span className="text-white">${msg.tradeData.price}</span></p>
-                                            {msg.tradeData.sl > 0 && <p>SL: <span className="text-neon-red">${msg.tradeData.sl}</span> | TP: <span className="text-neon-green">${msg.tradeData.tp}</span></p>}
+                                            {(msg.tradeData.sl ?? 0) > 0 && <p>SL: <span className="text-neon-red">${msg.tradeData.sl}</span> | TP: <span className="text-neon-green">${msg.tradeData.tp}</span></p>}
                                         </div>
                                         {pendingTrade && (
                                             <div className="flex gap-2">
@@ -301,8 +301,8 @@ export default function SentinelChat() {
                                     </div>
                                 ) : (
                                     <div className={`max-w-[85%] p-3 rounded-xl text-sm ${msg.role === 'user'
-                                            ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'
-                                            : 'bg-terminal-gray/80 text-gray-200 border border-white/10'
+                                        ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30'
+                                        : 'bg-terminal-gray/80 text-gray-200 border border-white/10'
                                         }`}>
                                         {msg.role === 'system' && (
                                             <div className="flex items-center gap-1 mb-1">

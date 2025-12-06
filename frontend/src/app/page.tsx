@@ -20,7 +20,7 @@ export default function TradingDashboard() {
     const [selectedSymbol, setSelectedSymbol] = useState('BTC/USDT');
 
     // Live market data للأصل المحدد
-    const { data: marketData, isConnected } = useMarketData(selectedSymbol);
+    const { data: marketData } = useMarketData(selectedSymbol);
 
     // Demo portfolio stats (يمكن ربطها بالـ API لاحقاً)
     const stats = {
@@ -53,8 +53,8 @@ export default function TradingDashboard() {
                             <Sparkles className="inline w-4 h-4 mr-1" />
                             PHILOSOPHY:
                         </span>{' '}
-                        "معظم المتداولين يخسرون لأنهم يتدخلون عاطفيًا. هذا النظام يزيل العاطفة.
-                        أنت تعطيه الأوامر (الخطة)، وهو ينفذها <span className="text-neon-cyan">كالجراح بدقة المليمتر</span> بناءً على الرياضيات فقط."
+                        &ldquo;معظم المتداولين يخسرون لأنهم يتدخلون عاطفيًا. هذا النظام يزيل العاطفة.
+                        أنت تعطيه الأوامر (الخطة)، وهو ينفذها <span className="text-neon-cyan">كالجراح بدقة المليمتر</span> بناءً على الرياضيات فقط.&rdquo;
                     </p>
                 </div>
 

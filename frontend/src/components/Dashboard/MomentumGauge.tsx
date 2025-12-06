@@ -9,7 +9,10 @@ interface MomentumGaugeProps {
 }
 
 export default function MomentumGauge({ symbol }: MomentumGaugeProps) {
-    const { momentum: rawMomentum, trend } = useMarketData(symbol);
+    const { data, trend } = useMarketData(symbol);
+
+    // Calculate momentum from change_percent (scale to 0-100 where 50 is neutral)
+    const rawMomentum = data?.change_percent ? 50 + (data.change_percent * 2) : 50;
 
     // Default to 50 if momentum is undefined
     const momentum = rawMomentum ?? 50;
@@ -45,7 +48,7 @@ export default function MomentumGauge({ symbol }: MomentumGaugeProps) {
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500">{symbol}</span>
-                    {trend === 'up' ? (
+                    {trend === 'UP' ? (
                         <TrendingUp className="w-4 h-4 text-neon-green" />
                     ) : (
                         <TrendingDown className="w-4 h-4 text-neon-red" />
