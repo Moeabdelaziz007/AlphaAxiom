@@ -14,22 +14,39 @@ TELEGRAM_API_URL = "https://api.telegram.org/bot"
 
 MAX_TRADES_PER_DAY = 10
 
-SYSTEM_PROMPT = """You are the OS of AntigravityTradingLLM - a zero-cost trading terminal.
+SYSTEM_PROMPT = """You are SENTINEL - an expert AI trading assistant inside AntigravityTradingLLM.
 
-AVAILABLE ACTIONS (output JSON):
-1. SHOW_CHART: User asks for price/chart/technicals
-   -> {"type": "SHOW_CHART", "symbol": "SPY", "reply": "Loading SPY chart..."}
+YOUR PERSONALITY:
+- You're a seasoned Wall Street quant with 20 years experience
+- You speak confidently but concisely
+- You use emojis sparingly for clarity (📈 📉 💰 ⚠️)
+- You provide actionable insights, not generic advice
 
-2. RESEARCH: User asks for news/analysis/sentiment
-   -> {"type": "RESEARCH", "symbol": "AAPL", "reply": "Researching AAPL news..."}
+YOUR CAPABILITIES:
+1. CHART ANALYSIS - When user asks for price/chart/technicals:
+   → Respond: {"type": "SHOW_CHART", "symbol": "SPY", "reply": "📈 Loading SPY. Current trend shows bullish momentum with RSI at 62..."}
 
-3. TRADE: User wants to buy/sell
-   -> {"type": "TRADE", "symbol": "TSLA", "side": "buy", "qty": 10, "reply": "Executing buy order..."}
+2. RESEARCH & NEWS - When user asks about news/why/analysis:
+   → Respond: {"type": "RESEARCH", "symbol": "AAPL", "reply": "🔬 Analyzing AAPL: Strong earnings beat last quarter. Institutional buying pressure..."}
 
-4. CHAT: General conversation
-   -> {"type": "CHAT", "reply": "Your helpful response..."}
+3. TRADE EXECUTION - When user wants to buy/sell:
+   → Respond: {"type": "TRADE", "symbol": "TSLA", "side": "buy", "qty": 10, "reply": "💰 Executing: BUY 10 TSLA at market..."}
 
-Always output valid JSON. Be concise."""
+4. CONVERSATION - For general questions, provide REAL insights:
+   → Respond: {"type": "CHAT", "reply": "Your smart, detailed response with actual value..."}
+
+RULES:
+- ALWAYS output valid JSON with "type" and "reply" fields
+- For CHAT type, give REAL trading wisdom, not generic filler
+- Be helpful, knowledgeable, and confident
+- If asked about a stock, provide real analysis
+
+EXAMPLES OF GOOD REPLIES:
+- "SPY is showing a bullish flag pattern on the 4H chart. Volume confirms the breakout. Consider entries above 595."
+- "Gold typically rallies during rate uncertainty. With Fed signals mixed, GLD could see upside. Watch 182 resistance."
+- "TSLA's RSI is oversold at 28. Historically, this leads to a 5-7% bounce within 3 days."
+
+Remember: You're a REAL trading expert, not a generic chatbot."""
 
 
 async def on_fetch(request, env):
@@ -50,6 +67,10 @@ async def on_fetch(request, env):
         return Response.new("", headers=headers)
     
     # ============ ROUTES ============
+    
+    # Telegram Webhook - Bot receives messages and replies with LLM
+    if "/telegram/webhook" in url or "/api/telegram" in url:
+        return await handle_telegram_webhook(request, env, headers)
     
     if "api/chat" in url:
         return await handle_smart_chat(request, env, headers)
@@ -245,6 +266,139 @@ async def send_telegram_alert(env, message):
         await fetch(url, method="POST", headers=req_headers, body=payload)
     except:
         pass  # Don't fail if Telegram fails
+
+
+async def handle_telegram_webhook(request, env, headers):
+    """Receive Telegram messages and reply with smart LLM"""
+    try:
+        body = await request.json()
+        message = body.get("message", {})
+        chat_id = message.get("chat", {}).get("id")
+        text = message.get("text", "")
+        user_name = message.get("from", {}).get("first_name", "Trader")
+        
+        if not chat_id or not text:
+            return Response.new(json.dumps({"ok": True}), headers=headers)
+        
+        # Skip commands for now
+        if text.startswith("/start"):
+            reply = f"🧠 <b>SENTINEL AI</b> Online!\n\nHello {user_name}! I'm your expert trading assistant.\n\n<b>Try:</b>\n• What's happening with Tesla?\n• Analyze SPY\n• Buy 5 AAPL\n• News on gold"
+            await send_telegram_reply(env, chat_id, reply)
+            return Response.new(json.dumps({"ok": True}), headers=headers)
+        
+        # Call Gemini for smart response
+        ai_response = await call_gemini_chat(text, user_name, env)
+        
+        # Send reply
+        await send_telegram_reply(env, chat_id, ai_response)
+        
+        return Response.new(json.dumps({"ok": True}), headers=headers)
+    except Exception as e:
+        return Response.new(json.dumps({"ok": True, "error": str(e)}), headers=headers)
+
+
+async def send_telegram_reply(env, chat_id, text):
+    """Send reply to specific chat"""
+    try:
+        telegram_token = str(getattr(env, 'TELEGRAM_BOT_TOKEN', ''))
+        url = f"{TELEGRAM_API_URL}{telegram_token}/sendMessage"
+        
+        payload = json.dumps({
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "HTML"
+        })
+        
+        req_headers = Headers.new({"Content-Type": "application/json"}.items())
+        await fetch(url, method="POST", headers=req_headers, body=payload)
+    except:
+        pass
+
+
+async def call_gemini_chat(user_message, user_name, env):
+    """Call Gemini 1.5 Flash for intelligent trading chat"""
+    try:
+        gemini_key = str(getattr(env, 'GEMINI_API_KEY', ''))
+        
+        if not gemini_key:
+            # Fallback to Groq
+            return await call_groq_chat(user_message, env)
+        
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+        
+        prompt = f"""You are SENTINEL - an expert AI trading assistant for {user_name}.
+
+PERSONALITY:
+- Seasoned Wall Street quant with 20 years experience
+- Confident, concise, uses emojis sparingly (📈📉💰⚠️)
+- Provides actionable insights, not generic advice
+
+CAPABILITIES:
+- Market analysis and sentiment
+- Technical analysis (RSI, MACD, patterns)
+- News interpretation
+- Trade recommendations
+- Risk assessment
+
+User: {user_message}
+
+Respond naturally as a trading expert. Be helpful, insightful, and specific. Keep response under 500 characters for Telegram."""
+
+        payload = json.dumps({
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 300
+            }
+        })
+        
+        req_headers = Headers.new({"Content-Type": "application/json"}.items())
+        response = await fetch(url, method="POST", headers=req_headers, body=payload)
+        
+        if response.ok:
+            data = json.loads(await response.text())
+            text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+            if text:
+                return text
+        
+        # Fallback to Groq
+        return await call_groq_chat(user_message, env)
+    except:
+        return await call_groq_chat(user_message, env)
+
+
+async def call_groq_chat(user_message, env):
+    """Fallback to Groq for chat"""
+    try:
+        groq_key = str(getattr(env, 'GROQ_API_KEY', ''))
+        
+        if not groq_key:
+            return "⚠️ AI not configured"
+        
+        payload = json.dumps({
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
+                {"role": "system", "content": "You are SENTINEL, an expert trading AI. Be concise and insightful."},
+                {"role": "user", "content": user_message}
+            ],
+            "temperature": 0.7,
+            "max_tokens": 300
+        })
+        
+        req_headers = Headers.new({
+            "Authorization": f"Bearer {groq_key}",
+            "Content-Type": "application/json"
+        }.items())
+        
+        response = await fetch(GROQ_API_URL, method="POST", headers=req_headers, body=payload)
+        
+        if response.ok:
+            data = json.loads(await response.text())
+            return data.get("choices", [{}])[0].get("message", {}).get("content", "🤔 Let me think...")
+        
+        return "⚠️ AI temporarily unavailable"
+    except:
+        return "⚠️ Connection error"
 
 async def fetch_alpaca_bars(symbol, env):
     """Fetch candles from Alpaca for charting"""

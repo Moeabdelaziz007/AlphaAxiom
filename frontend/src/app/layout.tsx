@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
 
 const mono = JetBrains_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "Antigravity Terminal",
-    description: "AI-Powered Institutional Trading System",
+    title: "Antigravity Trading LLM",
+    description: "AI-Powered Institutional Trading System - Zero Cost, Maximum Intelligence",
 };
 
 export default function RootLayout({
@@ -17,14 +16,8 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${mono.className} bg-black text-white h-screen flex overflow-hidden`}>
-                {/* Sidebar fixed on left */}
-                <Sidebar />
-
-                {/* Main content area */}
-                <main className="flex-1 overflow-auto relative bg-[#030303]">
-                    {children}
-                </main>
+            <body className={mono.className}>
+                {children}
             </body>
         </html>
     );
