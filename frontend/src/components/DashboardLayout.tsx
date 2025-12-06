@@ -3,7 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-    LayoutDashboard, LineChart, Wallet, History, Bot, Settings, LogOut, Zap,
+    LayoutDashboard, LineChart, Wallet, History, Bot, Settings, LogOut,
     ChevronRight, User, Bell
 } from 'lucide-react';
 
@@ -31,7 +31,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
                 {/* Logo */}
                 <div className="p-5 border-b border-white/5">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl overflow-hidden glow-cyan">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden glow-cyan hover-scale cursor-pointer">
                             <img src="/logo.png" alt="Antigravity" className="w-full h-full object-cover" />
                         </div>
                         <div>
@@ -43,7 +43,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
 
                 {/* User Profile */}
                 <div className="p-4 border-b border-white/5">
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] hover:bg-white/5 transition-colors cursor-pointer">
                         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                             <User size={16} className="text-white" />
                         </div>
@@ -61,7 +61,7 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
                         const Icon = route.icon;
                         const isActive = pathname === route.path;
                         return (
-                            <Link key={route.path} href={route.path} className={`nav-item ${isActive ? 'active' : ''}`}>
+                            <Link key={route.path} href={route.path} className={`nav-item ${isActive ? 'active' : ''} hover-scale`}>
                                 <Icon size={18} />
                                 <span className="text-sm font-medium">{route.label}</span>
                                 {isActive && <ChevronRight size={14} className="ml-auto opacity-50" />}

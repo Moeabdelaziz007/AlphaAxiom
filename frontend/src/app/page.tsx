@@ -206,38 +206,46 @@ export default function Dashboard() {
                 <div className="flex-1 p-6 overflow-auto">
                     {/* Stats Row */}
                     <div className="grid grid-cols-4 gap-4 mb-6">
-                        <StatCard
-                            label="Total Equity"
-                            value={`$${parseFloat(portfolio.portfolio_value).toLocaleString()}`}
-                            change="+2.4%"
-                            icon={Wallet}
-                            color="cyan"
-                        />
-                        <StatCard
-                            label="Buying Power"
-                            value={`$${parseFloat(portfolio.buying_power).toLocaleString()}`}
-                            icon={Activity}
-                            color="green"
-                        />
-                        <StatCard
-                            label="Active Trades"
-                            value="3"
-                            icon={LineChart}
-                            color="cyan"
-                        />
-                        <StatCard
-                            label="Win Rate"
-                            value="68%"
-                            change="+5%"
-                            icon={TrendingUp}
-                            color="green"
-                        />
+                        <div className="animate-slide-up delay-100">
+                            <StatCard
+                                label="Total Equity"
+                                value={`$${parseFloat(portfolio.portfolio_value).toLocaleString()}`}
+                                change="+2.4%"
+                                icon={Wallet}
+                                color="cyan"
+                            />
+                        </div>
+                        <div className="animate-slide-up delay-200">
+                            <StatCard
+                                label="Buying Power"
+                                value={`$${parseFloat(portfolio.buying_power).toLocaleString()}`}
+                                icon={Activity}
+                                color="green"
+                            />
+                        </div>
+                        <div className="animate-slide-up delay-300">
+                            <StatCard
+                                label="Active Trades"
+                                value="3"
+                                icon={LineChart}
+                                color="cyan"
+                            />
+                        </div>
+                        <div className="animate-slide-up delay-400">
+                            <StatCard
+                                label="Win Rate"
+                                value="68%"
+                                change="+5%"
+                                icon={TrendingUp}
+                                color="green"
+                            />
+                        </div>
                     </div>
 
                     {/* Main Grid - 70/30 Split */}
                     <div className="grid grid-cols-10 gap-6" style={{ height: 'calc(100vh - 240px)' }}>
                         {/* Left - Chart (70%) */}
-                        <div className="col-span-7 glass-card p-0 overflow-hidden flex flex-col">
+                        <div className="col-span-7 glass-card p-0 overflow-hidden flex flex-col animate-slide-up delay-200 hover-glow-border">
                             {/* Chart Header */}
                             <div className="flex items-center justify-between p-4 border-b border-white/5">
                                 <div className="flex items-center gap-4">
@@ -245,7 +253,7 @@ export default function Dashboard() {
                                         <button
                                             key={item.symbol}
                                             onClick={() => setActiveSymbol(item.symbol)}
-                                            className={`px-3 py-1.5 text-sm rounded-lg transition-all ${activeSymbol === item.symbol
+                                            className={`px-3 py-1.5 text-sm rounded-lg transition-all hover-scale ${activeSymbol === item.symbol
                                                 ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
                                                 : 'text-gray-400 hover:text-white hover:bg-white/5'
                                                 }`}
@@ -265,7 +273,7 @@ export default function Dashboard() {
                         </div>
 
                         {/* Right - Chat (30%) */}
-                        <div className="col-span-3 chat-container">
+                        <div className="col-span-3 chat-container animate-slide-up delay-300 hover-glow-border">
                             {/* Chat Header */}
                             <div className="flex items-center gap-3 p-4 border-b border-white/5">
                                 <div className="w-10 h-10 rounded-lg overflow-hidden ring-2 ring-cyan-500/30 glow-cyan">
@@ -283,7 +291,7 @@ export default function Dashboard() {
                             {/* Messages */}
                             <div className="chat-messages">
                                 {messages.map((msg, i) => (
-                                    <div key={i} className={msg.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'}>
+                                    <div key={i} className={`${msg.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'} animate-fade-in`}>
                                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                                     </div>
                                 ))}
