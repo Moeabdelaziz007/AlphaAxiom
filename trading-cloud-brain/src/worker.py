@@ -65,6 +65,46 @@ async def on_fetch(request, env):
         }
         return Response.new(json.dumps(result), headers=headers)
     
+    # Trade Execution
+    if "api/trade" in url:
+        params = dict(p.split("=") for p in url.split("?")[1].split("&")) if "?" in url else {}
+        symbol = params.get("symbol", "SPY").upper()
+        side = params.get("side", "buy")
+        qty = int(params.get("qty", "1"))
+        
+        # Check trade limits
+        trades_today = await get_trades_count(env)
+        if trades_today >= MAX_TRADES_PER_DAY:
+            return Response.new(json.dumps({"error": f"Daily limit reached ({MAX_TRADES_PER_DAY})"}), headers=headers)
+        
+        result = await execute_alpaca_trade(env, symbol, side, qty)
+        
+        if result.get("status") == "success":
+            await log_trade(env, symbol, side, qty, result.get("price", 0))
+            alert_msg = f"🟢 TRADE: {side.upper()} {qty} {symbol} @ ${result.get('price', 'N/A')}"
+            await send_telegram_alert(env, alert_msg)
+        
+        return Response.new(json.dumps(result), headers=headers)
+    
+    # Trade Logs
+    if "api/logs" in url:
+        try:
+            db = env.TRADING_DB
+            result = await db.prepare("SELECT * FROM trade_logs ORDER BY executed_at DESC LIMIT 50").all()
+            logs = []
+            if hasattr(result, 'results'):
+                for row in result.results:
+                    logs.append({
+                        "id": row.id if hasattr(row, 'id') else None,
+                        "ticker": row.ticker if hasattr(row, 'ticker') else "",
+                        "action": row.action if hasattr(row, 'action') else "",
+                        "qty": row.qty if hasattr(row, 'qty') else 0,
+                        "executed_at": str(row.executed_at) if hasattr(row, 'executed_at') else ""
+                    })
+            return Response.new(json.dumps({"logs": logs}), headers=headers)
+        except:
+            return Response.new(json.dumps({"logs": []}), headers=headers)
+    
     return Response.new(json.dumps({"message": "🦅 Antigravity MoE Brain v2.0 Online"}), headers=headers)
 
 
