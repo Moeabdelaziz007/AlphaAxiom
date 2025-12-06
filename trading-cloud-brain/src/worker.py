@@ -10,6 +10,7 @@ import re
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 ALPACA_API_URL = "https://paper-api.alpaca.markets/v2"
 ALPACA_DATA_URL = "https://data.alpaca.markets/v2"
+TELEGRAM_API_URL = "https://api.telegram.org/bot"
 
 MAX_TRADES_PER_DAY = 10
 
@@ -198,6 +199,11 @@ async def handle_smart_chat(request, env, headers):
                     ).bind(symbol, side, qty, trade_result.get("order_id", ""), "chat_command").run()
                 except:
                     pass
+                
+                # Send Telegram notification
+                emoji = "🟢" if side == "buy" else "🔴"
+                tg_msg = f"{emoji} <b>ANTIGRAVITY TRADE</b>\n\n📊 <b>{symbol}</b>\n💰 {side.upper()} {qty} shares\n🆔 {trade_result.get('order_id', 'N/A')[:8]}..."
+                await send_telegram_alert(env, tg_msg)
             
             return Response.new(json.dumps({
                 "type": "TRADE",
@@ -217,6 +223,28 @@ async def handle_smart_chat(request, env, headers):
 
 
 # ============ HELPER FUNCTIONS ============
+
+async def send_telegram_alert(env, message):
+    """Send instant notification to Telegram"""
+    try:
+        telegram_token = str(getattr(env, 'TELEGRAM_BOT_TOKEN', ''))
+        telegram_chat_id = str(getattr(env, 'TELEGRAM_CHAT_ID', ''))
+        
+        if not telegram_token or not telegram_chat_id:
+            return  # Telegram not configured
+        
+        url = f"{TELEGRAM_API_URL}{telegram_token}/sendMessage"
+        
+        payload = json.dumps({
+            "chat_id": telegram_chat_id,
+            "text": message,
+            "parse_mode": "HTML"
+        })
+        
+        req_headers = Headers.new({"Content-Type": "application/json"}.items())
+        await fetch(url, method="POST", headers=req_headers, body=payload)
+    except:
+        pass  # Don't fail if Telegram fails
 
 async def fetch_alpaca_bars(symbol, env):
     """Fetch candles from Alpaca for charting"""
