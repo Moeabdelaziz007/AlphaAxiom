@@ -27,8 +27,8 @@ function Sidebar() {
             {/* Logo */}
             <div className="p-5 border-b border-white/5">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center glow-cyan">
-                        <Zap size={20} className="text-white" />
+                    <div className="w-10 h-10 rounded-xl overflow-hidden glow-cyan">
+                        <img src="/logo.png" alt="Antigravity" className="w-full h-full object-cover" />
                     </div>
                     <div>
                         <h1 className="font-semibold text-white tracking-tight">ANTIGRAVITY</h1>
@@ -246,8 +246,8 @@ export default function Dashboard() {
                                             key={item.symbol}
                                             onClick={() => setActiveSymbol(item.symbol)}
                                             className={`px-3 py-1.5 text-sm rounded-lg transition-all ${activeSymbol === item.symbol
-                                                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                                                : 'text-gray-400 hover:text-white hover:bg-white/5'
                                                 }`}
                                         >
                                             <span className="font-mono font-medium">{item.symbol}</span>
@@ -268,12 +268,15 @@ export default function Dashboard() {
                         <div className="col-span-3 chat-container">
                             {/* Chat Header */}
                             <div className="flex items-center gap-3 p-4 border-b border-white/5">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-                                    <Bot size={16} className="text-white" />
+                                <div className="w-10 h-10 rounded-lg overflow-hidden ring-2 ring-cyan-500/30 glow-cyan">
+                                    <img src="/sentinel-avatar.png" alt="Sentinel AI" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-sm font-medium text-white">Sentinel AI</h3>
-                                    <p className="text-xs text-emerald-400">Analyzing markets...</p>
+                                    <h3 className="text-sm font-semibold text-white">Sentinel AI</h3>
+                                    <p className="text-xs text-cyan-400 flex items-center gap-1">
+                                        <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                                        Analyzing markets...
+                                    </p>
                                 </div>
                             </div>
 
