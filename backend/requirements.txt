@@ -1,0 +1,16 @@
+# Trading System Backend
+fastapi>=0.104.0
+uvicorn>=0.24.0
+websockets>=9.0,<11
+python-dotenv>=1.0.0
+
+# TradFi (Stocks, Gold, Forex)
+alpaca-trade-api>=3.0.0
+yfinance>=0.2.33
+
+# Crypto (Jesse Integration)
+# jesse>=0.45.0  # Uncomment when ready for real crypto trading
+
+# Data & Analysis
+pandas>=2.0.0
+numpy>=1.24.0
