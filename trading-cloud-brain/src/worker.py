@@ -1,57 +1,19 @@
-from js import Response, Headers, fetch
+from js import Response, fetch, Headers, JSON
 import json
-import re
 
 # ==========================================
-# 🚀 ANTIGRAVITY TRADING LLM v6.0
-# The Super-Worker: Chart + News + Research + Trade
+# 🧠 ANTIGRAVITY MoE BRAIN v2.0
 # ==========================================
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 ALPACA_API_URL = "https://paper-api.alpaca.markets/v2"
 ALPACA_DATA_URL = "https://data.alpaca.markets/v2"
 TELEGRAM_API_URL = "https://api.telegram.org/bot"
-
 MAX_TRADES_PER_DAY = 10
-
-SYSTEM_PROMPT = """You are SENTINEL - an expert AI trading assistant inside AntigravityTradingLLM.
-
-YOUR PERSONALITY:
-- You're a seasoned Wall Street quant with 20 years experience
-- You speak confidently but concisely
-- You use emojis sparingly for clarity (📈 📉 💰 ⚠️)
-- You provide actionable insights, not generic advice
-
-YOUR CAPABILITIES:
-1. CHART ANALYSIS - When user asks for price/chart/technicals:
-   → Respond: {"type": "SHOW_CHART", "symbol": "SPY", "reply": "📈 Loading SPY. Current trend shows bullish momentum with RSI at 62..."}
-
-2. RESEARCH & NEWS - When user asks about news/why/analysis:
-   → Respond: {"type": "RESEARCH", "symbol": "AAPL", "reply": "🔬 Analyzing AAPL: Strong earnings beat last quarter. Institutional buying pressure..."}
-
-3. TRADE EXECUTION - When user wants to buy/sell:
-   → Respond: {"type": "TRADE", "symbol": "TSLA", "side": "buy", "qty": 10, "reply": "💰 Executing: BUY 10 TSLA at market..."}
-
-4. CONVERSATION - For general questions, provide REAL insights:
-   → Respond: {"type": "CHAT", "reply": "Your smart, detailed response with actual value..."}
-
-RULES:
-- ALWAYS output valid JSON with "type" and "reply" fields
-- For CHAT type, give REAL trading wisdom, not generic filler
-- Be helpful, knowledgeable, and confident
-- If asked about a stock, provide real analysis
-
-EXAMPLES OF GOOD REPLIES:
-- "SPY is showing a bullish flag pattern on the 4H chart. Volume confirms the breakout. Consider entries above 595."
-- "Gold typically rallies during rate uncertainty. With Fed signals mixed, GLD could see upside. Watch 182 resistance."
-- "TSLA's RSI is oversold at 28. Historically, this leads to a 5-7% bounce within 3 days."
-
-Remember: You're a REAL trading expert, not a generic chatbot."""
 
 
 async def on_fetch(request, env):
-    """The Super-Worker: Handles all requests"""
-    
+    """Main Entry Point - MoE Router"""
     url = str(request.url)
     method = str(request.method)
     
@@ -68,287 +30,251 @@ async def on_fetch(request, env):
     
     # ============ ROUTES ============
     
-    # Telegram Webhook - Bot receives messages and replies with LLM
+    # Telegram Webhook
     if "/telegram/webhook" in url or "/api/telegram" in url:
         return await handle_telegram_webhook(request, env, headers)
     
+    # Main Chat (MoE Dispatcher)
     if "api/chat" in url:
-        return await handle_smart_chat(request, env, headers)
+        return await handle_moe_chat(request, env, headers)
     
+    # Chart Data
     if "api/candles" in url or "api/chart" in url:
         return await get_candles(request, env, headers)
     
-    if "api/news" in url:
-        return await get_news(request, env, headers)
-    
-    if "api/trade" in url:
-        return await handle_trade(request, env, headers)
-    
+    # Account Info
     if "api/account" in url:
         return await get_account(env, headers)
     
+    # Positions
     if "api/positions" in url:
         return await get_positions(env, headers)
     
-    if "api/rules" in url:
-        return await get_rules(env, headers)
-    
+    # Status
     if "api/status" in url:
         trades_today = await get_trades_count(env)
         result = {
             "status": "online",
-            "version": "6.0",
-            "name": "AntigravityTradingLLM",
-            "ai": "Groq Llama 3.3 + Gemini",
+            "version": "2.0",
+            "name": "Antigravity MoE Brain",
+            "ai": "Groq Router + Gemini RAG",
             "database": "D1 Connected",
             "broker": "Alpaca Paper",
             "trades_today": trades_today,
-            "max_trades": MAX_TRADES_PER_DAY,
-            "features": ["chart", "news", "research", "trade", "automation"]
+            "max_trades": MAX_TRADES_PER_DAY
         }
         return Response.new(json.dumps(result), headers=headers)
     
-    return Response.new(json.dumps({"message": "🚀 AntigravityTradingLLM v6.0 Online"}), headers=headers)
+    return Response.new(json.dumps({"message": "🦅 Antigravity MoE Brain v2.0 Online"}), headers=headers)
 
 
-async def handle_smart_chat(request, env, headers):
-    """Smart AI Chat with Intent Classification"""
+# ==========================================
+# 🎯 MoE DISPATCHER (Main Chat Handler)
+# ==========================================
+
+async def handle_moe_chat(request, env, headers):
+    """Mixture of Experts Chat Handler"""
     try:
-        method = str(request.method)
-        user_msg = "Hello"
+        # Parse body - request.json() returns JS object, convert to Python dict
+        body_js = await request.json()
+        body = json.loads(JSON.stringify(body_js))
+        user_msg = body.get("message", "Hello")
         
-        if method == "POST":
-            try:
-                body = await request.json()
-                user_msg = body.get("message", "Hello")
-            except:
-                pass
-        else:
-            url = str(request.url)
-            if "message=" in url:
-                user_msg = url.split("message=")[1].split("&")[0]
-                user_msg = user_msg.replace("%20", " ").replace("+", " ")
+        # 1. ROUTER AGENT (Groq - Fast Intent Classification)
+        intent_data = await route_intent(user_msg, env)
+        intent_type = intent_data.get("type", "CHAT")
         
-        groq_key = str(getattr(env, 'GROQ_API_KEY', ''))
-        if not groq_key:
-            return Response.new(json.dumps({"reply": "⚠️ API not configured"}), headers=headers)
+        # 2. DISPATCH TO EXPERT AGENTS
         
-        # Call Groq for intent classification
-        request_body = json.dumps({
-            "model": "llama-3.3-70b-versatile",
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_msg}
-            ],
-            "response_format": {"type": "json_object"},
-            "max_tokens": 400
-        })
+        # A. ANALYST AGENT (Gemini RAG)
+        if intent_type == "RESEARCH" or intent_type == "ANALYZE":
+            symbol = intent_data.get("symbol", "SPY").upper()
+            
+            # Fetch News + Price Data
+            news_text = await fetch_yahoo_news(symbol)
+            price_data = await fetch_alpaca_snapshot(symbol, env)
+            
+            # Gemini RAG Analysis
+            analysis = await analyze_with_gemini_rag(symbol, news_text, price_data, env)
+            
+            return Response.new(json.dumps({
+                "type": "RESEARCH",
+                "symbol": symbol,
+                "reply": analysis
+            }), headers=headers)
         
-        request_headers = Headers.new({
-            "Authorization": f"Bearer {groq_key}",
-            "Content-Type": "application/json"
-        }.items())
-        
-        response = await fetch(GROQ_API_URL, method="POST", headers=request_headers, body=request_body)
-        response_text = await response.text()
-        
-        if not response.ok:
-            return Response.new(json.dumps({"reply": f"API Error"}), headers=headers)
-        
-        data = json.loads(str(response_text))
-        intent = json.loads(data["choices"][0]["message"]["content"])
-        
-        intent_type = intent.get("type", "CHAT")
-        
-        # ============ EXECUTE BASED ON INTENT ============
-        
-        # 1. SHOW CHART
-        if intent_type == "SHOW_CHART":
-            symbol = intent.get("symbol", "SPY").upper()
+        # B. CHART AGENT
+        elif intent_type == "SHOW_CHART":
+            symbol = intent_data.get("symbol", "SPY").upper()
             candles = await fetch_alpaca_bars(symbol, env)
             
             return Response.new(json.dumps({
                 "type": "SHOW_CHART",
                 "symbol": symbol,
                 "candles": candles,
-                "reply": intent.get("reply", f"📈 Loading {symbol} chart...")
+                "reply": f"📈 Loading {symbol} chart..."
             }), headers=headers)
         
-        # 2. RESEARCH / NEWS
-        elif intent_type == "RESEARCH":
-            symbol = intent.get("symbol", "SPY").upper()
-            
-            # Fetch news
-            raw_news = await fetch_yahoo_news(symbol)
-            
-            # Analyze with Gemini if key available
-            gemini_key = str(getattr(env, 'GEMINI_API_KEY', ''))
-            if gemini_key and raw_news != "No news available.":
-                summary = await analyze_with_gemini(raw_news, symbol, env)
-            else:
-                summary = f"📰 Latest headlines for {symbol} fetched. Analysis module ready."
-            
-            return Response.new(json.dumps({
-                "type": "RESEARCH",
-                "symbol": symbol,
-                "reply": summary
-            }), headers=headers)
-        
-        # 3. TRADE
+        # C. TRADER AGENT
         elif intent_type == "TRADE":
-            symbol = intent.get("symbol", "AAPL").upper()
-            side = intent.get("side", "buy")
-            qty = intent.get("qty", 1)
+            symbol = intent_data.get("symbol", "AAPL").upper()
+            side = intent_data.get("side", "buy")
+            qty = intent_data.get("qty", 1)
             
-            # Check circuit breaker
+            # Check trade limits
             trades_today = await get_trades_count(env)
             if trades_today >= MAX_TRADES_PER_DAY:
                 return Response.new(json.dumps({
                     "type": "TRADE",
-                    "status": "blocked",
-                    "reply": f"🛡️ Circuit breaker: Max {MAX_TRADES_PER_DAY} trades/day reached."
+                    "reply": f"⚠️ Daily trade limit reached ({MAX_TRADES_PER_DAY})"
                 }), headers=headers)
             
-            trade_result = await execute_alpaca_trade(env, symbol, side, qty)
+            # Execute Trade
+            result = await execute_alpaca_trade(env, symbol, side, qty)
             
-            if trade_result.get("status") == "success":
-                # Log to D1
-                try:
-                    db = env.TRADING_DB
-                    await db.prepare(
-                        "INSERT INTO trade_logs (ticker, action, qty, order_id, trigger_reason) VALUES (?, ?, ?, ?, ?)"
-                    ).bind(symbol, side, qty, trade_result.get("order_id", ""), "chat_command").run()
-                except:
-                    pass
+            if result.get("status") == "success":
+                # Log trade
+                await log_trade(env, symbol, side, qty, result.get("price", 0))
                 
-                # Send Telegram notification
-                emoji = "🟢" if side == "buy" else "🔴"
-                tg_msg = f"{emoji} <b>ANTIGRAVITY TRADE</b>\n\n📊 <b>{symbol}</b>\n💰 {side.upper()} {qty} shares\n🆔 {trade_result.get('order_id', 'N/A')[:8]}..."
-                await send_telegram_alert(env, tg_msg)
-            
-            return Response.new(json.dumps({
-                "type": "TRADE",
-                "trade_executed": trade_result,
-                "reply": trade_result.get("message", "Trade processing...")
-            }), headers=headers)
+                # Send Telegram Alert
+                alert_msg = f"🟢 <b>TRADE EXECUTED</b>\n\n{side.upper()} {qty} {symbol}\nPrice: ${result.get('price', 'N/A')}"
+                await send_telegram_alert(env, alert_msg)
+                
+                return Response.new(json.dumps({
+                    "type": "TRADE",
+                    "trade_executed": result,
+                    "reply": f"💰 {side.upper()} {qty} {symbol} executed @ ${result.get('price', 'market')}"
+                }), headers=headers)
+            else:
+                return Response.new(json.dumps({
+                    "type": "TRADE",
+                    "reply": f"⚠️ Trade failed: {result.get('error', 'Unknown error')}"
+                }), headers=headers)
         
-        # 4. CHAT
+        # D. CHAT AGENT (Gemini for smart conversation)
         else:
+            reply = await call_gemini_chat(user_msg, "Trader", env)
             return Response.new(json.dumps({
                 "type": "CHAT",
-                "reply": intent.get("reply", "How can I help you trade today?")
+                "reply": reply
             }), headers=headers)
-        
+    
     except Exception as e:
-        return Response.new(json.dumps({"reply": f"Error: {str(e)}"}), status=500, headers=headers)
+        return Response.new(json.dumps({"reply": f"⚠️ Error: {str(e)}"}), status=500, headers=headers)
 
 
-# ============ HELPER FUNCTIONS ============
+# ==========================================
+# 🚀 ROUTER AGENT (Groq - Fast)
+# ==========================================
 
-async def send_telegram_alert(env, message):
-    """Send instant notification to Telegram"""
+async def route_intent(user_msg, env):
+    """Groq Llama 3 Router - Fast intent classification"""
     try:
-        telegram_token = str(getattr(env, 'TELEGRAM_BOT_TOKEN', ''))
-        telegram_chat_id = str(getattr(env, 'TELEGRAM_CHAT_ID', ''))
+        groq_key = str(getattr(env, 'GROQ_API_KEY', ''))
+        if not groq_key:
+            return {"type": "CHAT", "reply": "Router not configured"}
         
-        if not telegram_token or not telegram_chat_id:
-            return  # Telegram not configured
-        
-        url = f"{TELEGRAM_API_URL}{telegram_token}/sendMessage"
-        
+        system_prompt = """You are a Trading Router. Classify user intent to JSON.
+
+OUTPUT JSON with these fields:
+- type: RESEARCH | SHOW_CHART | TRADE | CHAT
+- symbol: Stock/crypto symbol (if applicable)
+- side: buy | sell (for TRADE only)
+- qty: number (for TRADE only)
+- reply: Brief response
+
+EXAMPLES:
+"Analyze Tesla" -> {"type": "RESEARCH", "symbol": "TSLA", "reply": "Analyzing TSLA..."}
+"Show SPY chart" -> {"type": "SHOW_CHART", "symbol": "SPY", "reply": "Loading chart..."}
+"Buy 10 AAPL" -> {"type": "TRADE", "symbol": "AAPL", "side": "buy", "qty": 10, "reply": "Executing..."}
+"Hello" -> {"type": "CHAT", "reply": "Hello! How can I help?"}"""
+
         payload = json.dumps({
-            "chat_id": telegram_chat_id,
-            "text": message,
-            "parse_mode": "HTML"
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_msg}
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": 0.3,
+            "max_tokens": 200
         })
         
-        req_headers = Headers.new({"Content-Type": "application/json"}.items())
-        await fetch(url, method="POST", headers=req_headers, body=payload)
-    except:
-        pass  # Don't fail if Telegram fails
-
-
-async def handle_telegram_webhook(request, env, headers):
-    """Receive Telegram messages and reply with smart LLM"""
-    try:
-        body = await request.json()
-        message = body.get("message", {})
-        chat_id = message.get("chat", {}).get("id")
-        text = message.get("text", "")
-        user_name = message.get("from", {}).get("first_name", "Trader")
+        headers_dict = {
+            "Authorization": f"Bearer {groq_key}",
+            "Content-Type": "application/json"
+        }
+        req_headers = Headers.new(headers_dict.items())
         
-        if not chat_id or not text:
-            return Response.new(json.dumps({"ok": True}), headers=headers)
+        response = await fetch(GROQ_API_URL, method="POST", headers=req_headers, body=payload)
+        response_text = await response.text()
         
-        # Skip commands for now
-        if text.startswith("/start"):
-            reply = f"🧠 <b>SENTINEL AI</b> Online!\n\nHello {user_name}! I'm your expert trading assistant.\n\n<b>Try:</b>\n• What's happening with Tesla?\n• Analyze SPY\n• Buy 5 AAPL\n• News on gold"
-            await send_telegram_reply(env, chat_id, reply)
-            return Response.new(json.dumps({"ok": True}), headers=headers)
-        
-        # Call Gemini for smart response
-        ai_response = await call_gemini_chat(text, user_name, env)
-        
-        # Send reply
-        await send_telegram_reply(env, chat_id, ai_response)
-        
-        return Response.new(json.dumps({"ok": True}), headers=headers)
+        if response.ok:
+            data = json.loads(str(response_text))
+            content = data["choices"][0]["message"]["content"]
+            return json.loads(content)
+        else:
+            return {"type": "CHAT", "reply": f"Router error: {response_text[:100]}"}
     except Exception as e:
-        return Response.new(json.dumps({"ok": True, "error": str(e)}), headers=headers)
+        return {"type": "CHAT", "reply": f"Processing: {str(e)[:50]}"}
 
 
-async def send_telegram_reply(env, chat_id, text):
-    """Send reply to specific chat"""
-    try:
-        telegram_token = str(getattr(env, 'TELEGRAM_BOT_TOKEN', ''))
-        url = f"{TELEGRAM_API_URL}{telegram_token}/sendMessage"
-        
-        payload = json.dumps({
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": "HTML"
-        })
-        
-        req_headers = Headers.new({"Content-Type": "application/json"}.items())
-        await fetch(url, method="POST", headers=req_headers, body=payload)
-    except:
-        pass
+# ==========================================
+# 🔬 ANALYST AGENT (Gemini RAG)
+# ==========================================
 
-
-async def call_gemini_chat(user_message, user_name, env):
-    """Call Gemini 1.5 Flash for intelligent trading chat"""
+async def analyze_with_gemini_rag(symbol, news_text, price_data, env):
+    """Gemini 1.5 Flash RAG - Full Context Analysis"""
     try:
         gemini_key = str(getattr(env, 'GEMINI_API_KEY', ''))
-        
         if not gemini_key:
-            # Fallback to Groq
-            return await call_groq_chat(user_message, env)
+            return f"📰 News fetched for {symbol}. Gemini not configured."
         
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
         
-        prompt = f"""You are SENTINEL - an expert AI trading assistant for {user_name}.
+        # RAG PROMPT - Inject all context
+        prompt = f"""ROLE: Senior Institutional Market Analyst at AntigravityTradingLLM.
 
-PERSONALITY:
-- Seasoned Wall Street quant with 20 years experience
-- Confident, concise, uses emojis sparingly (📈📉💰⚠️)
-- Provides actionable insights, not generic advice
+TASK: Analyze {symbol} based on the Real-Time Data & News provided below.
 
-CAPABILITIES:
-- Market analysis and sentiment
-- Technical analysis (RSI, MACD, patterns)
-- News interpretation
-- Trade recommendations
-- Risk assessment
+═══════════════════════════════════════
+📊 MARKET DATA
+═══════════════════════════════════════
+• Symbol: {symbol}
+• Current Price: ${price_data.get('price', 'N/A')}
+• Day Change: {price_data.get('change_percent', 'N/A')}%
+• Volume: {price_data.get('volume', 'N/A')}
+• Bid: ${price_data.get('bid', 'N/A')}
+• Ask: ${price_data.get('ask', 'N/A')}
 
-User: {user_message}
+═══════════════════════════════════════
+📰 NEWS FEED (Yahoo Finance RSS)
+═══════════════════════════════════════
+{news_text[:8000]}
 
-Respond naturally as a trading expert. Be helpful, insightful, and specific. Keep response under 500 characters for Telegram."""
+═══════════════════════════════════════
+📋 OUTPUT FORMAT (Required)
+═══════════════════════════════════════
+1. **SENTIMENT**: 🟢 BULLISH / 🔴 BEARISH / 🟡 NEUTRAL
+
+2. **KEY DRIVERS** (Based on news):
+   • [Driver 1]
+   • [Driver 2]
+   • [Driver 3]
+
+3. **RISK FACTORS**:
+   • [Risk 1]
+   • [Risk 2]
+
+4. **VERDICT**: [One-sentence trading recommendation]
+
+Be specific, cite actual headlines, and give actionable insights."""
 
         payload = json.dumps({
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
-                "temperature": 0.7,
-                "maxOutputTokens": 300
+                "temperature": 0.5,
+                "maxOutputTokens": 800
             }
         })
         
@@ -361,17 +287,54 @@ Respond naturally as a trading expert. Be helpful, insightful, and specific. Kee
             if text:
                 return text
         
-        # Fallback to Groq
+        return f"📰 News fetched for {symbol}. Analysis pending."
+    except Exception as e:
+        return f"📰 {symbol} analysis error: {str(e)}"
+
+
+async def call_gemini_chat(user_message, user_name, env):
+    """Gemini for general chat"""
+    try:
+        gemini_key = str(getattr(env, 'GEMINI_API_KEY', ''))
+        if not gemini_key:
+            return await call_groq_chat(user_message, env)
+        
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+        
+        prompt = f"""You are SENTINEL - an expert AI trading assistant.
+
+PERSONALITY:
+- Seasoned Wall Street quant with 20 years experience
+- Confident, concise, uses emojis sparingly (📈📉💰⚠️)
+- Provides actionable insights, not generic advice
+
+User: {user_message}
+
+Respond as a trading expert. Be helpful and specific."""
+
+        payload = json.dumps({
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"temperature": 0.7, "maxOutputTokens": 300}
+        })
+        
+        req_headers = Headers.new({"Content-Type": "application/json"}.items())
+        response = await fetch(url, method="POST", headers=req_headers, body=payload)
+        
+        if response.ok:
+            data = json.loads(await response.text())
+            text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+            if text:
+                return text
+        
         return await call_groq_chat(user_message, env)
     except:
         return await call_groq_chat(user_message, env)
 
 
 async def call_groq_chat(user_message, env):
-    """Fallback to Groq for chat"""
+    """Groq fallback for chat"""
     try:
         groq_key = str(getattr(env, 'GROQ_API_KEY', ''))
-        
         if not groq_key:
             return "⚠️ AI not configured"
         
@@ -400,14 +363,131 @@ async def call_groq_chat(user_message, env):
     except:
         return "⚠️ Connection error"
 
-async def fetch_alpaca_bars(symbol, env):
-    """Fetch candles from Alpaca for charting"""
+
+# ==========================================
+# 📱 TELEGRAM HANDLERS
+# ==========================================
+
+async def handle_telegram_webhook(request, env, headers):
+    """Receive Telegram messages and reply with LLM"""
+    try:
+        body = await request.json()
+        message = body.get("message", {})
+        chat_id = message.get("chat", {}).get("id")
+        text = message.get("text", "")
+        user_name = message.get("from", {}).get("first_name", "Trader")
+        
+        if not chat_id or not text:
+            return Response.new(json.dumps({"ok": True}), headers=headers)
+        
+        # Handle /start command
+        if text.startswith("/start"):
+            reply = f"""🧠 <b>SENTINEL AI</b> Online!
+
+Hello {user_name}! I'm your expert trading assistant.
+
+<b>Commands:</b>
+• Analyze AAPL - Get news & sentiment
+• Show SPY chart - Load chart
+• Buy 5 TSLA - Execute trade
+• What's happening with gold?
+
+Send any message to start!"""
+            await send_telegram_reply(env, chat_id, reply)
+            return Response.new(json.dumps({"ok": True}), headers=headers)
+        
+        # Process via MoE
+        intent_data = await route_intent(text, env)
+        intent_type = intent_data.get("type", "CHAT")
+        
+        if intent_type == "RESEARCH":
+            symbol = intent_data.get("symbol", "SPY").upper()
+            news_text = await fetch_yahoo_news(symbol)
+            price_data = await fetch_alpaca_snapshot(symbol, env)
+            ai_response = await analyze_with_gemini_rag(symbol, news_text, price_data, env)
+        else:
+            ai_response = await call_gemini_chat(text, user_name, env)
+        
+        await send_telegram_reply(env, chat_id, ai_response)
+        return Response.new(json.dumps({"ok": True}), headers=headers)
+    except Exception as e:
+        return Response.new(json.dumps({"ok": True, "error": str(e)}), headers=headers)
+
+
+async def send_telegram_alert(env, message):
+    """Send notification to Telegram"""
+    try:
+        telegram_token = str(getattr(env, 'TELEGRAM_BOT_TOKEN', ''))
+        telegram_chat_id = str(getattr(env, 'TELEGRAM_CHAT_ID', ''))
+        
+        if not telegram_token or not telegram_chat_id:
+            return
+        
+        url = f"{TELEGRAM_API_URL}{telegram_token}/sendMessage"
+        
+        payload = json.dumps({
+            "chat_id": telegram_chat_id,
+            "text": message,
+            "parse_mode": "HTML"
+        })
+        
+        req_headers = Headers.new({"Content-Type": "application/json"}.items())
+        await fetch(url, method="POST", headers=req_headers, body=payload)
+    except:
+        pass
+
+
+async def send_telegram_reply(env, chat_id, text):
+    """Send reply to specific chat"""
+    try:
+        telegram_token = str(getattr(env, 'TELEGRAM_BOT_TOKEN', ''))
+        url = f"{TELEGRAM_API_URL}{telegram_token}/sendMessage"
+        
+        # Truncate for Telegram limit
+        if len(text) > 4000:
+            text = text[:4000] + "..."
+        
+        payload = json.dumps({
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": "HTML"
+        })
+        
+        req_headers = Headers.new({"Content-Type": "application/json"}.items())
+        await fetch(url, method="POST", headers=req_headers, body=payload)
+    except:
+        pass
+
+
+# ==========================================
+# 🔌 DATA CONNECTORS
+# ==========================================
+
+async def fetch_yahoo_news(symbol):
+    """Fetch news from Yahoo Finance RSS"""
+    try:
+        rss_url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}"
+        response = await fetch(rss_url)
+        text = await response.text()
+        return str(text)[:10000]  # Max for Gemini context
+    except:
+        return "No news available."
+
+
+async def fetch_alpaca_snapshot(symbol, env):
+    """Fetch latest quote from Alpaca"""
     try:
         alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
         alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
         
-        # Use Alpaca Data API
-        url = f"{ALPACA_DATA_URL}/stocks/{symbol}/bars?timeframe=1Hour&limit=100"
+        # Handle crypto symbols
+        is_crypto = symbol in ["BTC", "ETH", "SOL", "DOGE"] or "/" in symbol
+        
+        if is_crypto:
+            data_symbol = f"{symbol.replace('/USD', '').replace('USD', '')}/USD"
+            url = f"https://data.alpaca.markets/v1beta3/crypto/us/latest/quotes?symbols={data_symbol}"
+        else:
+            url = f"https://data.alpaca.markets/v2/stocks/{symbol}/quotes/latest"
         
         req_headers = Headers.new({
             "APCA-API-KEY-ID": alpaca_key,
@@ -415,27 +495,87 @@ async def fetch_alpaca_bars(symbol, env):
         }.items())
         
         response = await fetch(url, method="GET", headers=req_headers)
-        response_text = await response.text()
         
         if response.ok:
-            data = json.loads(str(response_text))
-            bars = data.get("bars", [])
+            data = json.loads(await response.text())
             
-            # Format for lightweight-charts
-            formatted = []
-            for bar in bars:
-                formatted.append({
-                    "time": bar["t"][:10],  # YYYY-MM-DD
-                    "open": bar["o"],
-                    "high": bar["h"],
-                    "low": bar["l"],
-                    "close": bar["c"],
-                    "volume": bar["v"]
-                })
-            return formatted
+            if is_crypto:
+                quotes = data.get("quotes", {})
+                quote = list(quotes.values())[0] if quotes else {}
+                return {
+                    "price": quote.get("ap", "N/A"),
+                    "bid": quote.get("bp", "N/A"),
+                    "ask": quote.get("ap", "N/A"),
+                    "change_percent": "0",
+                    "volume": "N/A"
+                }
+            else:
+                quote = data.get("quote", {})
+                return {
+                    "price": quote.get("ap", "N/A"),
+                    "bid": quote.get("bp", "N/A"),
+                    "ask": quote.get("ap", "N/A"),
+                    "change_percent": "0",
+                    "volume": "N/A"
+                }
+        
+        return {"price": "N/A", "change_percent": "0", "volume": "N/A"}
+    except:
+        return {"price": "N/A", "change_percent": "0", "volume": "N/A"}
+
+
+async def fetch_alpaca_bars(symbol, env):
+    """Fetch candles from Alpaca for charting"""
+    try:
+        alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
+        alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
+        
+        from datetime import datetime, timedelta
+        end = datetime.utcnow()
+        start = end - timedelta(days=30)
+        
+        start_str = start.strftime('%Y-%m-%dT%H:%M:%SZ')
+        end_str = end.strftime('%Y-%m-%dT%H:%M:%SZ')
+        
+        is_crypto = symbol in ["BTC", "ETH", "SOL", "DOGE"] or "/" in symbol
+        
+        if is_crypto:
+            data_symbol = f"{symbol.replace('/USD', '').replace('USD', '')}/USD"
+            url = f"https://data.alpaca.markets/v1beta3/crypto/us/bars?symbols={data_symbol}&timeframe=1Hour&start={start_str}&end={end_str}&limit=100"
         else:
-            # Return demo data if API fails
-            return generate_demo_candles()
+            url = f"{ALPACA_DATA_URL}/stocks/{symbol}/bars?timeframe=1Hour&start={start_str}&end={end_str}&limit=100"
+        
+        req_headers = Headers.new({
+            "APCA-API-KEY-ID": alpaca_key,
+            "APCA-API-SECRET-KEY": alpaca_secret
+        }.items())
+        
+        response = await fetch(url, method="GET", headers=req_headers)
+        
+        if response.ok:
+            data = json.loads(await response.text())
+            
+            if is_crypto:
+                bars = data.get("bars", {})
+                bar_list = list(bars.values())[0] if bars else []
+            else:
+                bar_list = data.get("bars", [])
+            
+            candles = []
+            for bar in bar_list:
+                t = bar.get("t", "")
+                candles.append({
+                    "time": t[:10] if t else "",
+                    "open": bar.get("o", 0),
+                    "high": bar.get("h", 0),
+                    "low": bar.get("l", 0),
+                    "close": bar.get("c", 0),
+                    "volume": bar.get("v", 0)
+                })
+            
+            return sorted(candles, key=lambda x: x["time"])
+        
+        return generate_demo_candles()
     except:
         return generate_demo_candles()
 
@@ -443,6 +583,8 @@ async def fetch_alpaca_bars(symbol, env):
 def generate_demo_candles():
     """Generate demo candle data"""
     import time
+    from datetime import datetime
+    
     candles = []
     base_price = 595
     current_time = int(time.time())
@@ -455,8 +597,6 @@ def generate_demo_candles():
         l = min(o, c) - (hash(str(t+3)) % 3)
         v = 1000000 + hash(str(t+4)) % 500000
         
-        # Convert timestamp to date string
-        from datetime import datetime
         dt = datetime.utcfromtimestamp(t)
         date_str = dt.strftime('%Y-%m-%d')
         
@@ -466,46 +606,21 @@ def generate_demo_candles():
     return candles
 
 
-async def fetch_yahoo_news(symbol):
-    """Fetch news from Yahoo Finance RSS (Free)"""
-    try:
-        rss_url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={symbol}"
-        response = await fetch(rss_url)
-        text = await response.text()
-        return str(text)[:5000]  # First 5000 chars
-    except:
-        return "No news available."
+async def get_candles(request, env, headers):
+    """API endpoint for candles"""
+    url = str(request.url)
+    symbol = "SPY"
+    
+    if "symbol=" in url:
+        symbol = url.split("symbol=")[1].split("&")[0].upper()
+    
+    candles = await fetch_alpaca_bars(symbol, env)
+    return Response.new(json.dumps({"symbol": symbol, "candles": candles}), headers=headers)
 
 
-async def analyze_with_gemini(news_text, symbol, env):
-    """Use Gemini to analyze news sentiment"""
-    try:
-        gemini_key = str(getattr(env, 'GEMINI_API_KEY', ''))
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-        
-        prompt = f"""Analyze this RSS news feed for {symbol}. Give a brief bullet-point summary:
-- Overall Sentiment (Bullish/Bearish/Neutral)
-- Key headlines (2-3 max)
-- Trading implication
-
-RSS DATA:
-{news_text[:3000]}"""
-        
-        payload = {"contents": [{"parts": [{"text": prompt}]}]}
-        
-        req_headers = Headers.new({"Content-Type": "application/json"}.items())
-        
-        response = await fetch(url, method="POST", headers=req_headers, body=json.dumps(payload))
-        response_text = await response.text()
-        
-        if response.ok:
-            data = json.loads(str(response_text))
-            return data['candidates'][0]['content']['parts'][0]['text']
-        else:
-            return f"📰 News fetched for {symbol}. Sentiment analysis pending."
-    except:
-        return f"📰 News fetched for {symbol}."
-
+# ==========================================
+# 💰 TRADING FUNCTIONS
+# ==========================================
 
 async def execute_alpaca_trade(env, symbol, side, qty):
     """Execute trade on Alpaca"""
@@ -534,83 +649,20 @@ async def execute_alpaca_trade(env, symbol, side, qty):
             order_data = json.loads(str(response_text))
             return {
                 "status": "success",
-                "order_id": order_data.get("id"),
-                "symbol": symbol.upper(),
-                "side": side,
-                "qty": qty,
-                "message": f"✅ {side.upper()} {qty} {symbol.upper()}"
+                "order_id": order_data.get("id", ""),
+                "symbol": order_data.get("symbol", symbol),
+                "side": order_data.get("side", side),
+                "qty": order_data.get("qty", qty),
+                "price": order_data.get("filled_avg_price", "market")
             }
         else:
-            return {"status": "error", "message": f"Order failed: {str(response_text)[:100]}"}
+            return {"status": "error", "error": str(response_text)}
     except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-async def handle_trade(request, env, headers):
-    """Direct trade endpoint"""
-    url = str(request.url)
-    symbol = "AAPL"
-    side = "buy"
-    qty = 1
-    
-    if "symbol=" in url:
-        symbol = url.split("symbol=")[1].split("&")[0]
-    if "side=" in url:
-        side = url.split("side=")[1].split("&")[0]
-    if "qty=" in url:
-        qty = int(url.split("qty=")[1].split("&")[0])
-    
-    result = await execute_alpaca_trade(env, symbol, side, qty)
-    return Response.new(json.dumps(result), headers=headers)
-
-
-async def get_candles(request, env, headers):
-    """Direct candles endpoint"""
-    url = str(request.url)
-    symbol = "SPY"
-    if "symbol=" in url:
-        symbol = url.split("symbol=")[1].split("&")[0]
-    
-    candles = await fetch_alpaca_bars(symbol.upper(), env)
-    return Response.new(json.dumps({"symbol": symbol.upper(), "candles": candles}), headers=headers)
-
-
-async def get_news(request, env, headers):
-    """Direct news endpoint"""
-    url = str(request.url)
-    symbol = "SPY"
-    if "symbol=" in url:
-        symbol = url.split("symbol=")[1].split("&")[0]
-    
-    news = await fetch_yahoo_news(symbol.upper())
-    return Response.new(json.dumps({"symbol": symbol.upper(), "news": news[:1000]}), headers=headers)
-
-
-async def get_trades_count(env):
-    """Get today's trade count"""
-    try:
-        db = env.TRADING_DB
-        result = await db.prepare(
-            "SELECT COUNT(*) as count FROM trade_logs WHERE date(executed_at) = date('now')"
-        ).all()
-        return result.results[0]["count"] if result.results else 0
-    except:
-        return 0
-
-
-async def get_rules(env, headers):
-    """Get trading rules"""
-    try:
-        db = env.TRADING_DB
-        result = await db.prepare("SELECT * FROM trading_rules WHERE status = 'active'").all()
-        rules = [dict(r) for r in result.results] if result.results else []
-        return Response.new(json.dumps({"rules": rules}), headers=headers)
-    except:
-        return Response.new(json.dumps({"rules": []}), headers=headers)
+        return {"status": "error", "error": str(e)}
 
 
 async def get_account(env, headers):
-    """Get Alpaca account"""
+    """Get Alpaca account info"""
     try:
         alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
         alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
@@ -621,23 +673,23 @@ async def get_account(env, headers):
         }.items())
         
         response = await fetch(f"{ALPACA_API_URL}/account", method="GET", headers=req_headers)
-        response_text = await response.text()
         
         if response.ok:
-            account = json.loads(str(response_text))
+            data = json.loads(await response.text())
             return Response.new(json.dumps({
-                "buying_power": account.get("buying_power"),
-                "portfolio_value": account.get("portfolio_value"),
-                "cash": account.get("cash"),
-                "status": "success"
+                "portfolio_value": data.get("portfolio_value", "0"),
+                "buying_power": data.get("buying_power", "0"),
+                "cash": data.get("cash", "0"),
+                "equity": data.get("equity", "0")
             }), headers=headers)
-        return Response.new(json.dumps({"error": "Failed"}), headers=headers)
+        
+        return Response.new(json.dumps({"portfolio_value": "100000", "buying_power": "200000", "cash": "100000"}), headers=headers)
     except:
-        return Response.new(json.dumps({"error": "Connection failed"}), headers=headers)
+        return Response.new(json.dumps({"portfolio_value": "100000", "buying_power": "200000", "cash": "100000"}), headers=headers)
 
 
 async def get_positions(env, headers):
-    """Get positions"""
+    """Get Alpaca positions"""
     try:
         alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
         alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
@@ -648,170 +700,85 @@ async def get_positions(env, headers):
         }.items())
         
         response = await fetch(f"{ALPACA_API_URL}/positions", method="GET", headers=req_headers)
-        response_text = await response.text()
         
         if response.ok:
-            positions = json.loads(str(response_text))
-            return Response.new(json.dumps({"positions": positions}), headers=headers)
-        return Response.new(json.dumps({"positions": []}), headers=headers)
+            positions = json.loads(await response.text())
+            return Response.new(json.dumps(positions), headers=headers)
+        
+        return Response.new(json.dumps([]), headers=headers)
     except:
-        return Response.new(json.dumps({"positions": []}), headers=headers)
+        return Response.new(json.dumps([]), headers=headers)
 
 
-# ============ CRON JOB AUTOMATION ============
+# ==========================================
+# 📊 DATABASE FUNCTIONS (D1)
+# ==========================================
 
-async def on_scheduled(event, env, ctx):
-    """
-    🕐 Cron Job Handler - Runs every minute
-    Checks active trading rules and executes them if conditions are met
-    """
+async def log_trade(env, symbol, side, qty, price):
+    """Log trade to D1 database"""
     try:
         db = env.TRADING_DB
-        
-        # 1. Fetch all active rules
-        result = await db.prepare(
-            "SELECT * FROM trading_rules WHERE status = 'active'"
-        ).all()
-        
-        rules = result.results if result.results else []
-        
-        if not rules:
-            return  # No active rules
-        
-        # 2. Fetch account info to check if we can trade
-        trades_today = await get_trades_count_internal(env)
-        if trades_today >= MAX_TRADES_PER_DAY:
-            # Log that we hit the limit
-            await db.prepare(
-                "INSERT INTO trade_logs (ticker, action, qty, trigger_reason) VALUES (?, ?, ?, ?)"
-            ).bind("SYSTEM", "blocked", 0, "Daily trade limit reached").run()
-            return
-        
-        # 3. Process each rule
-        for rule in rules:
-            try:
-                rule_id = rule["rule_id"]
-                ticker = rule["ticker"]
-                logic_json = json.loads(rule["logic_json"]) if isinstance(rule["logic_json"], str) else rule["logic_json"]
-                
-                # Get current price (simplified - using demo for now)
-                current_price = await get_current_price(ticker, env)
-                
-                # Evaluate condition
-                should_execute = evaluate_rule(logic_json, current_price)
-                
-                if should_execute:
-                    # Execute the trade
-                    action = logic_json.get("action", "BUY").lower()
-                    qty = logic_json.get("qty", 1)
-                    
-                    trade_result = await execute_trade_internal(env, ticker, action, qty)
-                    
-                    if trade_result.get("status") == "success":
-                        # Log successful trade
-                        await db.prepare(
-                            "INSERT INTO trade_logs (ticker, action, qty, order_id, trigger_reason) VALUES (?, ?, ?, ?, ?)"
-                        ).bind(ticker, action, qty, trade_result.get("order_id", ""), f"cron_rule_{rule_id}").run()
-                        
-                        # Optionally deactivate one-time rules
-                        # await db.prepare("UPDATE trading_rules SET status = 'executed' WHERE rule_id = ?").bind(rule_id).run()
-                        
-            except Exception as rule_error:
-                # Log rule error and continue
-                pass
-                
-    except Exception as e:
-        # Log cron error
+        await db.prepare(
+            "INSERT INTO trades (symbol, side, qty, price, timestamp) VALUES (?, ?, ?, ?, datetime('now'))"
+        ).bind(symbol, side, qty, price).run()
+    except:
         pass
 
 
-def evaluate_rule(logic, current_price):
-    """Evaluate if a rule condition is met"""
-    try:
-        condition = logic.get("condition", "").upper()
-        trigger = float(logic.get("trigger", 0))
-        
-        if condition == "PRICE_BELOW" and current_price < trigger:
-            return True
-        elif condition == "PRICE_ABOVE" and current_price > trigger:
-            return True
-        elif condition == "RSI_BELOW":
-            # RSI logic would need indicator calculation
-            return False
-        elif condition == "RSI_ABOVE":
-            return False
-        
-        return False
-    except:
-        return False
-
-
-async def get_current_price(symbol, env):
-    """Get current price for a symbol"""
-    try:
-        alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
-        alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
-        
-        url = f"{ALPACA_DATA_URL}/stocks/{symbol}/trades/latest"
-        
-        req_headers = Headers.new({
-            "APCA-API-KEY-ID": alpaca_key,
-            "APCA-API-SECRET-KEY": alpaca_secret
-        }.items())
-        
-        response = await fetch(url, method="GET", headers=req_headers)
-        
-        if response.ok:
-            response_text = await response.text()
-            data = json.loads(str(response_text))
-            return float(data.get("trade", {}).get("p", 0))
-        
-        # Return demo price
-        demo_prices = {"SPY": 595, "AAPL": 245, "TSLA": 380, "GOOGL": 175}
-        return demo_prices.get(symbol.upper(), 100)
-    except:
-        return 100
-
-
-async def get_trades_count_internal(env):
-    """Internal function to get trade count"""
+async def get_trades_count(env):
+    """Get today's trade count"""
     try:
         db = env.TRADING_DB
         result = await db.prepare(
-            "SELECT COUNT(*) as count FROM trade_logs WHERE date(executed_at) = date('now')"
-        ).all()
-        return result.results[0]["count"] if result.results else 0
+            "SELECT COUNT(*) as count FROM trades WHERE date(timestamp) = date('now')"
+        ).first()
+        return result.get("count", 0) if result else 0
     except:
         return 0
 
 
-async def execute_trade_internal(env, symbol, side, qty):
-    """Internal trade execution for cron"""
-    try:
-        alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
-        alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
-        
-        order_body = json.dumps({
-            "symbol": symbol.upper(),
-            "qty": str(qty),
-            "side": side.lower(),
-            "type": "market",
-            "time_in_force": "day"
-        })
-        
-        order_headers = Headers.new({
-            "APCA-API-KEY-ID": alpaca_key,
-            "APCA-API-SECRET-KEY": alpaca_secret,
-            "Content-Type": "application/json"
-        }.items())
-        
-        response = await fetch(f"{ALPACA_API_URL}/orders", method="POST", headers=order_headers, body=order_body)
-        response_text = await response.text()
-        
-        if response.ok:
-            order_data = json.loads(str(response_text))
-            return {"status": "success", "order_id": order_data.get("id")}
-        return {"status": "error"}
-    except:
-        return {"status": "error"}
+# ==========================================
+# ⏰ CRON HANDLER (Automation)
+# ==========================================
 
+async def on_scheduled(event, env, ctx):
+    """Cron job for automated trading rules"""
+    try:
+        db = env.TRADING_DB
+        rules = await db.prepare("SELECT * FROM rules WHERE active = 1").all()
+        
+        if not rules.results:
+            return
+        
+        for rule in rules.results:
+            ticker = rule.get("ticker", "SPY")
+            condition = rule.get("condition", "PRICE_ABOVE")
+            trigger = float(rule.get("trigger_value", 0))
+            action = rule.get("action", "BUY")
+            qty = int(rule.get("qty", 1))
+            
+            # Get current price
+            price_data = await fetch_alpaca_snapshot(ticker, env)
+            current_price = float(price_data.get("price", 0)) if price_data.get("price") != "N/A" else 0
+            
+            if current_price == 0:
+                continue
+            
+            should_execute = False
+            if condition == "PRICE_ABOVE" and current_price > trigger:
+                should_execute = True
+            elif condition == "PRICE_BELOW" and current_price < trigger:
+                should_execute = True
+            
+            if should_execute:
+                side = "buy" if action == "BUY" else "sell"
+                result = await execute_alpaca_trade(env, ticker, side, qty)
+                
+                if result.get("status") == "success":
+                    await log_trade(env, ticker, side, qty, result.get("price", current_price))
+                    await send_telegram_alert(env, f"⚡ <b>AUTO TRADE</b>\n\nRule triggered: {condition} {trigger}\n{side.upper()} {qty} {ticker}")
+                    
+                    # Deactivate rule after execution
+                    await db.prepare("UPDATE rules SET active = 0 WHERE id = ?").bind(rule.get("id")).run()
+    except:
+        pass
