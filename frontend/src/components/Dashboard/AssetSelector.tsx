@@ -10,7 +10,6 @@ interface AssetSelectorProps {
 }
 
 const assets = [
-    { id: 'CRYPTO' as AssetType, name: 'Crypto', icon: Bitcoin, color: 'neon-cyan' },
     { id: 'STOCKS' as AssetType, name: 'Stocks', icon: Landmark, color: 'blue-400' },
     { id: 'GOLD' as AssetType, name: 'Gold', icon: Coins, color: 'neon-gold' },
 ];

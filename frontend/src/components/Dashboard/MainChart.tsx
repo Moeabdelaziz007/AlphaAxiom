@@ -46,6 +46,7 @@ export default function MainChart({ activeAsset, selectedSymbol }: MainChartProp
     const [chartLib, setChartLib] = useState<any>(null);
     const chartRef = useRef<any>(null);
     const [footprintAlerts, setFootprintAlerts] = useState<string[]>([]);
+    const [selectedTimeframe, setSelectedTimeframe] = useState('1m');
 
     // Dynamic import of lightweight-charts (client-side only)
     useEffect(() => {
@@ -218,7 +219,7 @@ export default function MainChart({ activeAsset, selectedSymbol }: MainChartProp
                 // Chart already disposed - ignore
             }
         };
-    }, [chartLib, activeAsset, selectedSymbol]);
+    }, [chartLib, activeAsset, selectedSymbol, selectedTimeframe]);
 
     return (
         <div className="glass-panel neon-border rounded-xl overflow-hidden fade-in">
@@ -233,8 +234,11 @@ export default function MainChart({ activeAsset, selectedSymbol }: MainChartProp
                     {['1m', '5m', '15m', '1H', '4H', '1D'].map((tf) => (
                         <button
                             key={tf}
-                            className="px-2 py-1 text-xs text-gray-500 hover:text-neon-cyan 
-                                       hover:bg-neon-cyan/10 rounded transition-colors"
+                            onClick={() => setSelectedTimeframe(tf)}
+                            className={`px-2 py-1 text-xs rounded transition-colors ${selectedTimeframe === tf
+                                ? 'text-neon-cyan bg-neon-cyan/20 border border-neon-cyan/30'
+                                : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'
+                            }`}
                         >
                             {tf}
                         </button>

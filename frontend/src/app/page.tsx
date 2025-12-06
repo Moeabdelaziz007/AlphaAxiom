@@ -58,9 +58,9 @@ export default function TradingDashboard() {
                     </p>
                 </div>
 
-                {/* Live Prices Row - 3 أصول رئيسية */}
+                {/* Live Prices Row - Alpaca Paper Trading Assets */}
                 <div className="grid grid-cols-3 gap-4">
-                    <LivePrice symbol="BTC/USDT" name="Bitcoin" color="cyan" />
+                    <LivePrice symbol="SPY" name="S&P 500 ETF" color="cyan" />
                     <LivePrice symbol="AAPL" name="Apple Stock" color="blue" />
                     <LivePrice symbol="GLD" name="Gold ETF" color="gold" />
                 </div>
