@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, LineChart, Wallet, History, Bot, Settings, LogOut, Zap,
-    Send, TrendingUp, TrendingDown, Activity, Bell, RefreshCw, ChevronRight
+    Send, TrendingUp, TrendingDown, Activity, Bell, User, ChevronRight
 } from 'lucide-react';
 import { TradingChart } from '@/components/TradingChart';
 
@@ -12,72 +12,110 @@ const API_BASE = "https://trading-brain-v1.amrikyy1.workers.dev";
 
 // ==================== SIDEBAR ====================
 const routes = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard', color: 'text-cyan-400' },
-    { path: '/trade', icon: LineChart, label: 'Terminal', color: 'text-green-400' },
-    { path: '/portfolio', icon: Wallet, label: 'Portfolio', color: 'text-yellow-400' },
-    { path: '/history', icon: History, label: 'History', color: 'text-purple-400' },
-    { path: '/automation', icon: Bot, label: 'Auto-Pilot', color: 'text-red-400' },
-    { path: '/settings', icon: Settings, label: 'Settings', color: 'text-gray-400' },
+    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/trade', icon: LineChart, label: 'Terminal' },
+    { path: '/portfolio', icon: Wallet, label: 'Portfolio' },
+    { path: '/history', icon: History, label: 'History' },
+    { path: '/automation', icon: Bot, label: 'Auto-Pilot' },
 ];
 
 function Sidebar() {
     const pathname = usePathname();
+
     return (
-        <div className="w-[260px] h-full glass-card-strong flex flex-col shrink-0">
+        <div className="w-64 h-screen glass-card-strong flex flex-col shrink-0 border-r border-white/5">
             {/* Logo */}
-            <div className="p-6 border-b border-white/5">
+            <div className="p-5 border-b border-white/5">
                 <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 gradient-cyan rounded-xl flex items-center justify-center glow-cyan">
-                        <Zap size={22} className="text-white" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center glow-cyan">
+                        <Zap size={20} className="text-white" />
                     </div>
                     <div>
-                        <h1 className="font-bold text-white tracking-wide">ANTIGRAVITY</h1>
-                        <p className="text-[10px] text-gray-500">Trading LLM v2.0</p>
+                        <h1 className="font-semibold text-white tracking-tight">ANTIGRAVITY</h1>
+                        <p className="text-[10px] text-gray-500 font-mono">v2.0 • MoE Brain</p>
                     </div>
                 </div>
             </div>
 
-            {/* Nav */}
-            <nav className="flex-1 p-4 space-y-1">
+            {/* User Profile */}
+            <div className="p-4 border-b border-white/5">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02]">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                        <User size={16} className="text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">Mohamed</p>
+                        <p className="text-xs text-gray-500">Pro Trader</p>
+                    </div>
+                    <span className="px-2 py-0.5 text-[10px] font-medium bg-cyan-500/20 text-cyan-400 rounded-full border border-cyan-500/30">PRO</span>
+                </div>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex-1 p-3 space-y-1">
                 {routes.map((route) => {
                     const Icon = route.icon;
                     const isActive = pathname === route.path;
                     return (
-                        <Link key={route.path} href={route.path}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'glass-card border-cyan-500/30 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                }`}
-                        >
-                            <Icon size={20} className={isActive ? route.color : ''} />
+                        <Link key={route.path} href={route.path} className={`nav-item ${isActive ? 'active' : ''}`}>
+                            <Icon size={18} />
                             <span className="text-sm font-medium">{route.label}</span>
+                            {isActive && <ChevronRight size={14} className="ml-auto opacity-50" />}
                         </Link>
                     );
                 })}
             </nav>
 
-            {/* Status */}
-            <div className="p-4 border-t border-white/5">
-                <div className="bento-item p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">AI Status</span>
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-2 h-2 rounded-full bg-green-500 status-pulse" />
-                            <span className="text-xs text-green-400">Online</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">Model</span>
-                        <span className="text-xs text-cyan-400">Groq + Gemini</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Logout */}
-            <div className="p-4 pt-0">
-                <button className="flex items-center gap-3 px-4 py-3 w-full text-gray-500 hover:text-red-400 hover:bg-white/5 rounded-xl transition-all">
+            {/* Bottom Actions */}
+            <div className="p-3 border-t border-white/5 space-y-1">
+                <Link href="/settings" className="nav-item">
+                    <Settings size={18} />
+                    <span className="text-sm">Settings</span>
+                </Link>
+                <button className="nav-item w-full text-left hover:text-red-400">
                     <LogOut size={18} />
                     <span className="text-sm">Disconnect</span>
                 </button>
             </div>
+
+            {/* Status */}
+            <div className="p-4 border-t border-white/5">
+                <div className="status-online">
+                    <span className="status-dot"></span>
+                    <span>Sentinel AI Online</span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ==================== STAT CARD ====================
+function StatCard({ label, value, change, icon: Icon, color = 'cyan' }: {
+    label: string;
+    value: string;
+    change?: string;
+    icon: React.ElementType;
+    color?: 'cyan' | 'green' | 'red';
+}) {
+    const colorClasses = {
+        cyan: 'text-cyan-400',
+        green: 'text-emerald-400',
+        red: 'text-rose-400',
+    };
+
+    return (
+        <div className="stat-card">
+            <div className="flex items-center justify-between mb-2">
+                <span className="stat-label">{label}</span>
+                <Icon size={16} className={colorClasses[color]} />
+            </div>
+            <div className="stat-value">{value}</div>
+            {change && (
+                <div className={`flex items-center gap-1 mt-1 text-sm ${change.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {change.startsWith('+') ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                    <span>{change}</span>
+                </div>
+            )}
         </div>
     );
 }
@@ -85,32 +123,25 @@ function Sidebar() {
 // ==================== MAIN DASHBOARD ====================
 export default function Dashboard() {
     const [messages, setMessages] = useState([
-        { role: 'ai', content: '🧠 AntigravityTradingLLM Online. Ask me to analyze markets, execute trades, or check news.' }
+        { role: 'ai', content: '🧠 Sentinel AI Online. I can analyze markets, execute trades, or provide research. Try: "Analyze AAPL" or "Buy 5 TSLA"' }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
-    const [portfolio, setPortfolio] = useState({ portfolio_value: '100000', buying_power: '200000', cash: '100000' });
+    const [portfolio, setPortfolio] = useState({ portfolio_value: '100000', buying_power: '200000' });
     const [activeSymbol, setActiveSymbol] = useState('SPY');
-    const [systemStatus, setSystemStatus] = useState({ trades_today: 0, max_trades: 10 });
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const watchlist = [
-        { symbol: 'SPY', name: 'S&P 500', change: 1.24 },
-        { symbol: 'AAPL', name: 'Apple', change: 2.15 },
-        { symbol: 'TSLA', name: 'Tesla', change: -0.87 },
-        { symbol: 'GOOGL', name: 'Alphabet', change: 0.56 },
-        { symbol: 'GLD', name: 'Gold ETF', change: 0.34 },
-        { symbol: 'BTC', name: 'Bitcoin', change: 3.21 },
+        { symbol: 'SPY', name: 'S&P 500', change: '+1.24%' },
+        { symbol: 'AAPL', name: 'Apple', change: '+2.15%' },
+        { symbol: 'TSLA', name: 'Tesla', change: '-0.87%' },
+        { symbol: 'GOOGL', name: 'Alphabet', change: '+0.56%' },
     ];
 
     const fetchData = useCallback(async () => {
         try {
-            const [accRes, statusRes] = await Promise.all([
-                fetch(`${API_BASE}/api/account`),
-                fetch(`${API_BASE}/api/status`)
-            ]);
-            if (accRes.ok) setPortfolio(await accRes.json());
-            if (statusRes.ok) setSystemStatus(await statusRes.json());
+            const res = await fetch(`${API_BASE}/api/account`);
+            if (res.ok) setPortfolio(await res.json());
         } catch (e) { console.error(e); }
     }, []);
 
@@ -143,184 +174,147 @@ export default function Dashboard() {
 
             setMessages(prev => [...prev, { role: 'ai', content: data.reply || JSON.stringify(data) }]);
         } catch {
-            setMessages(prev => [...prev, { role: 'ai', content: '⚠️ Connection error' }]);
+            setMessages(prev => [...prev, { role: 'ai', content: '⚠️ Connection error. Please try again.' }]);
         }
         setLoading(false);
     };
 
     return (
         <div className="flex h-screen overflow-hidden">
-            <div className="animated-bg" />
             <Sidebar />
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Top Bar */}
-                <header className="h-16 glass-card-strong border-b border-white/5 flex items-center justify-between px-6 shrink-0">
+                <header className="h-14 glass-card-strong border-b border-white/5 flex items-center justify-between px-6 shrink-0">
                     <div className="flex items-center gap-4">
-                        <h1 className="text-lg font-bold">Dashboard</h1>
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30">
-                            <div className="w-2 h-2 rounded-full bg-green-500 status-pulse" />
-                            <span className="text-green-400 text-xs font-medium">Live</span>
+                        <h1 className="text-lg font-semibold text-white">Dashboard</h1>
+                        <div className="status-online">
+                            <span className="status-dot"></span>
+                            <span>Live</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-6">
-                        <button onClick={fetchData} className="p-2 hover:bg-white/5 rounded-lg transition-all">
-                            <RefreshCw size={18} className="text-gray-400" />
-                        </button>
-                        <button className="p-2 hover:bg-white/5 rounded-lg transition-all relative">
+                    <div className="flex items-center gap-4">
+                        <button className="p-2 hover:bg-white/5 rounded-lg transition-colors relative">
                             <Bell size={18} className="text-gray-400" />
-                            <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                            <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full"></span>
                         </button>
-                        <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-                            <div className="w-8 h-8 gradient-purple rounded-lg flex items-center justify-center">
-                                <span className="text-white text-sm font-bold">M</span>
-                            </div>
-                            <span className="text-sm text-gray-300">Mohamed</span>
-                        </div>
                     </div>
                 </header>
 
-                {/* Dashboard Grid */}
+                {/* Dashboard Content */}
                 <div className="flex-1 p-6 overflow-auto">
-                    <div className="grid grid-cols-12 gap-4 h-full">
+                    {/* Stats Row */}
+                    <div className="grid grid-cols-4 gap-4 mb-6">
+                        <StatCard
+                            label="Total Equity"
+                            value={`$${parseFloat(portfolio.portfolio_value).toLocaleString()}`}
+                            change="+2.4%"
+                            icon={Wallet}
+                            color="cyan"
+                        />
+                        <StatCard
+                            label="Buying Power"
+                            value={`$${parseFloat(portfolio.buying_power).toLocaleString()}`}
+                            icon={Activity}
+                            color="green"
+                        />
+                        <StatCard
+                            label="Active Trades"
+                            value="3"
+                            icon={LineChart}
+                            color="cyan"
+                        />
+                        <StatCard
+                            label="Win Rate"
+                            value="68%"
+                            change="+5%"
+                            icon={TrendingUp}
+                            color="green"
+                        />
+                    </div>
 
-                        {/* Stats Row */}
-                        <div className="col-span-3 bento-item flex flex-col">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-gray-500 uppercase">Portfolio Value</span>
-                                <Wallet size={16} className="text-cyan-400" />
+                    {/* Main Grid - 70/30 Split */}
+                    <div className="grid grid-cols-10 gap-6" style={{ height: 'calc(100vh - 240px)' }}>
+                        {/* Left - Chart (70%) */}
+                        <div className="col-span-7 glass-card p-0 overflow-hidden flex flex-col">
+                            {/* Chart Header */}
+                            <div className="flex items-center justify-between p-4 border-b border-white/5">
+                                <div className="flex items-center gap-4">
+                                    {watchlist.map((item) => (
+                                        <button
+                                            key={item.symbol}
+                                            onClick={() => setActiveSymbol(item.symbol)}
+                                            className={`px-3 py-1.5 text-sm rounded-lg transition-all ${activeSymbol === item.symbol
+                                                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                                }`}
+                                        >
+                                            <span className="font-mono font-medium">{item.symbol}</span>
+                                            <span className={`ml-2 text-xs ${item.change.startsWith('+') ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                {item.change}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="text-2xl font-bold text-white">
-                                ${parseFloat(portfolio.portfolio_value).toLocaleString()}
-                            </div>
-                            <div className="flex items-center gap-1 mt-1">
-                                <TrendingUp size={14} className="text-green-400" />
-                                <span className="text-sm text-green-400">+2.4% today</span>
-                            </div>
-                        </div>
-
-                        <div className="col-span-3 bento-item flex flex-col">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-gray-500 uppercase">Buying Power</span>
-                                <Activity size={16} className="text-green-400" />
-                            </div>
-                            <div className="text-2xl font-bold text-green-400">
-                                ${parseFloat(portfolio.buying_power).toLocaleString()}
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">Available for trading</div>
-                        </div>
-
-                        <div className="col-span-3 bento-item flex flex-col">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-gray-500 uppercase">Trades Today</span>
-                                <LineChart size={16} className="text-purple-400" />
-                            </div>
-                            <div className="text-2xl font-bold text-white">
-                                {systemStatus.trades_today}/{systemStatus.max_trades}
-                            </div>
-                            <div className="w-full h-1.5 bg-gray-800 rounded-full mt-2">
-                                <div className="h-full gradient-purple rounded-full" style={{ width: `${(systemStatus.trades_today / systemStatus.max_trades) * 100}%` }} />
-                            </div>
-                        </div>
-
-                        <div className="col-span-3 bento-item flex flex-col">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-gray-500 uppercase">AI Status</span>
-                                <Bot size={16} className="text-cyan-400" />
-                            </div>
-                            <div className="text-2xl font-bold text-cyan-400">Active</div>
-                            <div className="text-xs text-gray-500 mt-1">Groq + Gemini MoE</div>
-                        </div>
-
-                        {/* Chart Area */}
-                        <div className="col-span-8 row-span-2 bento-item p-0 overflow-hidden">
-                            <div className="h-full">
+                            {/* Chart */}
+                            <div className="flex-1">
                                 <TradingChart symbol={activeSymbol} timeframe="1H" />
                             </div>
                         </div>
 
-                        {/* Watchlist */}
-                        <div className="col-span-4 row-span-2 bento-item flex flex-col">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-sm font-bold">Watchlist</span>
-                                <button className="text-xs text-cyan-400 hover:underline">+ Add</button>
-                            </div>
-                            <div className="flex-1 space-y-2 overflow-auto">
-                                {watchlist.map((item) => (
-                                    <button key={item.symbol} onClick={() => setActiveSymbol(item.symbol)}
-                                        className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${activeSymbol === item.symbol ? 'bg-cyan-500/10 border border-cyan-500/30' : 'hover:bg-white/5'
-                                            }`}
-                                    >
-                                        <div className="text-left">
-                                            <div className="font-bold text-white">{item.symbol}</div>
-                                            <div className="text-xs text-gray-500">{item.name}</div>
-                                        </div>
-                                        <div className={`flex items-center gap-1 ${item.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                            {item.change >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                                            <span className="text-sm font-medium">{item.change >= 0 ? '+' : ''}{item.change}%</span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Chat */}
-                        <div className="col-span-12 bento-item flex flex-col" style={{ height: '280px' }}>
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 gradient-green rounded-lg flex items-center justify-center">
-                                        <Bot size={16} className="text-white" />
-                                    </div>
-                                    <div>
-                                        <div className="font-bold text-sm">Sentinel AI</div>
-                                        <div className="text-xs text-green-400">Ready</div>
-                                    </div>
+                        {/* Right - Chat (30%) */}
+                        <div className="col-span-3 chat-container">
+                            {/* Chat Header */}
+                            <div className="flex items-center gap-3 p-4 border-b border-white/5">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
+                                    <Bot size={16} className="text-white" />
                                 </div>
-                                <div className="flex gap-2">
-                                    {['Analyze SPY', 'Buy 5 AAPL', 'News TSLA'].map((q) => (
-                                        <button key={q} onClick={() => setInput(q)}
-                                            className="text-xs px-3 py-1.5 rounded-full bg-white/5 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all"
-                                        >{q}</button>
-                                    ))}
+                                <div className="flex-1">
+                                    <h3 className="text-sm font-medium text-white">Sentinel AI</h3>
+                                    <p className="text-xs text-emerald-400">Analyzing markets...</p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+                            {/* Messages */}
+                            <div className="chat-messages">
                                 {messages.map((msg, i) => (
-                                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`max-w-[70%] px-4 py-2.5 text-sm ${msg.role === 'user' ? 'chat-bubble-user text-cyan-100' : 'chat-bubble-ai text-gray-300'
-                                            }`}>
-                                            {msg.content}
-                                        </div>
+                                    <div key={i} className={msg.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'}>
+                                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                                     </div>
                                 ))}
                                 {loading && (
-                                    <div className="flex justify-start">
-                                        <div className="chat-bubble-ai px-4 py-2.5 flex items-center gap-1">
-                                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
-                                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                                            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                                    <div className="chat-bubble-ai">
+                                        <div className="typing-indicator">
+                                            <span></span><span></span><span></span>
                                         </div>
                                     </div>
                                 )}
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            <div className="mt-4 relative">
-                                <input type="text" value={input} onChange={(e) => setInput(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                                    placeholder="Ask Sentinel AI..."
-                                    className="input-glass w-full pr-12"
-                                />
-                                <button onClick={handleSend} disabled={loading}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 gradient-cyan rounded-lg disabled:opacity-50"
-                                >
-                                    <Send size={16} className="text-white" />
-                                </button>
+                            {/* Input */}
+                            <div className="chat-input-container">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={input}
+                                        onChange={(e) => setInput(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                                        placeholder="Ask Sentinel AI..."
+                                        className="chat-input pr-12"
+                                    />
+                                    <button
+                                        onClick={handleSend}
+                                        disabled={loading}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-cyan-500 hover:bg-cyan-600 rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                        <Send size={16} className="text-white" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>

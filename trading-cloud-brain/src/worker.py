@@ -224,72 +224,63 @@ EXAMPLES:
 # ==========================================
 
 async def analyze_with_gemini_rag(symbol, news_text, price_data, env):
-    """Gemini 1.5 Flash RAG - Full Context Analysis"""
+    """Gemini 1.5 Flash RAG - Debug Mode Enabled 🛠️"""
+    gemini_key = str(getattr(env, 'GEMINI_API_KEY', ''))
+    
+    if not gemini_key:
+        return f"⚠️ GEMINI_API_KEY not configured"
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={gemini_key}"
+    
+    # Shorter, faster prompt
+    prompt = f"""Analyze {symbol} stock.
+
+MARKET DATA:
+- Price: ${price_data.get('price', 'N/A')}
+- Change: {price_data.get('change_percent', '0')}%
+
+NEWS (Recent):
+{news_text[:3000]}
+
+OUTPUT (Be concise):
+1. SENTIMENT: 🟢 BULLISH / 🔴 BEARISH / 🟡 NEUTRAL
+2. KEY REASON: (One sentence based on news)
+3. VERDICT: (Buy/Sell/Hold recommendation)"""
+
+    payload = json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.5,
+            "maxOutputTokens": 400
+        }
+    })
+    
     try:
-        gemini_key = str(getattr(env, 'GEMINI_API_KEY', ''))
-        if not gemini_key:
-            return f"📰 News fetched for {symbol}. Gemini not configured."
-        
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
-        
-        # RAG PROMPT - Inject all context
-        prompt = f"""ROLE: Senior Institutional Market Analyst at AntigravityTradingLLM.
-
-TASK: Analyze {symbol} based on the Real-Time Data & News provided below.
-
-═══════════════════════════════════════
-📊 MARKET DATA
-═══════════════════════════════════════
-• Symbol: {symbol}
-• Current Price: ${price_data.get('price', 'N/A')}
-• Day Change: {price_data.get('change_percent', 'N/A')}%
-• Volume: {price_data.get('volume', 'N/A')}
-• Bid: ${price_data.get('bid', 'N/A')}
-• Ask: ${price_data.get('ask', 'N/A')}
-
-═══════════════════════════════════════
-📰 NEWS FEED (Yahoo Finance RSS)
-═══════════════════════════════════════
-{news_text[:8000]}
-
-═══════════════════════════════════════
-📋 OUTPUT FORMAT (Required)
-═══════════════════════════════════════
-1. **SENTIMENT**: 🟢 BULLISH / 🔴 BEARISH / 🟡 NEUTRAL
-
-2. **KEY DRIVERS** (Based on news):
-   • [Driver 1]
-   • [Driver 2]
-   • [Driver 3]
-
-3. **RISK FACTORS**:
-   • [Risk 1]
-   • [Risk 2]
-
-4. **VERDICT**: [One-sentence trading recommendation]
-
-Be specific, cite actual headlines, and give actionable insights."""
-
-        payload = json.dumps({
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "temperature": 0.5,
-                "maxOutputTokens": 800
-            }
-        })
-        
         req_headers = Headers.new({"Content-Type": "application/json"}.items())
         response = await fetch(url, method="POST", headers=req_headers, body=payload)
+        response_text = await response.text()
+        data = json.loads(str(response_text))
         
-        if response.ok:
-            data = json.loads(await response.text())
-            text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-            if text:
-                return text
+        # 1. Check for Google API errors
+        if "error" in data:
+            error_msg = data.get("error", {}).get("message", "Unknown Error")
+            return f"⚠️ Google Error: {error_msg}"
         
-        return f"📰 News fetched for {symbol}. Analysis pending."
+        # 2. Check for Safety Filters (no candidates)
+        if not data.get("candidates"):
+            block_reason = data.get("promptFeedback", {}).get("blockReason", "Unknown")
+            return f"⚠️ Blocked by Safety Filters: {block_reason}"
+        
+        # 3. Extract text from response
+        text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+        
+        if text:
+            return text
+        else:
+            return f"⚠️ Empty response from Gemini"
+    
     except Exception as e:
-        return f"📰 {symbol} analysis error: {str(e)}"
+        return f"⚠️ System Error: {str(e)}"
 
 
 async def call_gemini_chat(user_message, user_name, env):
@@ -299,7 +290,7 @@ async def call_gemini_chat(user_message, user_name, env):
         if not gemini_key:
             return await call_groq_chat(user_message, env)
         
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={gemini_key}"
         
         prompt = f"""You are SENTINEL - an expert AI trading assistant.
 

@@ -2,161 +2,356 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================
+   🌙 MIDNIGHT PROTOCOL - Design System
+   ========================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-  /* Midnight Protocol Theme */
-  --bg-primary: #050505;
-  --bg-secondary: #0a0a0a;
-  --bg-tertiary: #111111;
-  --bg-card: rgba(5, 5, 5, 0.7);
+  /* Core Palette */
+  --midnight-void: #050505;
+  --midnight-surface: #0A0A0A;
+  --midnight-border: #1F1F1F;
 
   /* Neon Accents */
-  --accent-cyan: #06b6d4;
-  /* System/AI */
-  --accent-green: #10b981;
-  /* Profit */
-  --accent-red: #ef4444;
-  /* Loss */
+  --neon-cyan: #06B6D4;
+  --neon-green: #10B981;
+  --neon-red: #F43F5E;
 
-  /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.02);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-
-  /* Text */
-  --text-primary: #ffffff;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  /* Glass */
+  --glass-bg: rgba(10, 10, 10, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.05);
 }
 
-/* ... existing reset ... */
-
-/* Typewriter Animation */
-.typewriter {
-  overflow: hidden;
-  border-right: 2px solid var(--accent-cyan);
-  white-space: nowrap;
-  animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@keyframes typing {
-  from {
-    width: 0
-  }
-
-  to {
-    width: 100%
-  }
+body {
+  background-color: var(--midnight-void);
+  color: #e5e7eb;
+  font-family: 'Inter', system-ui, sans-serif;
+  background-image: radial-gradient(circle at 50% 0%, #111827 0%, #050505 50%);
+  min-height: 100vh;
 }
 
-@keyframes blink-caret {
+/* ==========================================
+   Typography
+   ========================================== */
 
-  from,
-  to {
-    border-color: transparent
-  }
-
-  50% {
-    border-color: var(--accent-cyan)
-  }
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }
 
-/* Pulse Effect for Live Price */
-.live-pulse {
-  position: relative;
+/* ==========================================
+   Glass Card Component
+   ========================================== */
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
 }
 
-.live-pulse::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  background: var(--accent-green);
-  border-radius: 50%;
-  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+.glass-card-strong {
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
 }
 
-@keyframes ping {
+/* ==========================================
+   Neon Glow Effects
+   ========================================== */
 
-  75%,
-  100% {
-    transform: scale(2);
-    opacity: 0;
-  }
+.glow-cyan {
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
 }
 
-/* Chat Bubbles */
+.glow-green {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+.glow-red {
+  box-shadow: 0 0 15px rgba(244, 63, 94, 0.3);
+}
+
+/* ==========================================
+   Sidebar Navigation
+   ========================================== */
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  color: #9ca3af;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.nav-item.active {
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--neon-cyan);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+}
+
+/* ==========================================
+   Stats Cards
+   ========================================== */
+
+.stat-card {
+  background: var(--midnight-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  border-color: rgba(6, 182, 212, 0.3);
+  transform: translateY(-2px);
+}
+
+.stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================
+   Chat Interface
+   ========================================== */
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--midnight-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .chat-bubble-user {
-  background: linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(34, 211, 238, 0.05) 100%);
-  border: 1px solid rgba(34, 211, 238, 0.2);
-  border-radius: 20px 20px 4px 20px;
+  align-self: flex-end;
+  max-width: 80%;
+  padding: 0.75rem 1rem;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 16px 16px 4px 16px;
+  color: #e5e7eb;
 }
 
 .chat-bubble-ai {
+  align-self: flex-start;
+  max-width: 80%;
+  padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--glass-border);
-  border-radius: 20px 20px 20px 4px;
+  border-radius: 16px 16px 16px 4px;
+  color: #d1d5db;
 }
 
-/* Button Styles */
+.chat-input-container {
+  padding: 1rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+.chat-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: #fff;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.chat-input:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+.chat-input::placeholder {
+  color: #6b7280;
+}
+
+/* ==========================================
+   Buttons
+   ========================================== */
+
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-cyan) 0%, #0ea5e9 100%);
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--neon-cyan) 0%, #0891b2 100%);
+  color: #fff;
   font-weight: 600;
-  padding: 12px 24px;
   border-radius: 12px;
   border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(34, 211, 238, 0.4);
+  box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, var(--accent-green) 0%, #16a34a 100%);
-  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+  background: linear-gradient(135deg, var(--neon-green) 0%, #059669 100%);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, var(--accent-red) 0%, #dc2626 100%);
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  background: linear-gradient(135deg, var(--neon-red) 0%, #e11d48 100%);
+  box-shadow: 0 4px 15px rgba(244, 63, 94, 0.3);
 }
 
-/* Input Styles */
-.input-glass {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  padding: 14px 18px;
-  color: var(--text-primary);
-  font-family: inherit;
-  transition: all 0.3s ease;
-  outline: none;
+/* ==========================================
+   Status Indicators
+   ========================================== */
+
+.status-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 9999px;
+  color: var(--neon-green);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
-.input-glass:focus {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--neon-green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
 }
 
-.input-glass::placeholder {
-  color: var(--text-muted);
-}
+@keyframes pulse {
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .bento-grid {
-    grid-template-columns: repeat(6, 1fr);
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
   }
 }
 
-@media (max-width: 768px) {
-  .bento-grid {
-    grid-template-columns: repeat(4, 1fr);
+/* ==========================================
+   Scrollbar
+   ========================================== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--midnight-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================
+   Animations
+   ========================================== */
+
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background: var(--neon-cyan);
+  border-radius: 50%;
+  animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+
+  30% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Price Flash */
+.price-up {
+  color: var(--neon-green);
+}
+
+.price-down {
+  color: var(--neon-red);
+}
+
+/* ==========================================
+   Responsive
+   ========================================== */
+
+@media (max-width: 1024px) {
+  .sidebar {
+    display: none;
   }
 }
