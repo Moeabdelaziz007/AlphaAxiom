@@ -15,3 +15,9 @@ crons = ["* * * * *"]
 [[kv_namespaces]]
 binding = "BRAIN_MEMORY"
 id = "c203227d895b44cda280846022356a5f"
+
+# 💾 DATABASE: D1 (SQLite at Edge)
+[[d1_databases]]
+binding = "TRADING_DB"
+database_name = "trading-brain-db"
+database_id = "9d4168e4-391c-4b79-a20a-6661e599fde6"
