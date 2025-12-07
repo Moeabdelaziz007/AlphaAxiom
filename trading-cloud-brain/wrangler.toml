@@ -21,6 +21,10 @@ id = "b2623ff0d28342c799dae14fae4eb512"
 binding = "TRADING_DB"
 database_name = "trading-brain-db"
 
+# 🤖 AI: Workers AI (FREE LLMs - 10K neurons/day)
+[ai]
+binding = "AI"
+
 # 🔑 Environment Variables
 [vars]
 ABLY_API_KEY = "-psacw.I6fnWw:m-zRcRM-3k5UwuiAKHeP8CJ3N1DWSMPQTorXy3pbLp8"

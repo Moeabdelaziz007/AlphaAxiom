@@ -4,6 +4,7 @@ from base64 import b64encode
 from capital_connector import CapitalConnector
 from economic_calendar import EconomicCalendar
 from deepseek_analyst import DeepSeekAnalyst
+from workers_ai import WorkersAI
 
 # ==========================================
 # 🧠 ANTIGRAVITY MoE BRAIN v2.0
@@ -685,6 +686,50 @@ async def handle_telegram_webhook(request, env, headers):
                     
             except Exception as e:
                 await send_telegram_reply(env, chat_id, f"⚠️ خطأ DeepSeek: {str(e)}")
+            return Response.new(json.dumps({"ok": True}), headers=headers)
+        
+        # ============ FREE WORKERS AI COMMANDS ============
+        
+        # /ai - Quick FREE AI using Cloudflare Workers AI
+        if text.startswith("/ai"):
+            try:
+                query = text[3:].strip()
+                if not query:
+                    await send_telegram_reply(env, chat_id, """🆓 <b>Workers AI (مجاني!)</b>
+
+استخدم: /ai [سؤالك]
+
+<b>مميزات:</b>
+• 10,000 neurons مجانية يومياً
+• Llama 3.1 8B (Beta = مجاني غير محدود)
+• لا يحتاج API key
+
+<b>مثال:</b>
+/ai ما رأيك في EURUSD اليوم؟""")
+                    return Response.new(json.dumps({"ok": True}), headers=headers)
+                
+                await send_telegram_reply(env, chat_id, "🆓 <i>Workers AI (مجاني) يفكر...</i>")
+                
+                ai = WorkersAI(env)
+                result = await ai.chat(
+                    message=query,
+                    system_prompt="أنت مساعد تداول ذكي. أجب بإيجاز وباللغة العربية."
+                )
+                
+                if result.get("error"):
+                    await send_telegram_reply(env, chat_id, f"❌ خطأ: {result['error']}")
+                else:
+                    content = result.get("content", "لا توجد إجابة")
+                    source = result.get("source", "workers_ai")
+                    reply = f"""🆓 <b>Workers AI</b>
+
+{content[:1500]}
+
+<i>المصدر: {source} | التكلفة: $0.00</i>"""
+                    await send_telegram_reply(env, chat_id, reply)
+                    
+            except Exception as e:
+                await send_telegram_reply(env, chat_id, f"⚠️ خطأ Workers AI: {str(e)}")
             return Response.new(json.dumps({"ok": True}), headers=headers)
         
         # /balance command
