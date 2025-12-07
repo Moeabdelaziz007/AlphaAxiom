@@ -1,0 +1,40 @@
+{
+  "Sidebar": {
+    "Dashboard": "لوحة القيادة",
+    "Terminal": "منصة التداول",
+    "Portfolio": "المحفظة الاستثمارية",
+    "History": "سجل العمليات",
+    "AutoPilot": "الطيار الآلي",
+    "Settings": "الإعدادات",
+    "Disconnect": "قطع الاتصال"
+  },
+  "Stats": {
+    "PortfolioValue": "قيمة المحفظة",
+    "BuyingPower": "القدرة الشرائية",
+    "TradesToday": "صفقات اليوم",
+    "Status": "حالة الذكاء الاصطناعي",
+    "Online": "متصل",
+    "Offline": "غير متصل"
+  },
+  "Trade": {
+    "Buy": "شراء",
+    "Sell": "بيع",
+    "Symbol": "الرمز",
+    "Quantity": "الكمية",
+    "Execute": "تنفيذ الصفقة",
+    "ConfirmTitle": "تأكيد التنفيذ",
+    "Cancel": "إلغاء"
+  },
+  "WarRoom": {
+    "Title": "غرفة العمليات",
+    "Subtitle": "نظام المراقبة المتعدد",
+    "PanicButton": "تصفية كافة المراكز",
+    "Fullscreen": "ملء الشاشة"
+  },
+  "Common": {
+    "Welcome": "نظام أنتي-غرافيتي متصل. جاهز لتحليل السوق والتنفيذ.",
+    "Loading": "جاري التحميل...",
+    "Error": "خطأ",
+    "Success": "تم بنجاح"
+  }
+}

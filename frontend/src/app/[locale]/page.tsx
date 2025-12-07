@@ -27,8 +27,14 @@ interface MarketSymbol {
 }
 
 // ==================== DASHBOARD 2.0 ====================
+// ==================== DASHBOARD 2.0 ====================
+import { useTranslations } from 'next-intl';
+
 export default function Dashboard() {
-    // State
+    const tStats = useTranslations('Stats');
+    const tCommon = useTranslations('Common');
+
+    // State, etc...
     const [messages, setMessages] = useState<{ role: string; content: string }[]>([
         { role: 'system', content: '🦅 Antigravity System Online. Connected to Google News & Alpaca. Try: "Analyze BTC" or "Buy 1 AAPL"' }
     ]);
@@ -47,6 +53,8 @@ export default function Dashboard() {
     ]);
     const [viewMode, setViewMode] = useState<'STANDARD' | 'WAR_ROOM'>('STANDARD');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // ... (Hooks remain same)
 
     // 📡 Fetch System Data
     const fetchSystemData = useCallback(async () => {
@@ -165,25 +173,25 @@ export default function Dashboard() {
             {/* 📊 Top Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-slide-up">
                 <StatCard
-                    title="Portfolio Value"
+                    title={tStats('PortfolioValue')}
                     value={`$${parseFloat(portfolio.portfolio_value).toLocaleString()}`}
                     change="+2.4%"
                     positive={true}
                     icon={<Wallet className="text-cyan-400" size={20} />}
                 />
                 <StatCard
-                    title="Buying Power"
+                    title={tStats('BuyingPower')}
                     value={`$${parseFloat(portfolio.buying_power).toLocaleString()}`}
                     icon={<ArrowUpRight className="text-emerald-400" size={20} />}
                 />
                 <StatCard
-                    title="Trades Today"
+                    title={tStats('TradesToday')}
                     value={`${systemStatus.trades_today} / 10`}
                     icon={<Activity className="text-purple-400" size={20} />}
                 />
                 <StatCard
-                    title="AI Status"
-                    value={systemStatus.status === 'online' ? 'ONLINE' : 'OFFLINE'}
+                    title={tStats('Status')}
+                    value={systemStatus.status === 'online' ? tStats('Online') : tStats('Offline')}
                     icon={<Zap className={systemStatus.status === 'online' ? 'text-yellow-400' : 'text-gray-500'} size={20} />}
                     status={systemStatus.status}
                 />
@@ -196,7 +204,7 @@ export default function Dashboard() {
                 <div className="flex-[2] flex flex-col gap-4 animate-slide-up delay-200">
 
                     {/* 🔴 Mode Switch (Top Right) */}
-                    <div className="flex justify-end gap-2 -mb-12 z-20 relative mr-2">
+                    <div className="flex justify-end gap-2 -mb-12 z-20 relative me-2">
                         <button
                             onClick={() => setViewMode('STANDARD')}
                             className={`p-2 rounded-lg backdrop-blur border transition-all ${viewMode === 'STANDARD'
@@ -225,7 +233,7 @@ export default function Dashboard() {
                             <>
                                 {/* Standard Mode: Single Chart */}
                                 {/* Chart Header - Watchlist with Real Data */}
-                                <div className="absolute top-4 left-4 z-10 flex gap-2 flex-wrap">
+                                <div className="absolute top-4 start-4 z-10 flex gap-2 flex-wrap">
                                     {watchlist.map(item => (
                                         <button
                                             key={item.symbol}
@@ -239,7 +247,7 @@ export default function Dashboard() {
                                                 }`}
                                         >
                                             {item.symbol}
-                                            <span className={`ml-2 text-xs ${item.change_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                            <span className={`ms-2 text-xs font-mono ${item.change_percent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                                                 {item.change_percent >= 0 ? '+' : ''}{item.change_percent.toFixed(2)}%
                                             </span>
                                         </button>
@@ -247,12 +255,12 @@ export default function Dashboard() {
                                 </div>
 
                                 {/* Timeframe Selector */}
-                                <div className="absolute top-4 right-20 z-10 flex gap-1 bg-black/50 backdrop-blur-sm rounded-lg p-1 border border-gray-800/50">
+                                <div className="absolute top-4 end-20 z-10 flex gap-1 bg-black/50 backdrop-blur-sm rounded-lg p-1 border border-gray-800/50">
                                     {['15m', '1H', '4H', '1D'].map((tf) => (
                                         <button
                                             key={tf}
                                             onClick={() => handleTimeframeChange(tf)}
-                                            className={`px-2 py-1 text-xs rounded transition-all ${tf === activeTimeframe
+                                            className={`px-2 py-1 text-xs font-mono rounded transition-all ${tf === activeTimeframe
                                                 ? 'bg-cyan-500/20 text-cyan-400'
                                                 : 'text-gray-500 hover:text-gray-300'
                                                 }`}
@@ -262,7 +270,7 @@ export default function Dashboard() {
                                     ))}
                                 </div>
 
-                                <div className="absolute top-4 right-4 z-10">
+                                <div className="absolute top-4 end-4 z-10">
                                     <span className="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-xs border border-emerald-500/30 flex items-center gap-1">
                                         <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
                                         LIVE
@@ -302,6 +310,7 @@ export default function Dashboard() {
                                     </div>
                                 ) : (
                                     <div className="flex flex-col gap-2">
+                                        {/* Using CardSkeleton logic but specialized for text */}
                                         <div className="h-3 bg-white/5 rounded w-3/4 animate-pulse"></div>
                                         <div className="h-3 bg-white/5 rounded w-1/2 animate-pulse"></div>
                                         <div className="h-3 bg-white/5 rounded w-2/3 animate-pulse"></div>
@@ -380,6 +389,11 @@ export default function Dashboard() {
                             </button>
                         </div>
                     </div>
+
+                    {/* Welcome Message */}
+                    <div className="text-xs text-center p-2 text-cyan-400/50">
+                        {tCommon('Welcome')}
+                    </div>
                 </div>
             </div>
         </div>
@@ -405,7 +419,7 @@ function StatCard({ title, value, change, positive, icon, status }: StatCardProp
                     {value}
                 </h3>
                 {change && (
-                    <span className={`text-xs flex items-center gap-0.5 ${positive ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <span className={`text-xs flex items-center gap-0.5 font-mono ${positive ? 'text-emerald-400' : 'text-rose-400'}`}>
                         {positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />} {change}
                     </span>
                 )}

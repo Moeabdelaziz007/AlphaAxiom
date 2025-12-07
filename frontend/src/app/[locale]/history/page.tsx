@@ -1,21 +1,14 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
-import { DashboardLayout, StatCard, TableSkeleton, EmptyState } from '@/components/DashboardLayout';
+import { StatCard, TableSkeleton, EmptyState } from '@/components/SharedComponents';
 import { History, RefreshCw, CheckCircle, XCircle, Clock, Filter, Download, Search } from 'lucide-react';
 
 const API_BASE = "https://trading-brain-v1.amrikyy.workers.dev";
 
-interface TradeLog {
-    id?: number;
-    ticker: string;
-    action: string;
-    qty: number;
-    order_id?: string;
-    trigger_reason?: string;
-    executed_at?: string;
-}
+// ... interfaces ...
 
 export default function HistoryPage() {
+    // ... state ... (no change needed in state logic)
     const [logs, setLogs] = useState<TradeLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'buy' | 'sell'>('all');
@@ -45,8 +38,14 @@ export default function HistoryPage() {
     const sellCount = logs.filter(l => l.action === 'sell').length;
 
     return (
-        <DashboardLayout title="Trade History" subtitle="All executed trades and automation logs">
-            <div className="p-6">
+        <div className="flex flex-col h-full overflow-hidden">
+            <div className="p-6 border-b border-gray-800 flex justify-between items-center">
+                <div>
+                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Trade History</h1>
+                    <p className="text-gray-500 text-sm">All executed trades and automation logs</p>
+                </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <StatCard label="Total Trades" value={logs.length} icon={History} color="cyan" />
@@ -77,10 +76,10 @@ export default function HistoryPage() {
                                     key={f}
                                     onClick={() => setFilter(f)}
                                     className={`px-3 py-1.5 text-sm rounded-lg transition-all ${filter === f
-                                            ? f === 'buy' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                                : f === 'sell' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                                                    : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                                            : 'text-gray-400 hover:bg-white/5'
+                                        ? f === 'buy' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                            : f === 'sell' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                                : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                                        : 'text-gray-400 hover:bg-white/5'
                                         }`}
                                 >
                                     {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -146,8 +145,8 @@ export default function HistoryPage() {
                                             <td className="p-4 font-mono font-semibold text-white">{log.ticker}</td>
                                             <td className="p-4">
                                                 <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${log.action === 'buy'
-                                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                                        : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                                    : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
                                                     }`}>
                                                     {log.action?.toUpperCase()}
                                                 </span>
@@ -167,6 +166,6 @@ export default function HistoryPage() {
                     </div>
                 )}
             </div>
-        </DashboardLayout>
+        </div>
     );
 }

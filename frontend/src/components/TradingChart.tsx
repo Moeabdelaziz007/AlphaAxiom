@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, IChartApi } from 'lightweight-charts';
+import { ChartSkeleton } from './ui/Skeletons';
 
 interface CandleData {
     time: string;
@@ -201,11 +202,8 @@ export function TradingChart({ symbol = "SPY", timeframe = "1H", hideControls = 
 
             {/* Loading state */}
             {loading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0a]">
-                    <div className="flex flex-col items-center gap-3">
-                        <div className="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-gray-500 text-sm">Loading {symbol}...</span>
-                    </div>
+                <div className="absolute inset-0 z-50">
+                    <ChartSkeleton />
                 </div>
             )}
 

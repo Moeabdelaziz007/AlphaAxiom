@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, LineChart, Wallet, History, Bot, Settings, LogOut } from 'lucide-react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import LocaleSwitcher from './LanguageSwitcher';
 
 const routes = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard', color: 'text-cyan-400' },
@@ -15,9 +17,11 @@ const routes = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const t = useTranslations('Sidebar');
+    const tStats = useTranslations('Stats');
 
     return (
-        <div className="flex flex-col h-full w-64 bg-[#050505] border-r border-gray-800">
+        <div className="flex flex-col h-full w-64 bg-[#050505] border-e border-gray-800">
             {/* Logo */}
             <div className="p-6 flex items-center gap-3 border-b border-gray-800">
                 <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/20 flex-shrink-0">
@@ -33,7 +37,12 @@ export default function Sidebar() {
             <div className="flex-1 py-6 flex flex-col gap-1 px-3">
                 {routes.map((route) => {
                     const Icon = route.icon;
-                    const isActive = pathname === route.path;
+                    // Check if active (handle locale path segments if needed, but pathname usually includes locale)
+                    // Simple check: does pathname end with route path?
+                    // For root '/', check if pathname is exactly '/en' or '/ar' or just '/'
+                    const isActive = route.path === '/'
+                        ? (pathname === '/en' || pathname === '/ar' || pathname === '/')
+                        : pathname.includes(route.path);
 
                     return (
                         <Link
@@ -45,7 +54,7 @@ export default function Sidebar() {
                                 }`}
                         >
                             <Icon size={20} className={isActive ? route.color : 'text-gray-500'} />
-                            <span className="font-medium text-sm">{route.label}</span>
+                            <span className="font-medium text-sm">{t(route.label)}</span>
                         </Link>
                     );
                 })}
@@ -55,24 +64,22 @@ export default function Sidebar() {
             <div className="px-4 pb-4">
                 <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-800/50 space-y-2">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">AI Status</span>
+                        <span className="text-xs text-gray-500">{tStats('Status')}</span>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            <span className="text-xs text-green-400">Online</span>
+                            <span className="text-xs text-green-400">{tStats('Online')}</span>
                         </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">Broker</span>
-                        <span className="text-xs text-cyan-400">Alpaca</span>
                     </div>
                 </div>
             </div>
 
-            {/* Disconnect */}
-            <div className="p-4 border-t border-gray-800">
-                <button className="flex items-center gap-3 px-4 py-3 w-full text-gray-400 hover:text-red-400 transition-colors rounded-xl hover:bg-gray-900/50">
-                    <LogOut size={20} />
-                    <span className="text-sm">Disconnect</span>
+            {/* Language & Disconnect */}
+            <div className="p-4 border-t border-gray-800 space-y-2">
+                <LocaleSwitcher />
+
+                <button className="flex items-center gap-3 px-4 py-3 w-full text-gray-400 hover:text-red-400 transition-colors rounded-xl hover:bg-gray-900/50 group">
+                    <LogOut size={20} className="group-hover:text-red-500 transition-colors" />
+                    <span className="text-sm">{t('Disconnect')}</span>
                 </button>
             </div>
         </div>
