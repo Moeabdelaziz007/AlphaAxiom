@@ -84,7 +84,7 @@ export default function Dashboard() {
                     </div>
                     <div className="w-px h-10 bg-[var(--glass-border)]" />
                     <div>
-                        <p className="text-xs text-[var(--text-dim)] uppercase">Today's P/L</p>
+                        <p className="text-xs text-[var(--text-dim)] uppercase">Today&apos;s P/L</p>
                         <p className="text-xl font-bold font-mono text-[var(--neon-green)]">+$1,245.00</p>
                     </div>
                     <div className="w-px h-10 bg-[var(--glass-border)]" />

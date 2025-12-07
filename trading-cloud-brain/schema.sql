@@ -1,11 +1,22 @@
 -- ANTIGRAVITY Trading Brain - D1 Schema
 -- State persistence for trading rules, logs, and context
--- Trading Rules (Bot Memory)
+-- Trading Rules (Legacy - Bot Memory)
 CREATE TABLE IF NOT EXISTS trading_rules (
     rule_id TEXT PRIMARY KEY,
     ticker TEXT NOT NULL,
     logic_json TEXT NOT NULL,
     status TEXT DEFAULT 'active',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+-- Rules Table (Used by Cron Handler)
+CREATE TABLE IF NOT EXISTS rules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticker TEXT NOT NULL DEFAULT 'EURUSD',
+    condition TEXT NOT NULL DEFAULT 'PRICE_ABOVE',
+    trigger_value REAL NOT NULL DEFAULT 0,
+    action TEXT NOT NULL DEFAULT 'BUY',
+    qty INTEGER NOT NULL DEFAULT 1,
+    active INTEGER DEFAULT 1,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 -- Trade Logs (Audit Trail)
