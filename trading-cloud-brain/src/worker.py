@@ -2,6 +2,7 @@ from js import Response, fetch, Headers, JSON
 import json
 from base64 import b64encode
 from capital_connector import CapitalConnector
+from economic_calendar import EconomicCalendar
 
 # ==========================================
 # 🧠 ANTIGRAVITY MoE BRAIN v2.0
@@ -1341,6 +1342,26 @@ async def on_scheduled(event, env, ctx):
         if trades_today >= MAX_TRADES_PER_DAY:
             # Max trades reached, skip execution
             return
+        
+        # ========================================
+        # 📰 STEP 3.5: ECONOMIC NEWS CHECK
+        # ========================================
+        # Skip trading during high-impact news (15 min buffer)
+        try:
+            calendar = EconomicCalendar(env)
+            news_check = await calendar.should_avoid_trading()
+            
+            if news_check.get("avoid"):
+                # Log news avoidance
+                await kv.put("last_news_skip", json.dumps({
+                    "time": int(__import__('time').time()),
+                    "reason": news_check.get("reason", "")
+                }))
+                # Skip this cycle - don't trade during news
+                return
+        except:
+            # If news check fails, continue trading (don't block)
+            pass
         
         # ========================================
         # 🏎️ STEP 4: TWIN-TURBO SIGNAL SCAN
