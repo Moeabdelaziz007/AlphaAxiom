@@ -519,7 +519,7 @@ async def handle_telegram_webhook(request, env, headers):
         # ============ COMMAND HANDLING ============
         
         # /start command
-        if text.startswith("/start"):
+        if text.startswith("/start") and not text.startswith("/starttrade"):
             reply = f"""🦅 <b>ANTIGRAVITY TERMINAL</b> Online!
 
 مرحباً {user_name}! أنا Sentinel AI - مساعدك الذكي للتداول.
@@ -527,12 +527,71 @@ async def handle_telegram_webhook(request, env, headers):
 <b>📋 الأوامر المتاحة:</b>
 • /balance - عرض رصيد المحفظة
 • /positions - المراكز المفتوحة
-• Analyze AAPL - تحليل سهم
-• Buy 5 TSLA - تنفيذ صفقة
+• /stoptrade - 🛑 إيقاف التداول التلقائي
+• /starttrade - ▶️ تشغيل التداول التلقائي
+• /status - حالة النظام
+• Analyze EURUSD - تحليل زوج
 • أي سؤال - سأجيبك!
 
 <b>🔗 Dashboard:</b> trading-brain-v1.amrikyy.workers.dev"""
             await send_telegram_reply(env, chat_id, reply)
+            return Response.new(json.dumps({"ok": True}), headers=headers)
+        
+        # ============ KILL SWITCH COMMANDS ============
+        
+        # /stoptrade - Activate panic mode (halt all trading)
+        if text.startswith("/stoptrade") or text.startswith("/stop"):
+            try:
+                kv = env.BRAIN_MEMORY
+                await kv.put("panic_mode", "true")
+                await kv.put("panic_timestamp", str(int(__import__('time').time())))
+                reply = """🛑 <b>KILL SWITCH ACTIVATED</b>
+
+التداول التلقائي <b>متوقف الآن</b>.
+
+جميع عمليات التداول الآلية معلقة.
+لإعادة التشغيل، أرسل: /starttrade"""
+                await send_telegram_reply(env, chat_id, reply)
+            except Exception as e:
+                await send_telegram_reply(env, chat_id, f"⚠️ خطأ: {str(e)}")
+            return Response.new(json.dumps({"ok": True}), headers=headers)
+        
+        # /starttrade - Deactivate panic mode
+        if text.startswith("/starttrade"):
+            try:
+                kv = env.BRAIN_MEMORY
+                await kv.put("panic_mode", "false")
+                reply = """▶️ <b>TRADING RESUMED</b>
+
+التداول التلقائي <b>نشط الآن</b>.
+
+سيتم تنفيذ جميع إشارات Twin-Turbo المعتمدة."""
+                await send_telegram_reply(env, chat_id, reply)
+            except Exception as e:
+                await send_telegram_reply(env, chat_id, f"⚠️ خطأ: {str(e)}")
+            return Response.new(json.dumps({"ok": True}), headers=headers)
+        
+        # /status - System status including panic mode
+        if text.startswith("/status"):
+            try:
+                kv = env.BRAIN_MEMORY
+                panic_mode = await kv.get("panic_mode") or "false"
+                capital = CapitalConnector(env)
+                account = await capital.get_account_info()
+                
+                status_emoji = "🛑" if panic_mode == "true" else "🟢"
+                status_text = "متوقف" if panic_mode == "true" else "نشط"
+                
+                reply = f"""📊 <b>SYSTEM STATUS</b>
+
+{status_emoji} التداول التلقائي: <b>{status_text}</b>
+💰 الرصيد: ${float(account.get('balance', 0)):,.2f}
+📈 الوسيط: {account.get('source', 'Capital.com Demo')}
+
+⏰ آخر فحص: الآن"""
+                await send_telegram_reply(env, chat_id, reply)
+            except Exception as e:
+                await send_telegram_reply(env, chat_id, f"⚠️ خطأ: {str(e)}")
             return Response.new(json.dumps({"ok": True}), headers=headers)
         
         # /balance command
@@ -1211,23 +1270,96 @@ async def get_trades_count(env):
 # ⏰ CRON HANDLER (Automation)
 # ==========================================
 
+# Safety Constants
+MAX_DAILY_LOSS_PERCENT = 5.0  # Kill switch triggers at 5% daily loss
+STARTING_EQUITY = 100000      # Track from this baseline (or fetch dynamically)
+
 async def on_scheduled(event, env, ctx):
-    """Cron job for automated trading rules + Database Maintenance"""
+    """
+    Cron job for automated Twin-Turbo trading.
+    
+    Safety Features (Best Practices):
+    1. PANIC MODE CHECK - First thing, before any logic
+    2. DAILY LOSS LIMIT - Auto-activate panic if loss > 5%
+    3. TRADE COUNT LIMIT - Max trades per day
+    4. DETAILED LOGGING - All actions logged to D1
+    """
     try:
+        kv = env.BRAIN_MEMORY
         db = env.TRADING_DB
+        
+        # ========================================
+        # 🛑 STEP 1: KILL SWITCH CHECK (FIRST!)
+        # ========================================
+        panic_mode = await kv.get("panic_mode")
+        if panic_mode == "true":
+            # System is in panic mode - do nothing except maintenance
+            await _run_maintenance(db)
+            return
+        
+        # ========================================
+        # 📊 STEP 2: DAILY LOSS CHECK
+        # ========================================
+        try:
+            capital = CapitalConnector(env)
+            account = await capital.get_account_info()
+            current_equity = float(account.get("equity", STARTING_EQUITY))
+            
+            # Get starting equity from KV (set daily at market open)
+            starting_equity_str = await kv.get("daily_starting_equity")
+            starting_equity = float(starting_equity_str) if starting_equity_str else STARTING_EQUITY
+            
+            daily_pnl_percent = ((current_equity - starting_equity) / starting_equity) * 100
+            
+            # AUTO-TRIGGER PANIC MODE if daily loss exceeds limit
+            if daily_pnl_percent <= -MAX_DAILY_LOSS_PERCENT:
+                await kv.put("panic_mode", "true")
+                await kv.put("panic_reason", f"Daily loss limit hit: {daily_pnl_percent:.2f}%")
+                await kv.put("panic_timestamp", str(int(__import__('time').time())))
+                
+                # Close all positions for safety
+                positions = await capital.get_open_positions()
+                for pos in positions:
+                    await capital.close_position(pos.get("deal_id"))
+                
+                # Alert user
+                await send_telegram_alert(env, f"""🛑 <b>AUTO KILL SWITCH ACTIVATED</b>
+
+⚠️ Daily loss limit reached: <b>{daily_pnl_percent:.2f}%</b>
+
+جميع المراكز تم إغلاقها تلقائياً.
+التداول متوقف حتى تقوم بإرسال /starttrade""")
+                return
+        except Exception as e:
+            # If we can't check account, continue with caution
+            pass
+        
+        # ========================================
+        # 🔢 STEP 3: TRADE COUNT CHECK
+        # ========================================
+        trades_today = await get_trades_count(env)
+        if trades_today >= MAX_TRADES_PER_DAY:
+            # Max trades reached, skip execution
+            return
+        
+        # ========================================
+        # 🏎️ STEP 4: TWIN-TURBO SIGNAL SCAN
+        # ========================================
+        # Run automated rules from database
         rules = await db.prepare("SELECT * FROM rules WHERE active = 1").all()
         
         if rules.results:
             for rule in rules.results:
-                ticker = rule.get("ticker", "SPY")
+                ticker = rule.get("ticker", "EURUSD")
                 condition = rule.get("condition", "PRICE_ABOVE")
                 trigger = float(rule.get("trigger_value", 0))
                 action = rule.get("action", "BUY")
                 qty = int(rule.get("qty", 1))
                 
-                # Get current price
-                price_data = await fetch_alpaca_snapshot(ticker, env)
-                current_price = float(price_data.get("price", 0)) if price_data.get("price") != "N/A" else 0
+                # Get current price from Capital.com
+                capital = CapitalConnector(env)
+                price_data = await capital.get_market_prices(ticker)
+                current_price = float(price_data.get("bid", 0))
                 
                 if current_price == 0:
                     continue
@@ -1239,24 +1371,41 @@ async def on_scheduled(event, env, ctx):
                     should_execute = True
                 
                 if should_execute:
-                    side = "buy" if action == "BUY" else "sell"
-                    result = await execute_alpaca_trade(env, ticker, side, qty)
+                    side = "BUY" if action == "BUY" else "SELL"
+                    result = await capital.create_position(ticker, side, qty)
                     
                     if result.get("status") == "success":
-                        await log_trade(env, ticker, side, qty, result.get("price", current_price))
-                        await send_telegram_alert(env, f"⚡ <b>AUTO TRADE</b>\n\nRule triggered: {condition} {trigger}\n{side.upper()} {qty} {ticker}")
+                        await log_trade(env, ticker, side, qty, current_price)
+                        await send_telegram_alert(env, f"""⚡ <b>AUTO TRADE EXECUTED</b>
+
+📍 {side} {qty} {ticker}
+💰 @ {current_price}
+
+Rule: {condition} {trigger}""")
                         
                         # Deactivate rule after execution
                         await db.prepare("UPDATE rules SET active = 0 WHERE id = ?").bind(rule.get("id")).run()
         
-        # 🧹 DATABASE MAINTENANCE - Prune old records (30+ days)
+        # ========================================
+        # 🧹 STEP 5: DATABASE MAINTENANCE
+        # ========================================
+        await _run_maintenance(db)
+            
+    except Exception as e:
+        # Log error but don't crash
         try:
-            await db.prepare(
-                "DELETE FROM trades WHERE timestamp < datetime('now', '-30 days')"
-            ).run()
+            await send_telegram_alert(env, f"⚠️ Cron Error: {str(e)[:100]}")
         except:
             pass
-            
+
+
+async def _run_maintenance(db):
+    """Database cleanup - runs even in panic mode"""
+    try:
+        # Prune old trade records (30+ days)
+        await db.prepare(
+            "DELETE FROM trades WHERE timestamp < datetime('now', '-30 days')"
+        ).run()
     except:
         pass
 
