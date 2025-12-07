@@ -20,4 +20,8 @@ id = "b2623ff0d28342c799dae14fae4eb512"
 [[d1_databases]]
 binding = "TRADING_DB"
 database_name = "trading-brain-db"
-database_id = "d465948d-1aff-4d56-9d45-ad771a879d9f"
+
+# 🔑 Environment Variables
+[vars]
+ABLY_API_KEY = "-psacw.I6fnWw:m-zRcRM-3k5UwuiAKHeP8CJ3N1DWSMPQTorXy3pbLp8"
+

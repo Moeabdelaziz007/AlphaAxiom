@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { X, AlertTriangle, ArrowRight, Shield, DollarSign } from 'lucide-react';
+import { useSounds } from '@/components/SoundManager';
 
 interface TradeModalProps {
     isOpen: boolean;
@@ -11,14 +12,31 @@ interface TradeModalProps {
 }
 
 export const TradeModal = ({ isOpen, onClose, onConfirm, details, loading }: TradeModalProps) => {
+    const { playAlert, playSuccess, playClick, playError } = useSounds();
+
+    // Play alert sound when modal opens
+    React.useEffect(() => {
+        if (isOpen) playAlert();
+    }, [isOpen, playAlert]);
+
     if (!isOpen) return null;
 
     const isBuy = details.side.toLowerCase() === 'buy';
 
+    const handleConfirm = () => {
+        playSuccess();
+        onConfirm();
+    };
+
+    const handleCancel = () => {
+        playClick();
+        onClose();
+    };
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
             {/* Overlay click to close */}
-            <div className="absolute inset-0" onClick={onClose}></div>
+            <div className="absolute inset-0" onClick={handleCancel}></div>
 
             {/* Modal Container */}
             <div className="relative w-full max-w-md bg-[#0a0a0a] border border-gray-800 rounded-2xl shadow-2xl overflow-hidden animate-slide-up">
@@ -29,7 +47,7 @@ export const TradeModal = ({ isOpen, onClose, onConfirm, details, loading }: Tra
                         <Shield className="text-cyan-400" size={20} />
                         Confirm Execution
                     </h3>
-                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1 hover:bg-white/5 rounded-lg">
+                    <button onClick={handleCancel} className="text-gray-500 hover:text-white transition-colors p-1 hover:bg-white/5 rounded-lg">
                         <X size={20} />
                     </button>
                 </div>
@@ -78,13 +96,13 @@ export const TradeModal = ({ isOpen, onClose, onConfirm, details, loading }: Tra
                 {/* Actions */}
                 <div className="p-6 border-t border-gray-800 bg-black/30 flex gap-3">
                     <button
-                        onClick={onClose}
+                        onClick={handleCancel}
                         className="flex-1 py-3 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 transition-all font-bold hover:border-gray-600"
                     >
                         Cancel
                     </button>
                     <button
-                        onClick={onConfirm}
+                        onClick={handleConfirm}
                         disabled={loading}
                         className={`flex-1 py-3 rounded-xl text-black font-bold transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 ${isBuy
                             ? 'bg-emerald-500 hover:bg-emerald-400 shadow-emerald-500/30 hover:shadow-emerald-500/50'

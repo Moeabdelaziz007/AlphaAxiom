@@ -6,7 +6,7 @@ import { useMarketData } from '@/hooks/useMarketData';
 
 export default function ConnectionHeartbeat() {
     // Use a default symbol to check connection status
-    const { isConnected, isLoading } = useMarketData('BTC/USDT');
+    const { isConnected, connectionError } = useMarketData(['BTC/USD']);
 
     const engines = [
         { name: 'MARKET DATA', status: isConnected },
@@ -32,7 +32,7 @@ export default function ConnectionHeartbeat() {
                     <div>
                         <p className="text-xs text-gray-500">SYSTEM STATUS</p>
                         <p className={`text-sm font-bold ${isConnected ? 'text-neon-green glow-green' : 'text-neon-red glow-red'}`}>
-                            {isLoading ? 'CONNECTING...' : isConnected ? 'ONLINE' : 'OFFLINE'}
+                            {isConnected ? 'ONLINE' : connectionError ? 'ERROR' : 'CONNECTING...'}
                         </p>
                     </div>
                 </div>

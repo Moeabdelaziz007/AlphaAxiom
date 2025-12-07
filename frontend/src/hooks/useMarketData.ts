@@ -1,163 +1,96 @@
-'use client';
+"use client";
+import { useState, useEffect } from 'react';
+import * as Ably from 'ably';
 
-import { useState, useEffect, useRef } from 'react';
-
-const API_BASE = 'https://trading-brain-v1.amrikyy1.workers.dev';
+// 🔗 Backend API Configuration
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://trading-brain-v1.amrikyy.workers.dev";
+const SYSTEM_KEY = process.env.NEXT_PUBLIC_SYSTEM_KEY || "";
 
 export interface MarketData {
     symbol: string;
     price: number;
-    change: number;
     change_percent: number;
-    high: number;
-    low: number;
-    volume: number;
-    asset_type: string;
-    timestamp: string;
+    volume?: number;
+    is_closed?: boolean;
 }
 
-export type Trend = 'UP' | 'DOWN' | 'NEUTRAL';
-
-/**
- * useMarketData - Hook لجلب بيانات السوق الحية
- * يعطي شعور "Live" مع كشف اتجاه السعر
- */
-export function useMarketData(symbol: string) {
-    const [data, setData] = useState<MarketData | null>(null);
-    const [trend, setTrend] = useState<Trend>('NEUTRAL');
+export function useMarketData(initialSymbols: string[] = ['SPY', 'BTC/USD', 'ETH/USD', 'GLD']) {
+    const [data, setData] = useState<Record<string, MarketData>>({});
     const [isConnected, setIsConnected] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const prevPrice = useRef<number>(0);
+    const [connectionError, setConnectionError] = useState<string | null>(null);
 
+    // 1. Initial Fetch (Polling Fallback)
+    const fetchSnapshot = async () => {
+        try {
+            const symbolsParam = initialSymbols.join(',');
+            const res = await fetch(`${API_BASE}/api/market?symbols=${symbolsParam}`, {
+                headers: { 'X-System-Key': SYSTEM_KEY }
+            });
+            const json = await res.json();
+
+            // Handle both array and object formats (backend might return {symbols: [...]})
+            const list = Array.isArray(json) ? json : (json.symbols || []);
+
+            const newData: Record<string, MarketData> = {};
+            list.forEach((item: MarketData) => {
+                newData[item.symbol] = item;
+            });
+            setData(prev => ({ ...prev, ...newData }));
+        } catch (e) {
+            console.error("Snapshot error:", e);
+        }
+    };
+
+    // 2. Ably Realtime Connection
     useEffect(() => {
-        let isMounted = true;
+        // Initial fetch
+        fetchSnapshot();
 
-        const fetchData = async () => {
-            try {
-                const response = await fetch(`${API_BASE}/api/market/${symbol}`);
+        // Connect to Ably using Auth URL (secure token request from backend)
+        const realtime = new Ably.Realtime({
+            authUrl: `${API_BASE}/api/ably/auth`,
+            authHeaders: { 'X-System-Key': SYSTEM_KEY },
+            autoConnect: true
+        });
 
-                if (!response.ok) throw new Error('Failed to fetch');
+        realtime.connection.on('connected', () => {
+            console.log("⚡ Ably Connected");
+            setIsConnected(true);
+            setConnectionError(null);
+        });
 
-                const result = await response.json();
+        realtime.connection.on('failed', (stateChange) => {
+            console.error("⚡ Ably Connection Failed:", stateChange);
+            setIsConnected(false);
+            setConnectionError(stateChange.reason?.message || 'Connection failed');
+        });
 
-                if (isMounted) {
-                    // حساب الاتجاه (للـ Pulse Effect)
-                    if (prevPrice.current > 0) {
-                        if (result.price > prevPrice.current) {
-                            setTrend('UP');
-                        } else if (result.price < prevPrice.current) {
-                            setTrend('DOWN');
-                        } else {
-                            setTrend('NEUTRAL');
-                        }
-                    }
-
-                    prevPrice.current = result.price;
-                    setData(result);
-                    setIsConnected(true);
-                    setIsLoading(false);
-
-                    // إعادة تعيين الاتجاه بعد الـ Animation
-                    setTimeout(() => setTrend('NEUTRAL'), 1000);
-                }
-            } catch (error) {
-                if (isMounted) {
-                    setIsConnected(false);
-                    console.error('Market data fetch failed:', error);
-                }
+        // Subscribe to market-data channel
+        const channel = realtime.channels.get('market-data');
+        channel.subscribe('update', (message) => {
+            const updates = message.data; // Expecting list of MarketData
+            if (Array.isArray(updates)) {
+                setData(prev => {
+                    const next = { ...prev };
+                    updates.forEach((item: MarketData) => {
+                        next[item.symbol] = item;
+                    });
+                    console.log("⚡ WebSocket Update:", updates.length, "symbols");
+                    return next;
+                });
             }
-        };
-
-        // Fetch فوري + كل 3 ثواني
-        fetchData();
-        const interval = setInterval(fetchData, 3000);
+        });
 
         return () => {
-            isMounted = false;
-            clearInterval(interval);
+            channel.unsubscribe();
+            realtime.close();
         };
-    }, [symbol]);
-
-    return { data, trend, isConnected, isLoading };
-}
-
-/**
- * useSystemStatus - حالة النظام العامة
- */
-export function useSystemStatus() {
-    const [status, setStatus] = useState<any>(null);
-    const [isOnline, setIsOnline] = useState(false);
-
-    useEffect(() => {
-        const fetchStatus = async () => {
-            try {
-                const response = await fetch(`${API_BASE}/api/status`);
-                const result = await response.json();
-                setStatus(result);
-                setIsOnline(true);
-            } catch {
-                setIsOnline(false);
-            }
-        };
-
-        fetchStatus();
-        const interval = setInterval(fetchStatus, 5000);
-        return () => clearInterval(interval);
     }, []);
 
-    return { status, isOnline };
-}
-
-/**
- * useAILogs - سجلات Sentinel AI
- */
-export function useAILogs(limit = 20) {
-    const [logs, setLogs] = useState<any[]>([]);
-
-    useEffect(() => {
-        const fetchLogs = async () => {
-            try {
-                const response = await fetch(`${API_BASE}/api/ai/logs?limit=${limit}`);
-                const result = await response.json();
-                setLogs(result.logs || []);
-            } catch {
-                // Keep existing logs on error
-            }
-        };
-
-        fetchLogs();
-        const interval = setInterval(fetchLogs, 2000);
-        return () => clearInterval(interval);
-    }, [limit]);
-
-    return logs;
-}
-
-/**
- * useMomentum - تحليل الزخم من Antigravity
- */
-export function useMomentum(symbol: string) {
-    const [momentum, setMomentum] = useState<any>(null);
-
-    useEffect(() => {
-        const analyze = async () => {
-            try {
-                const response = await fetch(`${API_BASE}/api/analyze`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ symbol }),
-                });
-                const result = await response.json();
-                setMomentum(result);
-            } catch {
-                // Silent fail
-            }
-        };
-
-        analyze();
-        const interval = setInterval(analyze, 10000); // كل 10 ثواني
-        return () => clearInterval(interval);
-    }, [symbol]);
-
-    return momentum;
+    return {
+        data,
+        isConnected,
+        connectionError,
+        refetch: fetchSnapshot
+    };
 }

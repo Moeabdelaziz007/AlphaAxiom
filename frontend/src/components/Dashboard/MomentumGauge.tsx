@@ -9,13 +9,17 @@ interface MomentumGaugeProps {
 }
 
 export default function MomentumGauge({ symbol }: MomentumGaugeProps) {
-    const { data, trend } = useMarketData(symbol);
+    const { data } = useMarketData([symbol]);
+    const symbolData = data[symbol];
 
     // Calculate momentum from change_percent (scale to 0-100 where 50 is neutral)
-    const rawMomentum = data?.change_percent ? 50 + (data.change_percent * 2) : 50;
+    const rawMomentum = symbolData?.change_percent ? 50 + (symbolData.change_percent * 2) : 50;
 
     // Default to 50 if momentum is undefined
     const momentum = rawMomentum ?? 50;
+
+    // Calculate trend from change_percent
+    const trend = symbolData?.change_percent && symbolData.change_percent >= 0 ? 'UP' : 'DOWN';
 
     // Calculate visual percentage (clamped 0-100)
     const gaugePercent = Math.min(100, Math.max(0, momentum));

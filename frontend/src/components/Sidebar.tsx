@@ -1,7 +1,8 @@
 "use client";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, LineChart, Wallet, History, Bot, Settings, LogOut, Zap } from 'lucide-react';
+import { LayoutDashboard, LineChart, Wallet, History, Bot, Settings, LogOut } from 'lucide-react';
+import Image from 'next/image';
 
 const routes = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard', color: 'text-cyan-400' },
@@ -19,8 +20,8 @@ export default function Sidebar() {
         <div className="flex flex-col h-full w-64 bg-[#050505] border-r border-gray-800">
             {/* Logo */}
             <div className="p-6 flex items-center gap-3 border-b border-gray-800">
-                <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                    <Zap size={22} className="text-white" />
+                <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/20 flex-shrink-0">
+                    <Image src="/icon.png" alt="Antigravity" width={40} height={40} className="object-cover" />
                 </div>
                 <div>
                     <h1 className="font-bold text-white tracking-wider">ANTIGRAVITY</h1>
@@ -39,8 +40,8 @@ export default function Sidebar() {
                             key={route.path}
                             href={route.path}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                                    ? 'bg-gray-800/80 text-white border border-gray-700/50'
-                                    : 'text-gray-400 hover:bg-gray-900 hover:text-white'
+                                ? 'bg-gray-800/80 text-white border border-gray-700/50'
+                                : 'text-gray-400 hover:bg-gray-900 hover:text-white'
                                 }`}
                         >
                             <Icon size={20} className={isActive ? route.color : 'text-gray-500'} />

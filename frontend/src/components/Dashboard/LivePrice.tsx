@@ -44,26 +44,28 @@ const colorMap = {
 };
 
 export default function LivePrice({ symbol, name, color }: LivePriceProps) {
-    const { data, isLoading, trend } = useMarketData(symbol);
+    const { data, isConnected } = useMarketData([symbol]);
+    const symbolData = data[symbol];
     const [pulseClass, setPulseClass] = useState('');
     const prevPrice = useRef<number | null>(null);
     const colors = colorMap[color];
+    const isLoading = !isConnected && !symbolData;
 
     // Pulse effect on price change
     useEffect(() => {
-        if (data?.price && prevPrice.current !== null) {
-            if (data.price > prevPrice.current) {
+        if (symbolData?.price && prevPrice.current !== null) {
+            if (symbolData.price > prevPrice.current) {
                 setPulseClass('price-up');
-            } else if (data.price < prevPrice.current) {
+            } else if (symbolData.price < prevPrice.current) {
                 setPulseClass('price-down');
             }
             const timer = setTimeout(() => setPulseClass(''), 600);
             return () => clearTimeout(timer);
         }
-        if (data?.price) {
-            prevPrice.current = data.price;
+        if (symbolData?.price) {
+            prevPrice.current = symbolData.price;
         }
-    }, [data?.price]);
+    }, [symbolData?.price]);
 
     // Skeleton loader
     if (isLoading) {
@@ -80,7 +82,7 @@ export default function LivePrice({ symbol, name, color }: LivePriceProps) {
         );
     }
 
-    const changePercent = data?.change_percent || 0;
+    const changePercent = symbolData?.change_percent || 0;
     const isPositive = changePercent >= 0;
 
     return (
@@ -92,7 +94,7 @@ export default function LivePrice({ symbol, name, color }: LivePriceProps) {
                 <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider">{name}</p>
                     <p className={`text-2xl font-bold ${colors.text} font-mono`}>
-                        ${data?.price?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}
+                        ${symbolData?.price?.toLocaleString('en-US', { minimumFractionDigits: 2 }) || '0.00'}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                         {isPositive ? (
@@ -106,9 +108,10 @@ export default function LivePrice({ symbol, name, color }: LivePriceProps) {
                     </div>
                 </div>
                 <div className={`p-3 rounded-full bg-gradient-to-br ${colors.bg}`}>
-                    <Activity className={`w-5 h-5 ${colors.text} ${trend === 'UP' ? 'animate-bounce' : ''}`} />
+                    <Activity className={`w-5 h-5 ${colors.text}`} />
                 </div>
             </div>
         </div>
     );
 }
+

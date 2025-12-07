@@ -1,5 +1,6 @@
 from js import Response, fetch, Headers, JSON
 import json
+from base64 import b64encode
 
 # ==========================================
 # 🧠 ANTIGRAVITY MoE BRAIN v2.0
@@ -9,6 +10,7 @@ GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 ALPACA_API_URL = "https://paper-api.alpaca.markets/v2"
 ALPACA_DATA_URL = "https://data.alpaca.markets/v2"
 TELEGRAM_API_URL = "https://api.telegram.org/bot"
+ABLY_API_URL = "https://rest.ably.io"
 MAX_TRADES_PER_DAY = 10
 
 
@@ -138,23 +140,42 @@ async def on_fetch(request, env):
     
     # Trade Logs
     if "api/logs" in url:
+        # Implement log fetching from D1 if needed
+        return Response.new(json.dumps({"logs": []}), headers=headers)
+        
+    # ⚡ Ably Realtime Auth (Token Request)
+    if "api/ably/auth" in url:
         try:
-            db = env.TRADING_DB
-            result = await db.prepare("SELECT * FROM trades ORDER BY timestamp DESC LIMIT 50").all()
-            logs = []
-            if hasattr(result, 'results'):
-                for row in result.results:
-                    logs.append({
-                        "id": row.id if hasattr(row, 'id') else None,
-                        "ticker": row.symbol if hasattr(row, 'symbol') else "",
-                        "action": row.side if hasattr(row, 'side') else "",
-                        "qty": row.qty if hasattr(row, 'qty') else 0,
-                        "executed_at": str(row.timestamp) if hasattr(row, 'timestamp') else ""
-                    })
-            return Response.new(json.dumps({"logs": logs}), headers=headers)
-        except:
-            return Response.new(json.dumps({"logs": []}), headers=headers)
-    
+            ably_key = str(getattr(env, 'ABLY_API_KEY', ''))
+            key_name, key_secret = ably_key.split(':')
+            
+            # Request token from Ably
+            token_url = f"{ABLY_API_URL}/keys/{key_name}/requestToken"
+            
+            # Create Basic Auth header
+            # Python's b64encode expects bytes
+            auth_str = f"{key_name}:{key_secret}"
+            auth_b64 = b64encode(auth_str.encode('utf-8')).decode('utf-8')
+            
+            token_headers = {
+                "Authorization": f"Basic {auth_b64}",
+                "Content-Type": "application/json"
+            }
+            
+            body = {
+                "id": "antigravity_client",
+                "clientId": "antigravity_client",
+                "ttl": 3600 * 1000, # 1 hour
+                "capability": '{"*":["subscribe"]}' # Client can only subscribe
+            }
+            
+            res = await fetch(token_url, method="POST", headers=token_headers, body=json.dumps(body))
+            token_data = await res.json()
+            
+            return Response.new(json.dumps(token_data), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({"error": str(e)}), headers=headers)
+
     return Response.new(json.dumps({"message": "🦅 Antigravity MoE Brain v2.0 Online"}), headers=headers)
 
 
@@ -1044,7 +1065,48 @@ async def get_market_snapshot(request, env, headers):
                 "error": str(e)
             })
     
+    # ⚡ Broadcast to Ably (Push to all clients)
+    try:
+        await publish_to_ably(env, "market-data", results)
+    except:
+        pass
+        
     return Response.new(json.dumps({"symbols": results}), headers=headers)
+
+
+# ==========================================
+# ⚡ ABLY REALTIME FUNCTIONS
+# ==========================================
+
+async def publish_to_ably(env, channel, data):
+    """Publish real-time update to Ably"""
+    try:
+        ably_key = str(getattr(env, 'ABLY_API_KEY', ''))
+        if not ably_key: return
+        
+        url = f"{ABLY_API_URL}/channels/{channel}/messages"
+        
+        # Auth
+        key_name, key_secret = ably_key.split(':')
+        auth_str = f"{key_name}:{key_secret}"
+        auth_b64 = b64encode(auth_str.encode('utf-8')).decode('utf-8')
+        
+        headers = {
+            "Authorization": f"Basic {auth_b64}",
+            "Content-Type": "application/json"
+        }
+        
+        body = {
+            "name": "update",
+            "data": data
+        }
+        
+        # Fire and forget (don't await response to speed up worker)
+        # Note: In Cloudflare, we should await or use ctx.waitUntil, but for simplicity we await
+        await fetch(url, method="POST", headers=headers, body=json.dumps(body))
+        
+    except Exception as e:
+        print(f"Ably Publish Error: {e}")
 
 
 # ==========================================
