@@ -1,7 +1,7 @@
 from js import Response, fetch, Headers, JSON
 import json
 from base64 import b64encode
-from oanda_connector import OandaConnector
+from capital_connector import CapitalConnector
 
 # ==========================================
 # 🧠 ANTIGRAVITY MoE BRAIN v2.0
@@ -812,21 +812,11 @@ async def get_candles(request, env, headers):
 # 💰 TRADING FUNCTIONS & ROUTING
 # ==========================================
 
-async def execute_oanda_trade(env, symbol, side, qty):
-    """Execute Trade via OANDA (Forex)"""
+async def execute_capital_trade(env, symbol, side, qty):
+    """Execute Trade via Capital.com (Forex/CFD)"""
     try:
-        connector = OandaConnector(env)
-        
-        # Convert qty: 1 standard lot = 100,000 units usually, but OANDA takes units directly
-        # If user says "1" (meaning 1 lot), we might need to multiply, but for safety let's assume raw units or handle logic
-        # For this MVP, we assume user sends raw units or small sizes. 
-        # DeepSeek agent should calculate exact units.
-        
-        units = int(qty)
-        if side.lower() == "sell":
-            units = -units
-            
-        result = await connector.create_market_order(symbol, units)
+        connector = CapitalConnector(env)
+        result = await connector.create_position(symbol, side.upper(), float(qty))
         return result
     except Exception as e:
         return {"status": "error", "error": str(e)}
@@ -937,21 +927,18 @@ async def get_combined_account(env, headers):
     # 1. Alpaca Data
     alpaca_data = await get_alpaca_account_data(env)
     
-    # 2. OANDA Data
-    oanda_connector = OandaConnector(env)
-    oanda_data = await oanda_connector.get_account_summary()
+    # 2. Capital.com Data
+    capital_connector = CapitalConnector(env)
+    capital_data = await capital_connector.get_account_info()
     
-    # Merge Logic (Display Primary or Combined?)
-    # For MVP, we emphasize the "Real Money" one if connected
-    
-    if "error" not in oanda_data and float(oanda_data.get("balance", 0)) > 0:
-        # Use OANDA as primary if active
+    # Merge Logic: Use Capital.com as primary if connected
+    if "error" not in capital_data and float(capital_data.get("balance", 0)) > 0:
         return Response.new(json.dumps({
-            "portfolio_value": oanda_data.get("equity"),
-            "buying_power": oanda_data.get("margin_available"),
-            "cash": oanda_data.get("balance"),
-            "equity": oanda_data.get("equity"),
-            "source": "OANDA Live"
+            "portfolio_value": capital_data.get("equity"),
+            "buying_power": capital_data.get("available"),
+            "cash": capital_data.get("balance"),
+            "equity": capital_data.get("equity"),
+            "source": capital_data.get("source", "Capital.com")
         }), headers=headers)
         
     # Fallback to Alpaca
@@ -988,11 +975,11 @@ async def get_combined_positions(env, headers):
     alp_pos = await get_alpaca_positions_data(env)
     if alp_pos: all_positions.extend(alp_pos)
     
-    # 2. OANDA
+    # 2. Capital.com
     try:
-        oanda = OandaConnector(env)
-        oanda_pos = await oanda.get_open_positions()
-        if oanda_pos: all_positions.extend(oanda_pos)
+        capital = CapitalConnector(env)
+        capital_pos = await capital.get_open_positions()
+        if capital_pos: all_positions.extend(capital_pos)
     except:
         pass
         
