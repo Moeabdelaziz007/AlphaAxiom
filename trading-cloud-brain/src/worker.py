@@ -84,6 +84,10 @@ async def on_fetch(request, env):
     if "api/positions" in url:
         return await get_positions(env, headers)
     
+    # Market Snapshot (Real-time prices with change %)
+    if "api/market" in url or "api/snapshot" in url:
+        return await get_market_snapshot(request, env, headers)
+    
     # Status
     if "api/status" in url:
         trades_today = await get_trades_count(env)
@@ -895,6 +899,98 @@ async def get_alpaca_positions_data(env):
         return []
     except:
         return []
+
+
+# ==========================================
+# 📈 MARKET SNAPSHOT (Real-time Prices)
+# ==========================================
+
+async def get_market_snapshot(request, env, headers):
+    """Get real-time market data with price changes"""
+    url = str(request.url)
+    
+    # Default symbols if none provided
+    default_symbols = ["SPY", "AAPL", "BTC/USD", "ETH/USD"]
+    
+    # Parse symbols from URL
+    if "symbols=" in url:
+        symbols_param = url.split("symbols=")[1].split("&")[0]
+        symbols = [s.strip().upper() for s in symbols_param.split(",")]
+    else:
+        symbols = default_symbols
+    
+    alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
+    alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
+    
+    results = []
+    
+    for symbol in symbols[:6]:  # Limit to 6 symbols
+        try:
+            # Check if crypto
+            is_crypto = "/" in symbol or symbol in ["BTC", "ETH", "SOL", "DOGE"]
+            
+            if is_crypto:
+                # Crypto snapshot
+                crypto_symbol = symbol.replace("/USD", "") + "/USD" if "/" not in symbol else symbol
+                snapshot_url = f"https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols={crypto_symbol}"
+            else:
+                # Stock snapshot
+                snapshot_url = f"https://data.alpaca.markets/v2/stocks/{symbol}/snapshot"
+            
+            req_headers = Headers.new({
+                "APCA-API-KEY-ID": alpaca_key,
+                "APCA-API-SECRET-KEY": alpaca_secret
+            }.items())
+            
+            response = await fetch(snapshot_url, method="GET", headers=req_headers)
+            
+            if response.ok:
+                data = json.loads(await response.text())
+                
+                if is_crypto:
+                    # Parse crypto response
+                    crypto_data = data.get("snapshots", {}).get(crypto_symbol, {})
+                    daily = crypto_data.get("dailyBar", {})
+                    prev = crypto_data.get("prevDailyBar", {})
+                    current_price = float(daily.get("c", 0))
+                    prev_close = float(prev.get("c", current_price))
+                else:
+                    # Parse stock response
+                    daily = data.get("dailyBar", {})
+                    prev = data.get("prevDailyBar", {})
+                    current_price = float(daily.get("c", 0))
+                    prev_close = float(prev.get("c", current_price))
+                
+                # Calculate change
+                if prev_close > 0:
+                    change_percent = ((current_price - prev_close) / prev_close) * 100
+                else:
+                    change_percent = 0.0
+                
+                results.append({
+                    "symbol": symbol,
+                    "price": round(current_price, 2),
+                    "prev_close": round(prev_close, 2),
+                    "change": round(current_price - prev_close, 2),
+                    "change_percent": round(change_percent, 2),
+                    "volume": daily.get("v", 0)
+                })
+            else:
+                results.append({
+                    "symbol": symbol,
+                    "price": 0,
+                    "change_percent": 0,
+                    "error": "Data unavailable"
+                })
+        except Exception as e:
+            results.append({
+                "symbol": symbol,
+                "price": 0,
+                "change_percent": 0,
+                "error": str(e)
+            })
+    
+    return Response.new(json.dumps({"symbols": results}), headers=headers)
 
 
 # ==========================================
