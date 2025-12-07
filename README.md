@@ -2,25 +2,59 @@
 
 # 🌌 AXIOM ANTIGRAVITY
 
-### Signal & Analysis Hub | مركز الإشارات والتحليل
+### AI Trading Platform & Signal Hub | منصة تداول وإشارات بالذكاء الاصطناعي
 
 ![Axiom Antigravity Logo](frontend/public/logo.png)
 
-**AI-Powered Market Signal Intelligence**
-**ذكاء إشارات السوق المدعوم بالذكاء الاصطناعي**
+**From Signals to Execution — Powered by DeepSeek AI**
+
+**من الإشارات إلى التنفيذ — مدعوم بذكاء DeepSeek**
 
 [![Live Demo](https://img.shields.io/badge/🔴_Live-aitrading.axiomid.app-00F0FF?style=for-the-badge)](https://aitrading.axiomid.app)
 [![MIT License](https://img.shields.io/badge/License-MIT_2025-green.svg?style=for-the-badge)](LICENSE)
 [![Cloudflare](https://img.shields.io/badge/☁️_Cloudflare-Workers-F38020?style=for-the-badge)](https://workers.cloudflare.com)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![Capital.com](https://img.shields.io/badge/💰_Capital.com-Trading-3B82F6?style=for-the-badge)](https://capital.com)
 
 ---
 
-*"We don't trade. We provide intelligence."*
+*"We don't just signal. We execute."*
 
-*"نحن لا نتداول. نحن نقدم الذكاء."*
+*"نحن لا نكتفي بالإشارات. نحن ننفذ."*
 
 </div>
+
+---
+
+## 🆕 What's New in v4.0 | الجديد في الإصدار 4.0
+
+<table>
+<tr>
+<td width="50%">
+
+### 🇺🇸 English
+
+- 🤖 **AI Trading Bots** — Automated Forex strategies
+- 💰 **Capital.com Integration** — Real-money Forex/Gold trading
+- 🧠 **DeepSeek AI Chat** — Ask questions, get market insights
+- 📱 **Telegram Widget** — Signals directly in dashboard
+- 🎨 **Premium Dashboard** — Dribbble-inspired design
+- 🔄 **Testing/Live Mode Toggle** — Easy switching
+
+</td>
+<td width="50%">
+
+### 🇸🇦 العربية
+
+- 🤖 **بوتات تداول ذكية** — استراتيجيات فوركس آلية
+- 💰 **ربط Capital.com** — تداول حقيقي على الفوركس والذهب
+- 🧠 **دردشة DeepSeek** — اسأل واحصل على تحليلات السوق
+- 📱 **ويدجت Telegram** — الإشارات مباشرة في اللوحة
+- 🎨 **لوحة تحكم فاخرة** — تصميم مستوحى من Dribbble
+- 🔄 **تبديل الوضع** — اختبار أو حقيقي بضغطة
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -31,25 +65,25 @@
 <td width="50%">
 
 ### 🇺🇸 English
+
 - [What is Axiom?](#-what-is-axiom)
-- [How It Works](#-how-it-works)
+- [Trading Capabilities](#-trading-capabilities)
 - [Twin-Turbo Engines](#-twin-turbo-engines)
-- [Architecture](#-architecture)
+- [AI Agents](#-ai-agents)
 - [Tech Stack](#-tech-stack)
 - [Quick Start](#-quick-start)
-- [Zero-Cost Infrastructure](#-zero-cost-infrastructure)
 
 </td>
 <td width="50%">
 
 ### 🇸🇦 العربية
+
 - [ما هو Axiom؟](#-ما-هو-axiom)
-- [كيف يعمل النظام؟](#-كيف-يعمل-النظام)
+- [قدرات التداول](#-قدرات-التداول)
 - [محركات Twin-Turbo](#-محركات-twin-turbo)
-- [الهيكلية](#-الهيكلية)
-- [التقنيات المستخدمة](#-التقنيات-المستخدمة)
+- [وكلاء الذكاء الاصطناعي](#-وكلاء-الذكاء-الاصطناعي)
+- [التقنيات](#-التقنيات)
 - [البدء السريع](#-البدء-السريع)
-- [بنية تحتية بتكلفة صفر](#-بنية-تحتية-بتكلفة-صفر)
 
 </td>
 </tr>
@@ -59,298 +93,146 @@
 
 ## 🎯 What is Axiom?
 
-**Axiom Antigravity** is an **AI-powered Signal Hub** that detects market anomalies using advanced mathematical algorithms and validates them through AI agents before alerting traders.
+**Axiom Antigravity** is a **complete AI trading platform** that combines:
 
-### Key Differentiators
-
-| Feature | Description |
-|---------|-------------|
-| 🏎️ **AEXI Protocol** | Statistical exhaustion detection using Z-Score, ATR, and Volume Analysis |
-| 🌙 **Dream Machine** | Chaos theory metrics including Entropy, Fractal Dimension, and Hurst Exponent |
-| 🧠 **Analyst Agent** | Groq-powered AI that validates signals and assigns quality tiers |
-| 📰 **AI Journalist** | Gemini Flash generates daily market briefings |
-| 📱 **Telegram Alerts** | Instant notifications for high-quality signals |
+| Layer | Feature | Status |
+|-------|---------|--------|
+| 📊 **Analysis** | Twin-Turbo signal detection (AEXI + Dream) | ✅ Live |
+| 🧠 **Intelligence** | DeepSeek AI for market analysis | ✅ Live |
+| 💰 **Execution** | Capital.com Forex/Gold trading | ✅ Live |
+| 🤖 **Automation** | AI Bots with Testing/Live modes | ✅ Live |
+| 📱 **Alerts** | Telegram instant notifications | ✅ Live |
 
 ---
 
 ## 🎯 ما هو Axiom؟
 
-**Axiom Antigravity** هو **مركز إشارات مدعوم بالذكاء الاصطناعي** يكتشف الشذوذات في السوق باستخدام خوارزميات رياضية متقدمة ويتحقق منها من خلال وكلاء الذكاء الاصطناعي قبل تنبيه المتداولين.
+**Axiom Antigravity** هو **منصة تداول متكاملة بالذكاء الاصطناعي** تجمع:
 
-### المميزات الرئيسية
-
-| الميزة | الوصف |
-|--------|-------|
-| 🏎️ **بروتوكول AEXI** | اكتشاف الإرهاق الإحصائي باستخدام Z-Score و ATR وتحليل الحجم |
-| 🌙 **آلة الأحلام** | مقاييس نظرية الفوضى: الإنتروبيا، البُعد الكسوري، وأس هيرست |
-| 🧠 **وكيل المحلل** | ذكاء اصطناعي Groq يتحقق من الإشارات ويعين مستويات الجودة |
-| 📰 **الصحفي الآلي** | Gemini Flash ينشئ ملخصات السوق اليومية |
-| 📱 **تنبيهات Telegram** | إشعارات فورية للإشارات عالية الجودة |
+| الطبقة | الميزة | الحالة |
+|--------|--------|--------|
+| 📊 **التحليل** | اكتشاف إشارات Twin-Turbo | ✅ يعمل |
+| 🧠 **الذكاء** | DeepSeek للتحليل | ✅ يعمل |
+| 💰 **التنفيذ** | تداول Capital.com | ✅ يعمل |
+| 🤖 **الأتمتة** | بوتات ذكية | ✅ يعمل |
+| 📱 **التنبيهات** | Telegram فوري | ✅ يعمل |
 
 ---
 
-## ⚙️ How It Works
+## 💰 Trading Capabilities | قدرات التداول
 
-### The Signal Pipeline | خط أنابيب الإشارات
+### Supported Brokers | الوسطاء المدعومون
 
-```mermaid
-flowchart TD
-    A[📊 Market Data] --> B{🏎️ Twin-Turbo Scan}
-    B --> C[AEXI Protocol]
-    B --> D[Dream Machine]
-    C --> E{AEXI > 80?}
-    D --> F{Dream > 70?}
-    E --> G{Both True?}
-    F --> G
-    G -->|Yes| H[🧠 Analyst Agent]
-    G -->|No| I[❌ No Signal]
-    H --> J{Approved?}
-    J -->|Yes| K[📱 Telegram Alert]
-    J -->|No| L[🔇 Filtered]
-    K --> M[👤 Trader Receives]
+```
+┌───────────────────────────────────────┐
+│  Capital.com (Forex/CFD) — PRIMARY    │
+│  ├── EUR/USD, GBP/USD, USD/JPY        │
+│  ├── XAU/USD (Gold), XAG/USD (Silver) │
+│  ├── Indices, Stocks CFD              │
+│  └── Demo + Live Mode Toggle          │
+├───────────────────────────────────────┤
+│  Alpaca (Stocks/Crypto) — SECONDARY   │
+│  ├── US Stocks (Paper Trading)        │
+│  └── Real-time market data            │
+└───────────────────────────────────────┘
 ```
 
-### Step-by-Step Process
+### AI Bot Modes | أوضاع البوت
 
-1. **Data Collection** — Alpaca API provides real-time market data
-2. **Mathematical Scan** — Twin-Turbo engines calculate AEXI and Dream scores
-3. **Threshold Check** — Signal triggers when AEXI > 80 AND Dream > 70
-4. **AI Validation** — Analyst Agent (Groq) reviews and assigns quality tier
-5. **Broadcast** — Approved signals sent to Telegram with full analysis
+| Mode | Description | Risk |
+|------|-------------|------|
+| 🧪 **Testing** | Paper trading, no real money | None |
+| 🔴 **Live** | Real Capital.com account | Real |
 
 ---
 
-## ⚙️ كيف يعمل النظام؟
+## 🧠 AI Agents | وكلاء الذكاء الاصطناعي
 
-### العملية خطوة بخطوة
+```mermaid
+flowchart LR
+    A[User Question] --> B{DeepSeek AI}
+    B --> C[Market Analysis]
+    B --> D[Trade Recommendation]
+    B --> E[Risk Assessment]
+    
+    F[Signal Detected] --> G{Analyst Agent}
+    G --> H[Validate Signal]
+    G --> I[Assign Quality Tier]
+    H --> J[Telegram Alert]
+```
 
-1. **جمع البيانات** — Alpaca API يوفر بيانات السوق في الوقت الفعلي
-2. **المسح الرياضي** — محركات Twin-Turbo تحسب درجات AEXI و Dream
-3. **فحص العتبة** — الإشارة تنطلق عندما AEXI > 80 و Dream > 70
-4. **التحقق بالذكاء الاصطناعي** — وكيل المحلل (Groq) يراجع ويعين مستوى الجودة
-5. **البث** — الإشارات المعتمدة ترسل إلى Telegram مع التحليل الكامل
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| 🧠 **DeepSeek Chat** | Groq deepseek-r1-70b | Interactive market Q&A |
+| 🔬 **Analyst** | Groq Llama 3.3 | Signal validation |
+| 📰 **Journalist** | Gemini Flash | Daily briefings |
+| 🛡️ **Router** | Groq Fast | Intent classification |
 
 ---
 
 ## 🏎️ Twin-Turbo Engines
 
-### AEXI Protocol (Antigravity Extremum Index)
+### AEXI Protocol (Signal Detection)
 
 ```
 AEXI = (0.4 × EXH) + (0.3 × VAF) + (0.3 × SVP)
 
-Where:
 ┌─────────────────────────────────────────┐
 │ EXH = Exhaustion (Z-Score)              │
-│       How far price is from mean        │
-│       4σ deviation = 100% score         │
-├─────────────────────────────────────────┤
 │ VAF = Velocity/ATR Factor               │
-│       Momentum vs Volatility ratio      │
-│       High momentum + low ATR = signal  │
-├─────────────────────────────────────────┤
 │ SVP = Surveillance Volume Proxy         │
-│       Relative volume spike detection   │
-│       3x average volume = 100% score    │
 └─────────────────────────────────────────┘
+
+Signal Trigger: AEXI > 80
 ```
 
-### Dream Machine (Chaos Theory Engine)
+### Dream Machine (Chaos Theory)
 
 ```
 DREAM = (0.3 × Entropy) + (0.25 × Fractal) + (0.25 × Hurst) + (0.2 × VolDisp)
 
-Where:
-┌─────────────────────────────────────────┐
-│ Entropy = Shannon Entropy               │
-│           Market disorder measurement   │
-│           High = chaos, Low = trend     │
-├─────────────────────────────────────────┤
-│ Fractal = Fractal Dimension             │
-│           Price action "roughness"      │
-│           Higuchi's method              │
-├─────────────────────────────────────────┤
-│ Hurst = Hurst Exponent                  │
-│         Memory in price series          │
-│         >0.5 trending, <0.5 reverting   │
-├─────────────────────────────────────────┤
-│ VolDisp = Volume Dispersion             │
-│           Variance in trading volume    │
-└─────────────────────────────────────────┘
+Signal Trigger: Dream > 70
 ```
 
 ---
 
-## 🏎️ محركات Twin-Turbo
+## 🎨 Premium Dashboard | لوحة التحكم الفاخرة
 
-### بروتوكول AEXI (مؤشر أقصى مضاد الجاذبية)
+### Features
 
-| المكون | الوصف |
-|--------|-------|
-| **EXH** | الإرهاق - كم ابتعد السعر عن المتوسط (Z-Score) |
-| **VAF** | عامل السرعة - نسبة الزخم إلى التقلب |
-| **SVP** | وكيل حجم المراقبة - اكتشاف ارتفاعات الحجم |
-
-### آلة الأحلام (محرك نظرية الفوضى)
-
-| المكون | الوصف |
-|--------|-------|
-| **Entropy** | الفوضوية - قياس فوضى السوق |
-| **Fractal** | البُعد الكسوري - "خشونة" حركة السعر |
-| **Hurst** | أس هيرست - الذاكرة في سلسلة الأسعار |
-| **VolDisp** | تشتت الحجم - التباين في حجم التداول |
+| Component | Description |
+|-----------|-------------|
+| 🍩 **Portfolio Donut** | Equity allocation visualization |
+| 📊 **P/L Chart** | Daily profit/loss with time filters |
+| 🤖 **Active Bots** | AI strategies with performance sparklines |
+| 💬 **Telegram Widget** | Signals preview in dashboard |
+| 🧠 **DeepSeek Panel** | Floating AI chat assistant |
+| 🔄 **Mode Toggle** | Testing ↔ Live switch |
 
 ---
 
-## 🏗️ Architecture
-
-```
-┌────────────────────────────────────────────────────────────────┐
-│                     AXIOM ANTIGRAVITY                          │
-│                   Signal & Analysis Hub                        │
-├────────────────────────┬───────────────────────────────────────┤
-│                        │                                       │
-│   🖥️ FRONTEND          │   ☁️ BACKEND                          │
-│   (Next.js 14)         │   (Cloudflare Worker)                 │
-│                        │                                       │
-│   ┌──────────────────┐ │   ┌─────────────────────────────────┐ │
-│   │  📊 Signal Feed  │ │   │  🏎️ Twin-Turbo Engines          │ │
-│   │  Live S/A-TIER   │◄──►│  • AEXI Protocol (Pure Python)  │ │
-│   │  signals         │ │   │  • Dream Machine (Chaos Math)  │ │
-│   └──────────────────┘ │   └─────────────────────────────────┘ │
-│                        │                                       │
-│   ┌──────────────────┐ │   ┌─────────────────────────────────┐ │
-│   │  🏎️ Gauges       │ │   │  🧠 Analyst Agent (Groq)        │ │
-│   │  AEXI + Dream    │◄──►│  • Signal Validation            │ │
-│   │  live meters     │ │   │  • Quality Grading (S/A/B)     │ │
-│   └──────────────────┘ │   │  • Context Generation          │ │
-│                        │   └─────────────────────────────────┘ │
-│   ┌──────────────────┐ │                                       │
-│   │  📰 News Hub     │ │   ┌─────────────────────────────────┐ │
-│   │  AI Briefings    │◄──►│  📰 AI Journalist (Gemini)      │ │
-│   │  Headlines       │ │   │  • Daily Market Briefings      │ │
-│   └──────────────────┘ │   │  • News Summarization          │ │
-│                        │   └─────────────────────────────────┘ │
-│                        │                                       │
-│   ┌──────────────────┐ │   ┌─────────────────────────────────┐ │
-│   │  ⚙️ Settings     │ │   │  📱 Telegram Broadcaster        │ │
-│   │  Preferences     │ │   │  • Instant Alerts               │ │
-│   └──────────────────┘ │   │  • Rich Formatting              │ │
-│                        │   └─────────────────────────────────┘ │
-├────────────────────────┴───────────────────────────────────────┤
-│                        💾 DATA LAYER                           │
-│  ┌─────────────┐  ┌──────────────┐  ┌────────────────────────┐ │
-│  │ Cloudflare  │  │ Cloudflare   │  │ Alpaca API             │ │
-│  │ D1 (SQLite) │  │ KV (Cache)   │  │ (Market Data)          │ │
-│  └─────────────┘  └──────────────┘  └────────────────────────┘ │
-└────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 📊 Signal Quality Tiers | مستويات جودة الإشارات
-
-<table>
-<tr>
-<td width="50%">
-
-### 🇺🇸 English
-
-| Tier | Criteria | Description |
-|------|----------|-------------|
-| 🏆 **S-TIER** | AEXI > 85 + Dream > 75 + RSI extreme | Highest confidence |
-| ⭐ **A-TIER** | AEXI > 80 + Dream > 70 | Strong setups |
-| 📊 **B-TIER** | Either AEXI > 80 OR Dream > 70 | Watch list |
-| 🔢 **MATH-ONLY** | AI unavailable | Pure math signal |
-
-</td>
-<td width="50%">
-
-### 🇸🇦 العربية
-
-| المستوى | المعايير | الوصف |
-|---------|----------|-------|
-| 🏆 **S-TIER** | AEXI > 85 + Dream > 75 + RSI متطرف | أعلى ثقة |
-| ⭐ **A-TIER** | AEXI > 80 + Dream > 70 | إعدادات قوية |
-| 📊 **B-TIER** | AEXI > 80 أو Dream > 70 | قائمة المراقبة |
-| 🔢 **MATH-ONLY** | الذكاء الاصطناعي غير متاح | إشارة رياضية بحتة |
-
-</td>
-</tr>
-</table>
-
----
-
-## 📱 Telegram Alert Example | مثال تنبيه Telegram
-
-```
-🚨 ANTIGRAVITY SIGNAL ALERT
-━━━━━━━━━━━━━━━━━━━━
-
-📍 Asset: BTC/USD
-💰 Price: $68,542.00
-📈 Direction: 🟢 BULLISH
-
-━━━━━━━━━━━━━━━━━━━━
-🏎️ Twin-Turbo Engines:
-
-AEXI: 88.5/100 (🔥 Critical)
-Dream: 74.2/100 (🌙 Chaos Peak)
-RSI: 28.5 (🟢 Oversold)
-Z-Score: -3.2σ
-
-━━━━━━━━━━━━━━━━━━━━
-🧠 Analyst Brief:
-"Price extended 4-sigma with chaos
-metrics indicating structural break. 
-High probability of mean reversion."
-
-🏆 Signal Quality: S-TIER
-━━━━━━━━━━━━━━━━━━━━
-```
-
----
-
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack | التقنيات
 
 <table>
 <tr>
 <td width="50%">
 
 ### Frontend
+
 - **Next.js 14** — React framework
 - **TypeScript** — Type safety
-- **Tailwind CSS** — Styling
-- **next-intl** — i18n (EN/AR)
-- **Lucide** — Icon system
+- **Framer Motion** — Animations
+- **next-intl** — AR/EN languages
 
 </td>
 <td width="50%">
 
 ### Backend
-- **Cloudflare Workers** — Edge compute
-- **Python** — Worker runtime
-- **D1 SQLite** — Database
-- **KV Store** — Caching
-- **Cron Triggers** — Automation
 
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### AI Layer
-- **Groq** — Analyst Agent (Llama 3.3)
-- **Gemini Flash** — AI Journalist
-- **Chain-of-Thought** — Reasoning
-
-</td>
-<td width="50%">
-
-### Integrations
-- **Alpaca API** — Market data
-- **Telegram Bot** — Alerts
-- **Ably** — Real-time WebSocket
+- **Cloudflare Workers** — Edge (Python)
+- **Capital.com API** — Forex trading
+- **Groq** — DeepSeek AI
+- **D1 + KV** — Database + Cache
 
 </td>
 </tr>
@@ -358,115 +240,58 @@ High probability of mean reversion."
 
 ---
 
-## 🚀 Quick Start
-
-### Frontend
+## 🚀 Quick Start | البدء السريع
 
 ```bash
-cd frontend
-npm install
-npm run dev
-# Open http://localhost:3000
-```
+# Clone
+git clone https://github.com/Moeabdelaziz007/Trading-Bot-System-v0.01.git
+cd Trading.System-0.1
 
-### Backend
+# Frontend
+cd frontend && npm install && npm run dev
 
-```bash
-cd trading-cloud-brain
-wrangler dev
-# Worker runs on http://localhost:8787
-```
+# Backend
+cd trading-cloud-brain && wrangler dev
 
-### Deploy
-
-```bash
-# Frontend to Vercel
+# Deploy
 cd frontend && npx vercel --prod
-
-# Backend to Cloudflare
 cd trading-cloud-brain && wrangler deploy
 ```
 
----
-
-## 🚀 البدء السريع
+### Required Secrets
 
 ```bash
-# تثبيت الواجهة الأمامية
-cd frontend
-npm install
-npm run dev
-
-# تشغيل الخلفية
-cd trading-cloud-brain
-wrangler dev
+wrangler secret put GROQ_API_KEY
+wrangler secret put CAPITAL_API_KEY
+wrangler secret put CAPITAL_EMAIL
+wrangler secret put CAPITAL_PASSWORD
 ```
 
 ---
 
 ## 💰 Zero-Cost Infrastructure | بنية تحتية بتكلفة صفر
 
-| Service | Usage | Free Tier |
-|---------|-------|-----------|
-| **Cloudflare Workers** | Backend | 100,000 req/day |
-| **Cloudflare D1** | Database | 5M reads/day |
-| **Cloudflare KV** | Cache | 100K reads/day |
-| **Groq API** | Analyst Agent | 14,400 req/day |
-| **Gemini Flash** | AI Journalist | 1,000 req/day |
-| **Vercel** | Frontend | Unlimited |
-| **Telegram Bot** | Alerts | Unlimited |
-| **Alpaca API** | Market Data | Unlimited |
+| Service | Free Tier |
+|---------|-----------|
+| Cloudflare Workers | 100,000 req/day |
+| Groq API | 14,400 req/day |
+| Capital.com API | Unlimited |
+| Vercel | Unlimited |
+| Telegram | Unlimited |
 
 **Total Monthly Cost: $0** 💵
 
 ---
 
-## 📁 Project Structure
-
-```
-axiom-antigravity/
-├── 📄 README.md              ← You are here
-├── 📄 LICENSE                ← MIT 2025
-├── 📄 CONTRIBUTING.md        ← Contribution guidelines
-│
-├── 📁 frontend/              ← Next.js 14 App
-│   ├── src/
-│   │   ├── app/[locale]/     ← Pages (Signal Hub, News, Settings)
-│   │   ├── components/       ← React components
-│   │   └── i18n/             ← Internationalization
-│   ├── messages/             ← EN/AR translations
-│   └── public/               ← Brand assets
-│
-└── 📁 trading-cloud-brain/   ← Cloudflare Worker
-    ├── src/worker.py         ← Main API (1900+ lines)
-    ├── schema.sql            ← D1 database schema
-    └── wrangler.toml         ← Worker configuration
-```
-
----
-
 ## 👤 Author | المؤلف
 
-<table>
-<tr>
-<td>
-
 **Mohamed Hossameldin Abdelaziz**
-*Axiom Antigravity Architect*
 
-**محمد حسام الدين عبد العزيز**
-*مهندس Axiom Antigravity*
+*محمد حسام الدين عبد العزيز*
 
-</td>
-<td>
-
-- 📧 cryptojoker710@gmail.com
+- 📧 <cryptojoker710@gmail.com>
 - 🐙 [@Moeabdelaziz007](https://github.com/Moeabdelaziz007)
 - 🌐 [axiomid.app](https://axiomid.app)
-
-</td>
-</tr>
-</table>
 
 ---
 
@@ -478,14 +303,16 @@ MIT License © 2025 Mohamed Hossameldin Abdelaziz
 
 <div align="center">
 
-### 🌌 Built with AI + Zero Cost 🌌
+### 🌌 Built with DeepSeek AI + Zero Cost 🌌
 
-**مبني بالذكاء الاصطناعي + تكلفة صفر**
+**مبني بذكاء DeepSeek + تكلفة صفر**
 
 ---
 
-*"We don't trade. We provide intelligence."*
+*"From Signals to Execution."*
 
-*"نحن لا نتداول. نحن نقدم الذكاء."*
+*"من الإشارات إلى التنفيذ."*
+
+🚀 **v4.0 — Premium Trading Edition**
 
 </div>
