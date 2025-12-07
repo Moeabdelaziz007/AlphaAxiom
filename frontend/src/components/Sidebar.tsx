@@ -1,87 +1,85 @@
 "use client";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, LineChart, Wallet, History, Bot, Settings, LogOut } from 'lucide-react';
-import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import LocaleSwitcher from './LanguageSwitcher';
-
-const routes = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard', color: 'text-cyan-400' },
-    { path: '/trade', icon: LineChart, label: 'Terminal', color: 'text-green-400' },
-    { path: '/portfolio', icon: Wallet, label: 'Portfolio', color: 'text-yellow-400' },
-    { path: '/history', icon: History, label: 'History', color: 'text-purple-400' },
-    { path: '/automation', icon: Bot, label: 'Auto-Pilot', color: 'text-red-400' },
-    { path: '/settings', icon: Settings, label: 'Settings', color: 'text-gray-400' },
-];
+import Image from 'next/image';
+import { Zap, Newspaper, Settings, Moon } from 'lucide-react';
 
 export default function Sidebar() {
-    const pathname = usePathname();
     const t = useTranslations('Sidebar');
-    const tStats = useTranslations('Stats');
+    const pathname = usePathname();
+    const locale = pathname?.split('/')[1] || 'en';
+
+    const navItems = [
+        { icon: Zap, label: 'Signals', path: `/${locale}`, id: 'signals' },
+        { icon: Newspaper, label: 'News', path: `/${locale}/news`, id: 'news' },
+        { icon: Settings, label: 'Settings', path: `/${locale}/settings`, id: 'settings' },
+    ];
+
+    const isActive = (path: string) => {
+        if (path === `/${locale}` && pathname === `/${locale}`) return true;
+        if (path !== `/${locale}` && pathname?.startsWith(path)) return true;
+        return false;
+    };
 
     return (
-        <div className="flex flex-col h-full w-64 bg-[#050505] border-e border-gray-800">
+        <aside className="w-64 h-screen bg-[#0a0a0f] border-e border-white/[0.06] flex flex-col">
             {/* Logo */}
-            <div className="p-6 flex items-center gap-3 border-b border-gray-800">
-                <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-cyan-500/20 flex-shrink-0">
-                    <Image src="/icon.png" alt="Antigravity" width={40} height={40} className="object-cover" />
-                </div>
-                <div>
-                    <h1 className="font-bold text-white tracking-wider">ANTIGRAVITY</h1>
-                    <p className="text-[10px] text-gray-500">Trading LLM v2.0</p>
-                </div>
+            <div className="h-14 flex items-center px-5 border-b border-white/[0.06]">
+                <Link href={`/${locale}`} className="flex items-center gap-3">
+                    <Image
+                        src="/icon.png"
+                        alt="Axiom"
+                        width={28}
+                        height={28}
+                        className="rounded-lg"
+                    />
+                    <span className="font-semibold text-[15px] tracking-tight text-white/90">
+                        Axiom Signals
+                    </span>
+                </Link>
             </div>
 
             {/* Navigation */}
-            <div className="flex-1 py-6 flex flex-col gap-1 px-3">
-                {routes.map((route) => {
-                    const Icon = route.icon;
-                    // Check if active (handle locale path segments if needed, but pathname usually includes locale)
-                    // Simple check: does pathname end with route path?
-                    // For root '/', check if pathname is exactly '/en' or '/ar' or just '/'
-                    const isActive = route.path === '/'
-                        ? (pathname === '/en' || pathname === '/ar' || pathname === '/')
-                        : pathname.includes(route.path);
+            <nav className="flex-1 px-3 py-4">
+                <div className="space-y-1">
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        const active = isActive(item.path);
 
-                    return (
-                        <Link
-                            key={route.path}
-                            href={route.path}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                                ? 'bg-gray-800/80 text-white border border-gray-700/50'
-                                : 'text-gray-400 hover:bg-gray-900 hover:text-white'
-                                }`}
-                        >
-                            <Icon size={20} className={isActive ? route.color : 'text-gray-500'} />
-                            <span className="font-medium text-sm">{t(route.label)}</span>
-                        </Link>
-                    );
-                })}
-            </div>
+                        return (
+                            <Link
+                                key={item.id}
+                                href={item.path}
+                                className={`
+                                    flex items-center gap-3 px-3 py-2 rounded-lg text-[14px] font-medium
+                                    transition-all duration-150
+                                    ${active
+                                        ? 'bg-white/[0.08] text-white'
+                                        : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
+                                    }
+                                `}
+                            >
+                                <Icon size={18} className={active ? 'text-[#00F0FF]' : ''} />
+                                <span>{item.label}</span>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </nav>
 
-            {/* Status */}
-            <div className="px-4 pb-4">
-                <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-800/50 space-y-2">
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">{tStats('Status')}</span>
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            <span className="text-xs text-green-400">{tStats('Online')}</span>
-                        </div>
+            {/* Footer */}
+            <div className="p-4 border-t border-white/[0.06]">
+                <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-2">
+                        <Moon size={16} className="text-white/40" />
+                        <span className="text-[12px] text-white/40">Dark Mode</span>
+                    </div>
+                    <div className="w-8 h-4 bg-[#00F0FF]/20 rounded-full flex items-center justify-end px-0.5">
+                        <div className="w-3 h-3 bg-[#00F0FF] rounded-full" />
                     </div>
                 </div>
             </div>
-
-            {/* Language & Disconnect */}
-            <div className="p-4 border-t border-gray-800 space-y-2">
-                <LocaleSwitcher />
-
-                <button className="flex items-center gap-3 px-4 py-3 w-full text-gray-400 hover:text-red-400 transition-colors rounded-xl hover:bg-gray-900/50 group">
-                    <LogOut size={20} className="group-hover:text-red-500 transition-colors" />
-                    <span className="text-sm">{t('Disconnect')}</span>
-                </button>
-            </div>
-        </div>
+        </aside>
     );
 }

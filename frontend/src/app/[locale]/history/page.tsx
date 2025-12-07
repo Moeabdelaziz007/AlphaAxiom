@@ -5,7 +5,19 @@ import { History, RefreshCw, CheckCircle, XCircle, Clock, Filter, Download, Sear
 
 const API_BASE = "https://trading-brain-v1.amrikyy.workers.dev";
 
-// ... interfaces ...
+interface TradeLog {
+    id: number;
+    ticker: string;
+    action: 'buy' | 'sell';
+    quantity: number;
+    qty?: number;
+    price: number;
+    timestamp: string;
+    executed_at?: string;
+    trigger_reason?: string;
+    order_id?: string;
+    status?: 'success' | 'pending' | 'failed';
+}
 
 export default function HistoryPage() {
     // ... state ... (no change needed in state logic)

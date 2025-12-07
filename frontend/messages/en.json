@@ -1,0 +1,40 @@
+{
+    "Sidebar": {
+        "Dashboard": "Dashboard",
+        "Terminal": "Terminal",
+        "Portfolio": "Portfolio",
+        "History": "History",
+        "AutoPilot": "AutoPilot",
+        "Settings": "Settings",
+        "Disconnect": "Disconnect"
+    },
+    "Stats": {
+        "PortfolioValue": "Portfolio Value",
+        "BuyingPower": "Buying Power",
+        "TradesToday": "Trades Today",
+        "Status": "AI Status",
+        "Online": "Online",
+        "Offline": "Offline"
+    },
+    "Trade": {
+        "Buy": "Buy",
+        "Sell": "Sell",
+        "Symbol": "Symbol",
+        "Quantity": "Quantity",
+        "Execute": "Execute Trade",
+        "ConfirmTitle": "Confirm Execution",
+        "Cancel": "Cancel"
+    },
+    "WarRoom": {
+        "Title": "War Room",
+        "Subtitle": "Multi-Symbol Surveillance",
+        "PanicButton": "Liquidate All Positions",
+        "Fullscreen": "Fullscreen"
+    },
+    "Common": {
+        "Welcome": "Antigravity System Connected. Ready for market analysis and execution.",
+        "Loading": "Loading...",
+        "Error": "Error",
+        "Success": "Success"
+    }
+}

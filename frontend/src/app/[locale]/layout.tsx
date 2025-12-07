@@ -1,22 +1,35 @@
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono, Cairo } from "next/font/google";
+import { JetBrains_Mono, Cairo, Orbitron } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import "../globals.css";
 import Sidebar from "@/components/Sidebar";
 import { Providers } from "./providers";
 
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: '--font-mono' });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: '--font-jetbrains' });
 const cairo = Cairo({ subsets: ["arabic"], variable: '--font-cairo', weight: ['400', '700'] });
+const orbitron = Orbitron({ subsets: ["latin"], variable: '--font-orbitron', weight: ['400', '700', '900'] });
 
 export const metadata: Metadata = {
-    title: "Antigravity Terminal",
-    description: "AI-Powered Trading Terminal - Bloomberg Killer",
+    title: "Axiom Antigravity | Trading Hub",
+    description: "AI-Powered Trading Command Hub - Your Strategic Market Intelligence Center",
     manifest: "/manifest.json",
+    openGraph: {
+        title: "Axiom Antigravity Trading Hub",
+        description: "AI-Powered Market Intelligence - Zero Latency, Zero Cost",
+        images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Axiom Antigravity" }],
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Axiom Antigravity Trading Hub",
+        description: "AI-Powered Market Intelligence",
+        images: ["/og-image.png"],
+    },
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
-        title: "Antigravity",
+        title: "Axiom Antigravity",
     },
     icons: {
         icon: "/icon.png",
@@ -25,7 +38,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-    themeColor: "#06b6d4",
+    themeColor: "#00F0FF",
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,
@@ -51,7 +64,7 @@ export default async function RootLayout({
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <meta name="mobile-web-app-capable" content="yes" />
             </head>
-            <body className={`${fontClass} ${fontVariable} bg-[#050505] text-white h-screen flex overflow-hidden selection:bg-cyan-500/30`}>
+            <body className={`${fontClass} ${fontVariable} ${orbitron.variable} bg-void text-white h-screen flex overflow-hidden selection:bg-neon-cyan/30`}>
                 <NextIntlClientProvider messages={messages}>
                     <Providers>
                         {/* 🧭 Sidebar - Fixed on left/right depending on dir */}
@@ -59,8 +72,8 @@ export default async function RootLayout({
                             <Sidebar />
                         </aside>
 
-                        {/* 📊 Main Content - Scrollable */}
-                        <main className="flex-1 flex flex-col relative overflow-hidden bg-gradient-to-br from-[#050505] to-[#080808]">
+                        {/* 📊 Main Content */}
+                        <main className="flex-1 flex flex-col relative overflow-hidden">
                             {children}
                         </main>
                     </Providers>

@@ -3,25 +3,26 @@
 @tailwind utilities;
 
 /* ==========================================
-   🌙 MIDNIGHT PROTOCOL - Design System
+   🌌 AXIOM ANTIGRAVITY - Midnight Void Design System
    ========================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=IBM+Plex+Sans+Arabic:wght@400;700&display=swap');
 
 :root {
-  /* Core Palette */
-  --midnight-void: #050505;
-  --midnight-surface: #0A0A0A;
-  --midnight-border: #1F1F1F;
-
-  /* Neon Accents */
-  --neon-cyan: #06B6D4;
-  --neon-green: #10B981;
-  --neon-red: #F43F5E;
-
-  /* Glass */
-  --glass-bg: rgba(10, 10, 10, 0.8);
+  /* The Void */
+  --void: #020204;
+  --obsidian: #0A0A0F;
+  --glass-bg: rgba(10, 10, 15, 0.6);
   --glass-border: rgba(255, 255, 255, 0.05);
+
+  /* Neon System */
+  --neon-cyan: #00F0FF;
+  --neon-magenta: #FF003C;
+  --neon-green: #05FFA1;
+  --neon-gold: #FFD700;
+  --neon-purple: #8B5CF6;
+
+  --foreground: #ffffff;
 }
 
 * {
@@ -31,12 +32,12 @@
 }
 
 body {
-  background-color: var(--midnight-void);
-  color: #e5e7eb;
+  color: var(--foreground);
+  background: var(--void);
   font-family: 'Inter', system-ui, sans-serif;
-  background-image: radial-gradient(circle at 50% 0%, #111827 0%, #050505 50%);
-  min-height: 100vh;
+  overflow: hidden;
 }
+
 
 /* ==========================================
    Typography
@@ -46,8 +47,16 @@ body {
   font-family: 'JetBrains Mono', monospace;
 }
 
+.font-orbitron {
+  font-family: 'Orbitron', monospace;
+}
+
+.glow-text {
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
+}
+
 /* ==========================================
-   Glass Card Component
+   Glass Panel Components (Midnight Void)
    ========================================== */
 
 .glass-card {
@@ -59,27 +68,47 @@ body {
 }
 
 .glass-card-strong {
-  background: rgba(10, 10, 10, 0.95);
+  background: rgba(10, 10, 15, 0.9);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
 }
 
+.glass-panel {
+  background: rgba(10, 10, 15, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.glass-panel-active {
+  background: rgba(10, 10, 15, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+}
+
 /* ==========================================
-   Neon Glow Effects
+   Neon Glow Effects (Tron Style)
    ========================================== */
 
 .glow-cyan {
-  box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3);
 }
 
 .glow-green {
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 10px rgba(5, 255, 161, 0.5), 0 0 20px rgba(5, 255, 161, 0.3);
 }
 
 .glow-red {
-  box-shadow: 0 0 15px rgba(244, 63, 94, 0.3);
+  box-shadow: 0 0 10px rgba(255, 0, 60, 0.5), 0 0 20px rgba(255, 0, 60, 0.3);
+}
+
+.glow-gold {
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
 /* ==========================================

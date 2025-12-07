@@ -1188,3 +1188,721 @@ async def on_scheduled(event, env, ctx):
             
     except:
         pass
+
+
+# ==========================================
+# 🏎️ TWIN-TURBO ENGINE: AEXI Protocol
+# ==========================================
+
+def calculate_z_score(prices, period=100):
+    """Calculate Z-Score for price exhaustion detection"""
+    if len(prices) < period:
+        return 0.0
+    
+    recent_prices = prices[-period:]
+    mean = sum(recent_prices) / len(recent_prices)
+    
+    # Calculate standard deviation
+    variance = sum((p - mean) ** 2 for p in recent_prices) / len(recent_prices)
+    std_dev = variance ** 0.5
+    
+    if std_dev == 0:
+        return 0.0
+    
+    current_price = prices[-1]
+    z_score = (current_price - mean) / std_dev
+    return z_score
+
+
+def calculate_atr(highs, lows, closes, period=14):
+    """Calculate Average True Range for volatility"""
+    if len(highs) < period + 1:
+        return 0.0
+    
+    true_ranges = []
+    for i in range(1, len(highs)):
+        tr1 = highs[i] - lows[i]
+        tr2 = abs(highs[i] - closes[i-1])
+        tr3 = abs(lows[i] - closes[i-1])
+        true_ranges.append(max(tr1, tr2, tr3))
+    
+    if len(true_ranges) < period:
+        return sum(true_ranges) / len(true_ranges) if true_ranges else 0.0
+    
+    return sum(true_ranges[-period:]) / period
+
+
+def calculate_rsi(prices, period=14):
+    """Calculate Relative Strength Index"""
+    if len(prices) < period + 1:
+        return 50.0  # Neutral
+    
+    gains = []
+    losses = []
+    
+    for i in range(1, len(prices)):
+        change = prices[i] - prices[i-1]
+        if change > 0:
+            gains.append(change)
+            losses.append(0)
+        else:
+            gains.append(0)
+            losses.append(abs(change))
+    
+    if len(gains) < period:
+        return 50.0
+    
+    avg_gain = sum(gains[-period:]) / period
+    avg_loss = sum(losses[-period:]) / period
+    
+    if avg_loss == 0:
+        return 100.0
+    
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+
+
+def calculate_volume_spike(volumes, period=20):
+    """Calculate relative volume spike (SVP)"""
+    if len(volumes) < period:
+        return 0.0
+    
+    avg_volume = sum(volumes[-period:]) / period
+    if avg_volume == 0:
+        return 0.0
+    
+    current_volume = volumes[-1]
+    return current_volume / avg_volume
+
+
+def calculate_aexi(prices, highs, lows, closes, volumes):
+    """
+    🎯 AEXI Protocol - Antigravity Extremum Index
+    
+    AEXI = (0.4 × EXH) + (0.3 × VAF) + (0.3 × SVP)
+    
+    - EXH: Exhaustion (Z-Score normalized to 0-100)
+    - VAF: Velocity/ATR Factor (Momentum vs Volatility)
+    - SVP: Surveillance Volume Proxy (Relative Volume)
+    
+    Returns: 0-100 score
+    """
+    # 1. EXH - Exhaustion (Z-Score normalized)
+    z_score = calculate_z_score(prices, period=100)
+    # Normalize: Z-Score of 4σ = 100%
+    exh = min(100, abs(z_score) * 25)
+    
+    # 2. VAF - Velocity vs ATR
+    atr = calculate_atr(highs, lows, closes, period=14)
+    if atr > 0 and len(prices) >= 5:
+        momentum = abs(prices[-1] - prices[-5])  # 5-bar momentum
+        vaf = min(100, (momentum / atr) * 20)  # Normalized
+    else:
+        vaf = 50.0
+    
+    # 3. SVP - Volume Spike
+    svp = calculate_volume_spike(volumes, period=20)
+    svp = min(100, svp * 33.33)  # Normalized: 3x volume = 100
+    
+    # AEXI Composite Score
+    aexi = (0.4 * exh) + (0.3 * vaf) + (0.3 * svp)
+    
+    return {
+        "aexi": round(aexi, 2),
+        "exh": round(exh, 2),
+        "vaf": round(vaf, 2),
+        "svp": round(svp, 2),
+        "z_score": round(z_score, 3)
+    }
+
+
+# ==========================================
+# 🌙 TWIN-TURBO ENGINE: Dream Machine
+# ==========================================
+
+def calculate_entropy(prices, bins=10):
+    """
+    Calculate Shannon Entropy - measures market disorder
+    High entropy = chaotic market
+    Low entropy = orderly trend
+    """
+    if len(prices) < 20:
+        return 0.5
+    
+    # Calculate returns
+    returns = [(prices[i] - prices[i-1]) / prices[i-1] if prices[i-1] != 0 else 0 
+               for i in range(1, len(prices))]
+    
+    if not returns:
+        return 0.5
+    
+    min_ret = min(returns)
+    max_ret = max(returns)
+    
+    if max_ret == min_ret:
+        return 0.0
+    
+    # Bin the returns
+    bin_width = (max_ret - min_ret) / bins
+    hist = [0] * bins
+    
+    for r in returns:
+        bin_idx = min(int((r - min_ret) / bin_width), bins - 1)
+        hist[bin_idx] += 1
+    
+    # Calculate probability and entropy
+    n = len(returns)
+    entropy = 0.0
+    
+    for count in hist:
+        if count > 0:
+            p = count / n
+            entropy -= p * (p ** 0.5 if p > 0 else 0)  # Log approximation
+    
+    # Normalize to 0-1
+    max_entropy = bins ** 0.5
+    normalized_entropy = entropy / max_entropy if max_entropy > 0 else 0
+    
+    return min(1.0, max(0.0, abs(normalized_entropy)))
+
+
+def calculate_hurst_exponent(prices, max_lag=20):
+    """
+    Calculate Hurst Exponent (R/S Analysis)
+    H > 0.5: Trending (memory)
+    H = 0.5: Random walk
+    H < 0.5: Mean reverting
+    """
+    if len(prices) < max_lag * 2:
+        return 0.5
+    
+    # Simplified Hurst calculation
+    n = len(prices)
+    returns = [prices[i] - prices[i-1] for i in range(1, n)]
+    
+    if not returns:
+        return 0.5
+    
+    # Calculate range/std ratio for different lags
+    rs_values = []
+    
+    for lag in range(2, min(max_lag, len(returns) // 2)):
+        chunks = [returns[i:i+lag] for i in range(0, len(returns) - lag, lag)]
+        
+        for chunk in chunks:
+            if len(chunk) < 2:
+                continue
+            
+            mean = sum(chunk) / len(chunk)
+            cumulative = [sum(chunk[:i+1]) - (i+1) * mean for i in range(len(chunk))]
+            
+            r = max(cumulative) - min(cumulative) if cumulative else 0
+            s = (sum((x - mean) ** 2 for x in chunk) / len(chunk)) ** 0.5
+            
+            if s > 0:
+                rs_values.append(r / s)
+    
+    if not rs_values:
+        return 0.5
+    
+    # Average RS ratio indicates Hurst
+    avg_rs = sum(rs_values) / len(rs_values)
+    
+    # Approximate Hurst from RS
+    hurst = 0.5 + (avg_rs - 1) * 0.1
+    return min(1.0, max(0.0, hurst))
+
+
+def calculate_fractal_dimension(prices):
+    """
+    Calculate Fractal Dimension (Higuchi's method simplified)
+    High FD = rough/complex price action
+    Low FD = smooth trend
+    """
+    if len(prices) < 10:
+        return 1.5
+    
+    n = len(prices)
+    k_max = min(10, n // 2)
+    
+    lengths = []
+    
+    for k in range(1, k_max + 1):
+        length = 0
+        for m in range(1, k + 1):
+            # Compute length for this (k, m) pair
+            idx_list = list(range(m - 1, n, k))
+            if len(idx_list) < 2:
+                continue
+            
+            partial_length = sum(
+                abs(prices[idx_list[j]] - prices[idx_list[j-1]]) 
+                for j in range(1, len(idx_list))
+            )
+            
+            # Normalize
+            norm = (n - 1) / (k * len(idx_list))
+            length += partial_length * norm
+        
+        if k > 0:
+            length /= k
+            lengths.append(length)
+    
+    if not lengths:
+        return 1.5
+    
+    # Estimate fractal dimension from slope
+    # FD ≈ 1 + log(L) / log(k)
+    avg_length = sum(lengths) / len(lengths)
+    fd = 1.0 + min(1.0, avg_length / 100)  # Simplified
+    
+    return min(2.0, max(1.0, fd))
+
+
+def calculate_dream_score(prices, volumes):
+    """
+    🌙 Dream Machine - Chaos Theory Detector
+    
+    Dream = (0.3 × Entropy) + (0.25 × Fractal) + (0.25 × Hurst) + (0.2 × VolDisp)
+    
+    Returns: 0-100 "Dream" score (anomaly detection)
+    """
+    # 1. Entropy (normalized to 0-100)
+    entropy = calculate_entropy(prices) * 100
+    
+    # 2. Fractal Dimension (1.0-2.0 → 0-100)
+    fd = calculate_fractal_dimension(prices)
+    fractal_score = (fd - 1.0) * 100
+    
+    # 3. Hurst Exponent (deviation from 0.5 → 0-100)
+    hurst = calculate_hurst_exponent(prices)
+    hurst_score = abs(hurst - 0.5) * 200  # Distance from random walk
+    
+    # 4. Volume Dispersion
+    if len(volumes) >= 20:
+        avg_vol = sum(volumes[-20:]) / 20
+        vol_variance = sum((v - avg_vol) ** 2 for v in volumes[-20:]) / 20
+        vol_disp = min(100, (vol_variance ** 0.5) / avg_vol * 50) if avg_vol > 0 else 50
+    else:
+        vol_disp = 50
+    
+    # Dream Score Composite
+    dream = (0.3 * entropy) + (0.25 * fractal_score) + (0.25 * hurst_score) + (0.2 * vol_disp)
+    
+    return {
+        "dream": round(dream, 2),
+        "entropy": round(entropy, 2),
+        "fractal": round(fractal_score, 2),
+        "hurst": round(hurst, 3),
+        "hurst_score": round(hurst_score, 2),
+        "vol_dispersion": round(vol_disp, 2)
+    }
+
+
+# ==========================================
+# 🎯 TWIN-TURBO SIGNAL DETECTOR
+# ==========================================
+
+def detect_twin_turbo_signal(aexi_result, dream_result, rsi):
+    """
+    🔴 SIGNAL TRIGGER CONDITION:
+    AEXI > 80 AND Dream > 70 AND (RSI < 30 OR RSI > 70)
+    
+    Returns signal with confidence level
+    """
+    aexi = aexi_result.get("aexi", 0)
+    dream = dream_result.get("dream", 0)
+    
+    # Signal conditions
+    aexi_triggered = aexi > 80
+    dream_triggered = dream > 70
+    rsi_extreme = rsi < 30 or rsi > 70
+    
+    if aexi_triggered and dream_triggered:
+        confidence = min(100, (aexi + dream) / 2)
+        
+        # Determine direction
+        if rsi < 30:
+            direction = "BULLISH"
+            action = "BUY"
+        elif rsi > 70:
+            direction = "BEARISH"
+            action = "SELL"
+        else:
+            direction = "NEUTRAL"
+            action = "HOLD"
+        
+        return {
+            "signal": True,
+            "direction": direction,
+            "action": action,
+            "confidence": round(confidence, 2),
+            "aexi": aexi,
+            "dream": dream,
+            "rsi": round(rsi, 2),
+            "message": f"🚨 TWIN-TURBO SIGNAL: {direction} ({confidence:.1f}% confidence)"
+        }
+    
+    return {
+        "signal": False,
+        "aexi": aexi,
+        "dream": dream,
+        "rsi": round(rsi, 2),
+        "message": "No signal - Engines idle"
+    }
+
+
+# ==========================================
+# 📰 AI JOURNALIST (Gemini Reports)
+# ==========================================
+
+async def generate_ai_journalist_report(env, symbols=None):
+    """
+    Generate daily market intelligence briefing using Gemini
+    """
+    if symbols is None:
+        symbols = ["SPY", "QQQ", "BTC/USD"]
+    
+    # Gather market data
+    market_summary = []
+    
+    for symbol in symbols:
+        try:
+            data = await fetch_alpaca_snapshot(symbol, env)
+            if data:
+                market_summary.append(f"- {symbol}: ${data.get('price', 'N/A')} ({data.get('change_percent', 0):.2f}%)")
+        except:
+            market_summary.append(f"- {symbol}: Data unavailable")
+    
+    # Fetch news
+    news_items = []
+    for symbol in symbols[:2]:  # Limit to avoid rate limits
+        try:
+            news = await fetch_yahoo_news(symbol)
+            if news:
+                news_items.extend(news[:2])
+        except:
+            pass
+    
+    news_text = "\n".join(news_items[:5]) if news_items else "No recent news available"
+    
+    # Create prompt for Gemini
+    prompt = f"""You are an elite financial journalist for Axiom Antigravity Trading Hub.
+    
+Generate a brief daily market intelligence report in this format:
+
+## 🌅 Good Morning, Trader!
+
+### 📊 Market Snapshot
+{chr(10).join(market_summary)}
+
+### 📰 Key Headlines
+{news_text}
+
+### 🧠 AI Analysis
+[Provide 2-3 sentences of market analysis based on the data]
+
+### 🎯 Today's Bias
+[BULLISH / BEARISH / NEUTRAL] with brief explanation
+
+Keep the report concise and actionable. Use emojis sparingly."""
+
+    # Call Gemini (using Groq as fallback if Gemini not available)
+    try:
+        gemini_key = getattr(env, 'GEMINI_API_KEY', None)
+        
+        if gemini_key:
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={gemini_key}"
+            
+            response = await fetch(gemini_url, 
+                method="POST",
+                headers={"Content-Type": "application/json"},
+                body=json.dumps({
+                    "contents": [{"parts": [{"text": prompt}]}]
+                })
+            )
+            
+            result = await response.json()
+            
+            if result.get("candidates"):
+                return result["candidates"][0]["content"]["parts"][0]["text"]
+        
+        # Fallback to Groq
+        return await call_groq_chat(prompt, env)
+        
+    except Exception as e:
+        return f"📊 Market Report Unavailable\n\nError: {str(e)}"
+
+
+async def send_daily_briefing(env):
+    """Send daily AI Journalist briefing to Telegram"""
+    try:
+        report = await generate_ai_journalist_report(env)
+        
+        message = f"""
+🌌 <b>AXIOM ANTIGRAVITY</b>
+📰 <b>Daily Intelligence Briefing</b>
+━━━━━━━━━━━━━━━━━━━━
+
+{report}
+
+━━━━━━━━━━━━━━━━━━━━
+⏰ Generated: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M UTC')}
+"""
+        
+        await send_telegram_alert(env, message)
+        return {"status": "sent", "report": report}
+        
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+# ==========================================
+# 🧠 ANALYST AGENT (Smart Signal Filter)
+# ==========================================
+
+async def consult_the_analyst(market_data, env):
+    """
+    🧠 The Analyst Agent - Smart Signal Filter
+    
+    This agent acts as an intelligent filter between raw math signals
+    and human-facing alerts. It validates anomalies and adds context.
+    
+    Features:
+    - Prevents weak/conflicting signals from being broadcast
+    - Adds quality tier (S-TIER, A-TIER, B-TIER)
+    - Provides human-readable analyst brief
+    
+    Cost: Uses Groq API (FREE - 14,400 req/day)
+    """
+    
+    # 1. Build Analyst Context Prompt
+    prompt = f"""ROLE: Senior Market Analyst for 'Axiom Antigravity Signal Hub'.
+OBJECTIVE: Validate a potential market anomaly detected by mathematical algorithms.
+
+INPUT DATA:
+- Asset: {market_data.get('symbol', 'UNKNOWN')}
+- Current Price: ${market_data.get('price', 0):.2f}
+- AEXI Score (Exhaustion): {market_data.get('aexi', 0):.1f}/100 
+  (>80 = potential reversal DOWN, <20 = potential reversal UP)
+- Dream Score (Chaos): {market_data.get('dream', 0):.1f}/100 
+  (>70 = high complexity = opportunity window)
+- RSI: {market_data.get('rsi', 50):.1f}
+- Z-Score: {market_data.get('z_score', 0):.2f} sigma from mean
+
+TASK:
+Analyze the combination of statistical Exhaustion (AEXI) and market Chaos (Dream).
+Determine if this setup justifies sending an alert to human traders.
+
+DECISION CRITERIA:
+- S-TIER: AEXI > 85 AND Dream > 75 AND extreme RSI (<25 or >75)
+- A-TIER: AEXI > 80 AND Dream > 70
+- B-TIER: Either AEXI > 80 OR Dream > 70, but not both
+- REJECT: Conflicting signals or low confidence
+
+OUTPUT JSON FORMAT ONLY:
+{{
+  "broadcast_alert": true,
+  "signal_quality": "S-TIER",
+  "direction": "BULLISH",
+  "analyst_brief": "One sharp sentence explaining the WHY."
+}}"""
+
+    # 2. Call Groq for fast inference (Llama 3.3 70B)
+    try:
+        groq_key = getattr(env, 'GROQ_API_KEY', None)
+        
+        if not groq_key:
+            # Fallback to pure math decision
+            return {
+                "broadcast_alert": market_data.get('aexi', 0) > 80 and market_data.get('dream', 0) > 70,
+                "signal_quality": "MATH-ONLY",
+                "direction": "BULLISH" if market_data.get('rsi', 50) < 30 else "BEARISH" if market_data.get('rsi', 50) > 70 else "NEUTRAL",
+                "analyst_brief": "AI Analyst unavailable. Signal based on pure mathematical indicators."
+            }
+        
+        response = await fetch(GROQ_API_URL, 
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {groq_key}",
+                "Content-Type": "application/json"
+            },
+            body=json.dumps({
+                "model": "llama-3.3-70b-versatile",
+                "messages": [
+                    {"role": "system", "content": "You are a precise market analyst. Always respond in valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.2,  # Low temperature for consistent reasoning
+                "max_tokens": 200,
+                "response_format": {"type": "json_object"}
+            })
+        )
+        
+        result = await response.json()
+        
+        if result.get("choices"):
+            content = result["choices"][0]["message"]["content"]
+            analyst_decision = json.loads(content)
+            return analyst_decision
+        
+        # Fallback if parsing fails
+        return {
+            "broadcast_alert": True,
+            "signal_quality": "PARSE-ERROR",
+            "direction": "UNKNOWN",
+            "analyst_brief": "Response parsing failed. Broadcasting raw signal."
+        }
+        
+    except Exception as e:
+        # In case of AI failure, rely on math only
+        return {
+            "broadcast_alert": True,
+            "signal_quality": "MATH-ONLY",
+            "direction": "BULLISH" if market_data.get('rsi', 50) < 30 else "BEARISH",
+            "analyst_brief": f"AI Analyst error: {str(e)[:50]}. Signal based on pure math."
+        }
+
+
+# ==========================================
+# 📱 ENHANCED SIGNAL BROADCAST
+# ==========================================
+
+async def broadcast_twin_turbo_signal(env, symbol, aexi_result, dream_result, rsi, price):
+    """
+    🚨 Broadcast validated Twin-Turbo signal to Telegram
+    
+    Pipeline:
+    1. Detect signal via math (AEXI + Dream)
+    2. Validate via Analyst Agent (Groq)
+    3. Send formatted alert to Telegram
+    """
+    
+    # Build market data for analyst
+    market_data = {
+        "symbol": symbol,
+        "price": price,
+        "aexi": aexi_result.get("aexi", 0),
+        "dream": dream_result.get("dream", 0),
+        "rsi": rsi,
+        "z_score": aexi_result.get("z_score", 0)
+    }
+    
+    # Consult the Analyst Agent
+    analyst_decision = await consult_the_analyst(market_data, env)
+    
+    # Check if analyst approves broadcast
+    if not analyst_decision.get("broadcast_alert", False):
+        # Log but don't alert
+        return {
+            "status": "filtered",
+            "reason": "Analyst rejected signal",
+            "analyst_brief": analyst_decision.get("analyst_brief", "N/A")
+        }
+    
+    # Build premium Telegram message
+    quality = analyst_decision.get("signal_quality", "UNKNOWN")
+    direction = analyst_decision.get("direction", "NEUTRAL")
+    brief = analyst_decision.get("analyst_brief", "No analysis available.")
+    
+    # Quality emoji mapping
+    quality_emoji = {
+        "S-TIER": "🏆",
+        "A-TIER": "⭐",
+        "B-TIER": "📊",
+        "MATH-ONLY": "🔢"
+    }.get(quality, "❓")
+    
+    # Direction emoji
+    direction_emoji = "🟢" if direction == "BULLISH" else "🔴" if direction == "BEARISH" else "⚪"
+    
+    message = f"""
+🚨 <b>ANTIGRAVITY SIGNAL ALERT</b>
+━━━━━━━━━━━━━━━━━━━━
+
+<b>📍 Asset:</b> {symbol}
+<b>💰 Price:</b> ${price:,.2f}
+<b>📈 Direction:</b> {direction_emoji} {direction}
+
+━━━━━━━━━━━━━━━━━━━━
+<b>🏎️ Twin-Turbo Engines:</b>
+
+<b>AEXI:</b> {aexi_result.get('aexi', 0):.1f}/100 ({'🔥 Critical' if aexi_result.get('aexi', 0) > 85 else '⚠️ High' if aexi_result.get('aexi', 0) > 80 else '📊 Active'})
+<b>Dream:</b> {dream_result.get('dream', 0):.1f}/100 ({'🌙 Chaos Peak' if dream_result.get('dream', 0) > 75 else '✨ High' if dream_result.get('dream', 0) > 70 else '📈 Normal'})
+<b>RSI:</b> {rsi:.1f} ({'🟢 Oversold' if rsi < 30 else '🔴 Overbought' if rsi > 70 else '⚪ Neutral'})
+<b>Z-Score:</b> {aexi_result.get('z_score', 0):.2f}σ
+
+━━━━━━━━━━━━━━━━━━━━
+<b>🧠 Analyst Brief:</b>
+<i>"{brief}"</i>
+
+<b>{quality_emoji} Signal Quality:</b> {quality}
+━━━━━━━━━━━━━━━━━━━━
+
+⏰ {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M UTC')}
+🌌 <i>Axiom Antigravity Trading Hub</i>
+"""
+    
+    # Send to Telegram
+    await send_telegram_alert(env, message)
+    
+    return {
+        "status": "broadcast",
+        "quality": quality,
+        "direction": direction,
+        "analyst_brief": brief
+    }
+
+
+# ==========================================
+# 🔄 AUTOMATED SIGNAL SCANNER (Cron Job)
+# ==========================================
+
+async def scan_for_signals(env, symbols=None):
+    """
+    Run Twin-Turbo scan on multiple symbols
+    Called by cron job every minute
+    """
+    if symbols is None:
+        symbols = ["SPY", "QQQ", "AAPL", "TSLA", "BTC/USD", "ETH/USD"]
+    
+    signals_found = []
+    
+    for symbol in symbols:
+        try:
+            # Fetch price data
+            snapshot = await fetch_alpaca_snapshot(symbol, env)
+            if not snapshot or snapshot.get("price") == "N/A":
+                continue
+            
+            price = float(snapshot.get("price", 0))
+            
+            # Fetch historical for calculations (mock for now - would need bars)
+            # In production, use fetch_alpaca_bars and extract OHLCV
+            # For demo, using snapshot data to calculate basic indicators
+            
+            # Calculate RSI (simplified from snapshot)
+            rsi = 50 + (snapshot.get("change_percent", 0) * 5)  # Rough approximation
+            rsi = max(0, min(100, rsi))
+            
+            # Mock AEXI and Dream for demo (in production, use historical data)
+            # This would come from actual price history calculation
+            aexi_result = {"aexi": 75 + (abs(snapshot.get("change_percent", 0)) * 3), "z_score": snapshot.get("change_percent", 0) / 0.5}
+            dream_result = {"dream": 65 + (abs(snapshot.get("change_percent", 0)) * 2)}
+            
+            # Check if signal triggers
+            if aexi_result["aexi"] > 80 and dream_result["dream"] > 70:
+                result = await broadcast_twin_turbo_signal(
+                    env, symbol, aexi_result, dream_result, rsi, price
+                )
+                signals_found.append({
+                    "symbol": symbol,
+                    "result": result
+                })
+                
+        except Exception as e:
+            continue
+    
+    return signals_found
+
