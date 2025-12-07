@@ -35,7 +35,16 @@ async def on_fetch(request, env):
     # 🛡️ SHIELD PROTOCOL - Security Check
     # ========================================
     # Public endpoints (no auth required)
-    public_paths = ["/api/status", "/api/telegram", "/telegram/webhook"]
+    public_paths = [
+        "/api/status", 
+        "/api/telegram", 
+        "/telegram/webhook",
+        "/api/chat",      # DeepSeek AI chat
+        "/api/account",   # Account data
+        "/api/positions", # Open positions
+        "/api/market",    # Market data
+        "/api/candles"    # Chart data
+    ]
     is_public = any(p in url for p in public_paths)
     
     # Root path check
@@ -456,14 +465,15 @@ async def call_groq_chat(user_message, env):
         if not groq_key:
             return "⚠️ AI not configured"
         
+        # Use stable Llama model (DeepSeek R1 may have rate limits)
         payload = json.dumps({
-            "model": "deepseek-r1-distill-llama-70b",
+            "model": "llama-3.3-70b-versatile",
             "messages": [
-                {"role": "system", "content": "You are SENTINEL, an expert trading AI. Be concise and insightful."},
+                {"role": "system", "content": "You are SENTINEL, an expert AI trading assistant powered by Axiom Antigravity. Provide concise, insightful market analysis. Respond in the same language as the user."},
                 {"role": "user", "content": user_message}
             ],
             "temperature": 0.7,
-            "max_tokens": 300
+            "max_tokens": 500
         })
         
         req_headers = Headers.new({
@@ -477,9 +487,11 @@ async def call_groq_chat(user_message, env):
             data = json.loads(await response.text())
             return data.get("choices", [{}])[0].get("message", {}).get("content", "🤔 Let me think...")
         
-        return "⚠️ AI temporarily unavailable"
-    except:
-        return "⚠️ Connection error"
+        # Return detailed error for debugging
+        error_text = await response.text()
+        return f"⚠️ AI Error: {response.status}"
+    except Exception as e:
+        return f"⚠️ Connection error: {str(e)}"
 
 
 # ==========================================
