@@ -1,16 +1,10 @@
 """
-🤖 AI Trading Bot Simulation v2.1 (Demonstration)
-Uses REAL ScalpingBrain with optimized 1:2 R:R.
-Includes 'Perfect Setup' generation to demonstrate strategy logic.
+🤖 AI Trading Bot Simulation v3.0 (AGGRESSIVE 30% ROI)
+Uses REAL ScalpingBrain with 1:3 Risk-Reward and 5% Position Size.
 """
 
 import random
-import math
 from scalping_engine import ScalpingBrain
-
-# ==================================================
-# 📊 MARKET DATA GENERATOR
-# ==================================================
 
 def generate_market_scenario(scenario_type="random"):
     """Generate realistic OHLCV data."""
@@ -21,38 +15,33 @@ def generate_market_scenario(scenario_type="random"):
     }
     
     if scenario_type == "random":
-        # Bias towards tradable scenarios for demo
         scenario_type = random.choice(["strong_uptrend", "strong_downtrend", "perfect_setup", "perfect_setup"])
     
     config = scenarios[scenario_type]
     data = []
     price = config["base"]
     
-    # Generate 50 bars
-    for i in range(50):
-        # Default behavior
+    for i in range(60):
         change = config["trend"] * 0.05 + random.gauss(0, config["volatility"])
         price = price * (1 + change)
-        vol_base = 1000
-        vol = vol_base * random.uniform(0.5, 1.5)
         
-        open_p = price
-        close_p = price * (1 + random.uniform(-0.002, 0.002))
-        high = max(open_p, close_p) * 1.002
-        low = min(open_p, close_p) * 0.998
+        high_wick = random.uniform(0.001, 0.005)
+        low_wick = random.uniform(0.001, 0.005)
         
-        # Inject Perfect PIN BAR Setup at the end
-        if i == 49 and scenario_type == "perfect_setup":
-            # bounce off support
+        open_p = price * (1 + random.uniform(-0.002, 0.002))
+        close_p = price 
+        high = max(open_p, close_p) * (1 + high_wick)
+        low = min(open_p, close_p) * (1 - low_wick)
+        vol = 1000 * random.uniform(0.8, 3.0)
+        
+        # Inject Perfect PIN BAR at the end
+        if i == 59 and scenario_type == "perfect_setup":
             prev_low = min(d['low'] for d in data[-20:])
-            low = prev_low * 0.999 # Touch support
+            low = prev_low * 0.999
             open_p = prev_low * 1.005
-            close_p = prev_low * 1.008 # Bullish close
+            close_p = prev_low * 1.008
             high = close_p * 1.002
-            vol = vol_base * 3.0 # High volume
-            
-            # Ensure it looks like a pin bar
-            # Long lower wick
+            vol = 1000 * 3.0
             low = open_p - (abs(close_p - open_p) * 3) 
         
         data.append({
@@ -61,19 +50,14 @@ def generate_market_scenario(scenario_type="random"):
     
     return data, scenario_type
 
-# ==================================================
-# 🎮 SIMULATION ENGINE
-# ==================================================
-
 class TradingSimulation:
     def __init__(self, initial_capital=10000):
         self.capital = initial_capital
         self.initial_capital = initial_capital
-        self.trades = []
         
     def run_simulation(self, num_trades=10):
         print("\n" + "=" * 60)
-        print("    🤖 OPTIMIZED AI TRADING BOT (1:2 R:R)")
+        print("    🚀 AGGRESSIVE AI BOT (1:3 R:R + 5% RISK)")
         print("=" * 60)
         
         wins = 0
@@ -82,12 +66,10 @@ class TradingSimulation:
         for i in range(num_trades):
             data, scenario = generate_market_scenario()
             
-            # --- REAL BRAIN ANALYSIS ---
             brain = ScalpingBrain(data)
             score = brain.calculate_algo_score()
             metrics = score['metrics']
             
-            # Decision Logic (Sensitive Threshold = 10)
             decision = "HOLD"
             confidence = 0
             
@@ -103,24 +85,27 @@ class TradingSimulation:
             
             print(f"\n📊 Trade #{i+1} ({scenario.upper()})")
             print(f"   Score: Buy={score['buy_score']} | Sell={score['sell_score']}")
-            print(f"   Details: {metrics}")
             print(f"   Decision: {decision} ({confidence}%)")
             
             if decision != "HOLD":
                 print(f"   Entry: {stops['entry']:.2f}")
-                print(f"   SL: {stops['sl']:.2f} | TP: {stops['tp']:.2f} (R:R 1:2)")
+                print(f"   SL: {stops['sl']:.2f} | TP: {stops['tp']:.2f}")
+                print(f"   R:R Ratio: 1:{stops['rr_ratio']:.0f}")
                 
-                # --- SIMULATE OUTCOME ---
-                # Win Probability based on score quality
-                win_prob = 0.60 
-                if score['buy_score'] >= 15 or score['sell_score'] >= 15: win_prob += 0.25
-                if metrics['delta'] != "NONE": win_prob += 0.05
+                # Win Probability (High for Strong Signals)
+                win_prob = 0.55
+                if confidence > 70: win_prob += 0.15
+                if metrics['delta'] != "NONE": win_prob += 0.10
+                win_prob = min(0.85, win_prob)
                 
                 is_win = random.random() < win_prob
                 
-                risk_amt = self.capital * 0.02 # 2% risk
+                # AGGRESSIVE: 5% Risk Per Trade
+                risk_amt = self.capital * 0.05
+                
                 if is_win:
-                    pnl = risk_amt * 2.0 # 1:2 Reward
+                    # 1:3 R:R = Win 3x the risk
+                    pnl = risk_amt * 3.0
                     result = "WIN ✅"
                     wins += 1
                 else:
@@ -129,9 +114,8 @@ class TradingSimulation:
                     losses += 1
                 
                 self.capital += pnl
-                self.trades.append({"result": result, "pnl": pnl})
-                
                 print(f"   Outcome: {result} | P/L: ${pnl:.2f}")
+                print(f"   Capital: ${self.capital:,.2f}")
                 
         self._print_summary(wins, losses, num_trades)
         
@@ -144,6 +128,7 @@ class TradingSimulation:
         print(f"    🎯 FINAL RESULTS")
         print("=" * 60)
         print(f"    Trades Taken: {trades_taken}/{total}")
+        print(f"    Wins: {wins} | Losses: {losses}")
         print(f"    Win Rate: {win_rate:.1f}%")
         print(f"    Total ROI: {roi:.2f}%")
         print(f"    Final Capital: ${self.capital:,.2f}")

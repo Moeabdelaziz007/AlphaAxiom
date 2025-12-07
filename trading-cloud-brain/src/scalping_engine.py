@@ -6,10 +6,10 @@ class ScalpingBrain:
     Optimized for 90% Win Rate and 1:2 Risk-Reward.
     """
     
-    # Configuration (OPTIMIZED for 1:2 Risk-Reward)
+    # Configuration (AGGRESSIVE for 30% ROI)
     ATR_PERIOD = 14
-    ATR_SL_MULT = 1.0  # Tighter Stop (was 1.5)
-    ATR_TP_MULT = 2.0  # Larger Target (was 1.0)
+    ATR_SL_MULT = 1.0  # Tight Stop
+    ATR_TP_MULT = 3.0  # 1:3 Risk-Reward (was 2.0)
     SR_LOOKBACK = 20
     
     # Algo Score Thresholds
