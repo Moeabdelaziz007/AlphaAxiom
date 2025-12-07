@@ -16,7 +16,8 @@ interface TradingChartProps {
     timeframe?: string;
 }
 
-const API_BASE = "https://trading-brain-v1.amrikyy1.workers.dev";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://trading-brain-v1.amrikyy.workers.dev";
+const SYSTEM_KEY = process.env.NEXT_PUBLIC_SYSTEM_KEY || "";
 
 export function TradingChart({ symbol = "SPY", timeframe = "1H" }: TradingChartProps) {
     const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -33,8 +34,13 @@ export function TradingChart({ symbol = "SPY", timeframe = "1H" }: TradingChartP
             setError(null);
 
             try {
-                // Fetch real data from API
-                const res = await fetch(`${API_BASE}/api/candles?symbol=${symbol}`);
+                // Fetch real data from API with auth
+                const res = await fetch(`${API_BASE}/api/candles?symbol=${symbol}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(SYSTEM_KEY && { 'X-System-Key': SYSTEM_KEY })
+                    }
+                });
                 const data = await res.json();
 
                 let candles: CandleData[] = data.candles || [];
@@ -166,8 +172,8 @@ export function TradingChart({ symbol = "SPY", timeframe = "1H" }: TradingChartP
                         <button
                             key={tf}
                             className={`px-2 py-1 text-xs rounded transition-all ${tf === timeframe
-                                    ? 'bg-cyan-500/20 text-cyan-400'
-                                    : 'text-gray-500 hover:text-gray-300'
+                                ? 'bg-cyan-500/20 text-cyan-400'
+                                : 'text-gray-500 hover:text-gray-300'
                                 }`}
                         >
                             {tf}
@@ -179,8 +185,8 @@ export function TradingChart({ symbol = "SPY", timeframe = "1H" }: TradingChartP
             {/* Price change badge */}
             <div className="absolute top-4 right-4 z-10">
                 <div className={`backdrop-blur-sm px-3 py-2 rounded-lg border ${priceChange.percent >= 0
-                        ? 'bg-green-500/10 border-green-500/30'
-                        : 'bg-red-500/10 border-red-500/30'
+                    ? 'bg-green-500/10 border-green-500/30'
+                    : 'bg-red-500/10 border-red-500/30'
                     }`}>
                     <span className={priceChange.percent >= 0 ? 'text-green-400' : 'text-red-400'}>
                         {priceChange.percent >= 0 ? '+' : ''}{priceChange.percent.toFixed(2)}%
