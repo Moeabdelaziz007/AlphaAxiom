@@ -23,6 +23,20 @@ const config: Config = {
                     gold: '#FFD700',
                     purple: '#8B5CF6',
                 },
+
+                // 🎨 AXIOM Cyberpunk Theme (from AI Studio)
+                axiom: {
+                    bg: '#0D0D0D',
+                    card: '#1A1A2E',
+                    surface: '#16213E',
+                    primary: '#00FF88',    // Toxic Green
+                    secondary: '#00D9FF',  // Electric Cyan
+                    tertiary: '#FF00FF',   // Magenta
+                    warning: '#FFD700',    // Gold
+                    danger: '#FF4444',     // Neon Red
+                    purple: '#8B5CF6',
+                    orange: '#FF6B35'
+                }
             },
             fontFamily: {
                 orbitron: ['var(--font-orbitron)'],
