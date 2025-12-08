@@ -207,7 +207,8 @@ async def on_fetch(request, env):
         "/api/account",   # Account data
         "/api/positions", # Open positions
         "/api/market",    # Market data
-        "/api/candles"    # Chart data
+        "/api/candles",   # Chart data
+        "/api/dashboard"  # Unified dashboard snapshot
     ]
     is_public = any(p in url for p in public_paths)
     
@@ -263,6 +264,10 @@ async def on_fetch(request, env):
     # Market Snapshot (Real-time prices with change %)
     if "api/market" in url or "api/snapshot" in url:
         return await get_market_snapshot(request, env, headers)
+    
+    # 🎯 UNIFIED DASHBOARD SNAPSHOT (Expert Level API)
+    if "api/dashboard" in url:
+        return await get_dashboard_snapshot(env, headers)
     
     # Status
     if "api/status" in url:
@@ -1352,8 +1357,109 @@ async def get_combined_positions(env, headers):
         if capital_pos: all_positions.extend(capital_pos)
     except:
         pass
+    
+    # 3. OANDA
+    try:
+        from oanda_connector import OandaBroker
+        oanda = OandaBroker(env)
+        oanda_pos = await oanda.get_positions()
+        if oanda_pos: all_positions.extend(oanda_pos)
+    except:
+        pass
         
     return Response.new(json.dumps(all_positions), headers=headers)
+
+
+# ==========================================
+# 🎯 UNIFIED DASHBOARD SNAPSHOT (Expert API)
+# ==========================================
+
+async def get_dashboard_snapshot(env, headers):
+    """
+    Aggregated Dashboard Data - Single Request for All UI Needs.
+    
+    Returns:
+        - account: Balance, Equity
+        - positions: Open trades
+        - engines: AEXI/Dream scores
+        - bots: Active trading bots
+    """
+    import asyncio
+    
+    # Parallel fetch for speed
+    tasks = {
+        "account": get_account_data(env),
+        "positions": get_alpaca_positions_data(env),
+    }
+    
+    results = {}
+    
+    # Fetch account
+    try:
+        results["account"] = await tasks["account"]
+    except:
+        results["account"] = {"balance": 0, "equity": 0}
+    
+    # Fetch positions
+    try:
+        results["positions"] = await tasks["positions"] or []
+    except:
+        results["positions"] = []
+    
+    # Fetch engine state from KV (AEXI/Dream)
+    try:
+        kv = env.BRAIN_MEMORY
+        aexi_score = await kv.get("aexi_score")
+        dream_score = await kv.get("dream_score")
+        last_signal = await kv.get("last_signal")
+        
+        results["engines"] = {
+            "aexi": float(aexi_score) if aexi_score else 50.0,
+            "dream": float(dream_score) if dream_score else 50.0,
+            "last_signal": json.loads(last_signal) if last_signal else None
+        }
+    except:
+        results["engines"] = {"aexi": 50.0, "dream": 50.0, "last_signal": None}
+    
+    # Fetch active bots from D1
+    try:
+        db = env.TRADING_DB
+        bots_result = await db.prepare("SELECT * FROM bots WHERE active = 1 LIMIT 5").all()
+        results["bots"] = bots_result.results if bots_result else []
+    except:
+        results["bots"] = []
+    
+    # Add timestamp
+    from datetime import datetime
+    results["timestamp"] = datetime.utcnow().isoformat()
+    
+    return Response.new(json.dumps(results), headers=headers)
+
+
+async def get_account_data(env):
+    """Helper: Get account data without Response wrapper"""
+    try:
+        alpaca_key = str(getattr(env, 'ALPACA_KEY', ''))
+        alpaca_secret = str(getattr(env, 'ALPACA_SECRET', ''))
+        
+        req_headers = Headers.new({
+            "APCA-API-KEY-ID": alpaca_key,
+            "APCA-API-SECRET-KEY": alpaca_secret
+        }.items())
+        
+        response = await fetch(ALPACA_PAPER_URL + "/v2/account", method="GET", headers=req_headers)
+        
+        if response.ok:
+            data = json.loads(await response.text())
+            return {
+                "balance": float(data.get("cash", 0)),
+                "equity": float(data.get("equity", 0)),
+                "buying_power": float(data.get("buying_power", 0)),
+                "day_trades": int(data.get("daytrade_count", 0))
+            }
+        return {"balance": 0, "equity": 0}
+    except:
+        return {"balance": 0, "equity": 0}
 
 
 # Helper functions for Telegram (return dict, not Response)

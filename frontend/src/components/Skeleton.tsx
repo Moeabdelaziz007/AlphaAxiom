@@ -13,17 +13,6 @@ interface SkeletonProps {
     height?: string | number;
 }
 
-const shimmerVariants = {
-    animate: {
-        backgroundPosition: ['200% 0', '-200% 0'],
-        transition: {
-            duration: 2,
-            repeat: Infinity,
-            ease: 'linear'
-        }
-    }
-};
-
 export function Skeleton({
     className = '',
     variant = 'rectangular',
@@ -47,11 +36,16 @@ export function Skeleton({
                 height,
                 backgroundSize: '200% 100%'
             }}
-            animate="animate"
-            variants={shimmerVariants}
+            animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
+            transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'linear'
+            }}
         />
     );
 }
+
 
 // Pre-built skeleton patterns
 export function SkeletonCard() {

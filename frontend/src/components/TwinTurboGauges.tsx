@@ -1,5 +1,6 @@
 "use client";
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
+import { useEngines } from '@/hooks/useMarketStream';
 
 interface GaugeProps {
     label: string;
@@ -11,7 +12,7 @@ interface GaugeProps {
 }
 
 // Animation variants for staggered entrance
-const containerVariants = {
+const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
@@ -22,19 +23,20 @@ const containerVariants = {
     }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20, scale: 0.95 },
     visible: {
         opacity: 1,
         y: 0,
         scale: 1,
         transition: {
-            type: "spring",
+            type: "spring" as const,
             stiffness: 300,
             damping: 24
         }
     }
 };
+
 
 function Gauge({ label, value, maxValue = 100, color, description, index = 0 }: GaugeProps) {
     const percentage = Math.min((value / maxValue) * 100, 100);
@@ -45,8 +47,8 @@ function Gauge({ label, value, maxValue = 100, color, description, index = 0 }: 
             variants={itemVariants}
             whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
             className={`bg-white/[0.02] border rounded-xl p-5 transition-colors ${isTriggered
-                    ? 'border-[#00F0FF]/30 shadow-lg shadow-[#00F0FF]/10'
-                    : 'border-white/[0.06] hover:border-white/10'
+                ? 'border-[#00F0FF]/30 shadow-lg shadow-[#00F0FF]/10'
+                : 'border-white/[0.06] hover:border-white/10'
                 }`}
         >
             <div className="flex items-center justify-between mb-3">
@@ -67,6 +69,7 @@ function Gauge({ label, value, maxValue = 100, color, description, index = 0 }: 
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ type: "spring", delay: 0.2 }}
+                    key={value} // Re-animate on value change
                 >
                     {value.toFixed(1)}
                 </motion.span>
@@ -80,9 +83,8 @@ function Gauge({ label, value, maxValue = 100, color, description, index = 0 }: 
                     initial={{ width: 0 }}
                     animate={{ width: `${percentage}%` }}
                     transition={{
-                        duration: 1,
-                        delay: 0.3,
-                        ease: [0.4, 0, 0.2, 1] // Smooth ease-out
+                        duration: 0.6,
+                        ease: [0.4, 0, 0.2, 1]
                     }}
                     style={{ background: color }}
                 />
@@ -107,9 +109,11 @@ function Gauge({ label, value, maxValue = 100, color, description, index = 0 }: 
 }
 
 export default function TwinTurboGauges() {
-    // Demo values - in production these would come from API
-    const aexi = 75.4;
-    const dream = 68.2;
+    // 🔌 LIVE DATA from /api/dashboard
+    const { engines, isLoading } = useEngines();
+
+    const aexi = engines?.aexi ?? 50;
+    const dream = engines?.dream ?? 50;
 
     return (
         <motion.div
@@ -119,10 +123,17 @@ export default function TwinTurboGauges() {
             variants={containerVariants}
         >
             <motion.h2
-                className="text-[13px] font-medium text-white/40 uppercase tracking-wider"
+                className="text-[13px] font-medium text-white/40 uppercase tracking-wider flex items-center gap-2"
                 variants={itemVariants}
             >
                 Twin-Turbo Engines
+                {isLoading && (
+                    <motion.span
+                        className="inline-block w-2 h-2 bg-cyan-400 rounded-full"
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                    />
+                )}
             </motion.h2>
 
             <motion.div
@@ -147,4 +158,3 @@ export default function TwinTurboGauges() {
         </motion.div>
     );
 }
-

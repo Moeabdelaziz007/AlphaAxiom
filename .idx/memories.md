@@ -1,52 +1,71 @@
 # 🧠 ذاكرة مشروع AXIOM
->
+
 > *سجل حي للقرارات الرئيسية، المهارات المكتسبة، والسياق للمستقبل.*
 
 ## 📅 سجل الجلسات
 
-### الجلسة: 8 ديسمبر 2025
+### الجلسة: 8 ديسمبر 2025 (مُحدّث 08:09)
 
-- **الحدث:** تم الانتهاء من هيكلية النظام "Citadel".
-- **القرار:** تم اختيار "Clerk" لتسجيل الدخول (سرعة + أمان).
-- **القرار:** تم تأكيد هيكلية "شبكة العنكبوت" (Cloudflare Workers + D1 + R2).
-- **القرار:** التحول إلى "DeepSeek" و "Workers AI" للذكاء (تكلفة صفرية).
-- **الإنجاز:** القواعد v2.0 (`.idx/airules.md`) تم تأسيسها مع بروتوكول اللغة العربية.
-- **الفريق:** تم إنشاء الوكلاء المتخصصين (المحلل، المراجع، المهندس، ديف أوبس، الباحث).
+**الإنجازات:**
+
+- ✅ Phase 24 (Auth): Clerk integration complete.
+- ✅ Phase 25 (Data Layer): `/api/dashboard` + `useMarketStream` hook.
+- ✅ Backend deployed: `https://trading-brain-v1.amrikyy1.workers.dev`
+- ✅ Phase 29: MCP/API Research complete (CoinAPI, Alpha Vantage, Finnhub).
+- ✅ Localization: Arabic versions for all `.idx/` files.
+- ✅ Skill System: Level 2 achieved.
+
+**القرارات التقنية:**
+
+- **Auth:** Clerk (async middleware pattern).
+- **API:** Unified `/api/dashboard` (reduces 4 calls → 1).
+- **Frontend:** SWR pattern for real-time updates.
+- **TypeScript:** Use `Variants` type + `as const` for Framer Motion.
+
+**المشاكل المحلولة:**
+
+1. Framer Motion `shimmerVariants` type error → Direct `animate` prop.
+2. Framer Motion `itemVariants` type error → Explicit `Variants` type.
+3. Clerk `auth().protect()` → `await auth.protect()` (async pattern).
 
 ---
 
-## 💡 الرسم البياني للمعرفة (المهارات والأنماط)
+## 💡 الرسم البياني للمعرفة
 
-### 1. Cloudflare Workers Python (نسخة بيتا)
+### 1. Cloudflare Workers Python
 
-- **القيد:** دعم محدود للمكتبات القياسية (لا يوجد multiprocessing).
-- **الحل:** استخدام `yfinance` (بايثون نقي) و `pandas` (مدعوم).
-- **النمط:** معالجات `async` لخطافات ويب تيليجرام (Webhooks).
+- **النمط:** `async` handlers for webhooks.
+- **النمط:** KV for engine state (AEXI/Dream scores).
 
-### 2. استراتيجية قاعدة بيانات D1
+### 2. D1 + R2 Strategy
 
-- **النمط:** فصل البيانات (ساخنة/دافئة/باردة).
-  - ساخنة: Durable Objects (حالة التداول).
-  - دافئة: D1 SQL (تاريخ التداول).
-  - باردة: R2 (سجلات السوق).
+- Hot: Durable Objects (Trade State).
+- Warm: D1 SQL (Trade History).
+- Cold: R2 (Market Archives).
 
-### 3. هندسة الواجهة الأمامية
+### 3. Frontend Architecture
 
-- **التقنية:** Next.js 14 + TypeScript + Tailwind.
-- **النمط:** `TwinTurboGauges` تستخدم فيزياء الزنبرك لواجهة سلسة.
-- **التحقق:** Clerk (ربط Middleware + Layout + Navbar).
-- **الأمان:** تم تطبيق CSRF + حماية المسارات.
+- Next.js 14 + TypeScript + Tailwind.
+- `TwinTurboGauges` → Live data via `useEngines()`.
+- Clerk + next-intl middleware chaining.
+
+### 4. API Design Pattern
+
+- Single `/api/dashboard` returns: Account + Positions + Engines + Bots.
+- Reduces frontend latency significantly.
 
 ---
 
 ## 🤝 فريق المشروع
 
 - **المالك:** محمد حسام الدين عبد العزيز (Cryptojoker710)
-- **المؤسس المشارك:** Gemini Quantum Super Skills (الشريك الذكي)
+- **المؤسس المشارك:** Gemini Quantum Super Skills (AI Partner)
 
 ---
 
 ## 📝 ملاحظات مستقبلية
 
-- تذكر عمل نسخة احتياطية لـ `.wrangler/` قبل التحديثات الكبيرة.
-- تحقق دائماً من توافق `wrangler.toml` عند تحديث Cloudflare Workers.
+- Backup `.wrangler/` before major updates.
+- Check `wrangler.toml` compatibility on CF Python updates.
+- Consider Alpha Vantage for technical indicators (25 free calls/day).
+- Explore CoinAPI MCP for crypto venue auto-discovery.
