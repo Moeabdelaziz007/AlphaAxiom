@@ -30,6 +30,9 @@ from strategy import TradingBrain
 from intelligence import TwinTurbo
 from state import StateManager
 from patterns import PatternScanner
+# Citadel Architecture Imports
+from objects import TradeManager
+from consumers import consume_trade_queue
 
 # Legacy imports (still needed for specific features)
 from capital_connector import CapitalConnector
@@ -2510,3 +2513,15 @@ async def scan_for_signals(env, symbols=None):
     
     return signals_found
 
+
+# ==========================================
+# 📨 QUEUE CONSUMER
+# ==========================================
+
+async def queue(batch, env):
+    """
+    Cloudflare Queue Consumer Handler.
+    Routes "trade-queue" messages to TradeExecutor.
+    """
+    if batch.queue == "trade-queue":
+        await consume_trade_queue(batch, env)

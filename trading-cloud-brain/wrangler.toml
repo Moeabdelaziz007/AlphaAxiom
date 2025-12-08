@@ -49,3 +49,27 @@ CAPITAL_DEMO = "true"
 # For local development, create a `.dev.vars` file with these keys.
 # The `.dev.vars` file is automatically ignored by git.
 
+
+# ==========================================
+# 🏰 THE CITADEL (Architecture v2.0)
+# ==========================================
+
+# 🔒 STATE: Durable Objects (Strong Consistency)
+[[durable_objects.bindings]]
+name = "TRADE_MANAGER"
+class_name = "TradeManager"
+
+# 📨 EXECUTION: Queues (Async Reliability)
+[[queues.producers]]
+queue = "trade-queue"
+binding = "TRADE_QUEUE"
+
+[[queues.consumers]]
+queue = "trade-queue"
+max_batch_size = 5
+max_batch_timeout = 5
+
+# 📦 MIGRATIONS
+[[migrations]]
+tag = "v1"
+new_classes = ["TradeManager"]
