@@ -34,6 +34,9 @@ from patterns import PatternScanner
 from objects import TradeManager
 from consumers import consume_trade_queue
 
+# Export TradeManager for Cloudflare DO binding
+__all__ = ['TradeManager', 'on_fetch', 'on_scheduled']
+
 # Legacy imports (still needed for specific features)
 from capital_connector import CapitalConnector
 from economic_calendar import EconomicCalendar
@@ -2515,13 +2518,13 @@ async def scan_for_signals(env, symbols=None):
 
 
 # ==========================================
-# 📨 QUEUE CONSUMER
+# 📨 QUEUE CONSUMER (Disabled for Free Tier)
 # ==========================================
 
-async def queue(batch, env):
-    """
-    Cloudflare Queue Consumer Handler.
-    Routes "trade-queue" messages to TradeExecutor.
-    """
-    if batch.queue == "trade-queue":
-        await consume_trade_queue(batch, env)
+# async def queue(batch, env):
+#     """
+#     Cloudflare Queue Consumer Handler.
+#     Routes "trade-queue" messages to TradeExecutor.
+#     """
+#     if batch.queue == "trade-queue":
+#         await consume_trade_queue(batch, env)

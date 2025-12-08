@@ -1,6 +1,6 @@
 name = "trading-brain-v1"
 main = "src/worker.py"
-account_id = "f4b5d0354439ce71e91063e477b4d60c" 
+account_id = "ac5004cd1897da0d9ae75df53afb3a70" 
 compatibility_date = "2024-04-05"
 compatibility_flags = ["python_workers"]
 
@@ -15,12 +15,18 @@ crons = ["* * * * *"]
 # 🧠 MEMORY: KV Namespace
 [[kv_namespaces]]
 binding = "BRAIN_MEMORY"
-id = "b2623ff0d28342c799dae14fae4eb512"
+id = "e31a120e1f8f40dbb17d3278d2921c6e"
 
 # 💾 DATABASE: D1 (SQLite at Edge)
 [[d1_databases]]
 binding = "TRADING_DB"
 database_name = "trading-brain-db"
+database_id = "9d4168e4-391c-4b79-a20a-6661e599fde6"
+
+# 🧊 COLD STORAGE: R2 Bucket
+[[r2_buckets]]
+binding = "MARKET_ARCHIVE"
+bucket_name = "market-archive"
 
 # 🤖 AI: Workers AI (FREE LLMs - 10K neurons/day)
 [ai]
@@ -54,22 +60,22 @@ CAPITAL_DEMO = "true"
 # 🏰 THE CITADEL (Architecture v2.0)
 # ==========================================
 
-# 🔒 STATE: Durable Objects (Strong Consistency)
-[[durable_objects.bindings]]
-name = "TRADE_MANAGER"
-class_name = "TradeManager"
+# 🔒 STATE: Durable Objects (DISABLED - Requires paid plan or specific Python class structure)
+# [[durable_objects.bindings]]
+# name = "TRADE_MANAGER"
+# class_name = "TradeManager"
 
-# 📨 EXECUTION: Queues (Async Reliability)
-[[queues.producers]]
-queue = "trade-queue"
-binding = "TRADE_QUEUE"
+# 📨 EXECUTION: Queues (Async Reliability) - DISABLED (Requires Paid Plan)
+# [[queues.producers]]
+# queue = "trade-queue"
+# binding = "TRADE_QUEUE"
 
-[[queues.consumers]]
-queue = "trade-queue"
-max_batch_size = 5
-max_batch_timeout = 5
+# [[queues.consumers]]
+# queue = "trade-queue"
+# max_batch_size = 5
+# max_batch_timeout = 5
 
-# 📦 MIGRATIONS
-[[migrations]]
-tag = "v1"
-new_classes = ["TradeManager"]
+# 📦 MIGRATIONS (DISABLED)
+# [[migrations]]
+# tag = "v1"
+# new_sqlite_classes = ["TradeManager"]
