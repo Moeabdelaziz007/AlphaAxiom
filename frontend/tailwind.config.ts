@@ -29,6 +29,22 @@ const config: Config = {
                 mono: ['var(--font-jetbrains)'],
                 arabic: ['var(--font-cairo)', 'IBM Plex Sans Arabic', 'sans-serif'],
             },
+            // 📱 Mobile-friendly spacing
+            spacing: {
+                'safe-top': 'env(safe-area-inset-top)',
+                'safe-bottom': 'env(safe-area-inset-bottom)',
+                'safe-left': 'env(safe-area-inset-left)',
+                'safe-right': 'env(safe-area-inset-right)',
+                'touch': '48px',  // Minimum touch target
+            },
+            // 📱 Mobile-first minimum sizes
+            minHeight: {
+                'touch': '48px',
+                'screen-safe': 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
+            },
+            minWidth: {
+                'touch': '48px',
+            },
             boxShadow: {
                 'neon-cyan': '0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3)',
                 'neon-red': '0 0 10px rgba(255, 0, 60, 0.5), 0 0 20px rgba(255, 0, 60, 0.3)',
@@ -39,12 +55,21 @@ const config: Config = {
             backgroundImage: {
                 'void-cosmic': 'radial-gradient(ellipse at 50% 0%, rgba(0, 240, 255, 0.05) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.03) 0%, transparent 40%), linear-gradient(180deg, #020204 0%, #0a0a0f 100%)',
             },
+            // 📱 Mobile-optimized font sizes
+            fontSize: {
+                'mobile-xs': ['0.75rem', { lineHeight: '1rem' }],
+                'mobile-sm': ['0.875rem', { lineHeight: '1.25rem' }],
+                'mobile-base': ['1rem', { lineHeight: '1.5rem' }],
+                'mobile-lg': ['1.125rem', { lineHeight: '1.75rem' }],
+            },
             animation: {
                 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                 'pulse-glow': 'pulseGlow 2s infinite',
                 'float': 'float 6s ease-in-out infinite',
                 'ticker': 'ticker 30s linear infinite',
                 'fade-in': 'fadeIn 0.2s ease-out forwards',
+                'slide-up': 'slideUp 0.3s ease-out',
+                'slide-down': 'slideDown 0.3s ease-out',
             },
             keyframes: {
                 float: {
@@ -63,6 +88,18 @@ const config: Config = {
                     '0%': { opacity: '0', transform: 'scale(0.95)' },
                     '100%': { opacity: '1', transform: 'scale(1)' },
                 },
+                slideUp: {
+                    '0%': { transform: 'translateY(100%)', opacity: '0' },
+                    '100%': { transform: 'translateY(0)', opacity: '1' },
+                },
+                slideDown: {
+                    '0%': { transform: 'translateY(-100%)', opacity: '0' },
+                    '100%': { transform: 'translateY(0)', opacity: '1' },
+                },
+            },
+            // 📱 Touch-friendly border radius
+            borderRadius: {
+                'mobile': '1rem',
             },
         },
     },
@@ -70,3 +107,4 @@ const config: Config = {
 };
 
 export default config;
+
