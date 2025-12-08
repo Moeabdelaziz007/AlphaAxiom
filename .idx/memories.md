@@ -11,9 +11,10 @@
 - ✅ Phase 24 (Auth): Clerk integration complete.
 - ✅ Phase 25 (Data Layer): `/api/dashboard` + `useMarketStream` hook.
 - ✅ Backend deployed: `https://trading-brain-v1.amrikyy1.workers.dev`
+- ✅ Frontend deployed: `https://aitrading.axiomid.app` (Vercel - axiomid team)
 - ✅ Phase 29: MCP/API Research complete (CoinAPI, Alpha Vantage, Finnhub).
 - ✅ Localization: Arabic versions for all `.idx/` files.
-- ✅ Skill System: Level 2 achieved.
+- ✅ Skill System: Level 3 achieved (Learned from superpowers + skills repos).
 
 **القرارات التقنية:**
 

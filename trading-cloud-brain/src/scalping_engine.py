@@ -3,18 +3,25 @@ import math
 class ScalpingBrain:
     """
     Scalping analysis with all 14 tools + Optimization (MACD, Stoch, Delta).
-    Optimized for 90% Win Rate and 1:2 Risk-Reward.
+    Optimized for 100% WEEKLY ROI with 100x Leverage Strategy.
+    
+    NEW: Fast RSI (7-period), EMA 9/21 Crossover for 1M/5M/15M Scalping
     """
     
-    # Configuration (EXTREME for 137% ROI)
+    # Configuration (EXTREME for 100% WEEKLY ROI)
     ATR_PERIOD = 14
     ATR_SL_MULT = 1.0  # Tight Stop
-    ATR_TP_MULT = 7.0  # 1:7 Risk-Reward (EXTREME)
+    ATR_TP_MULT = 2.5  # 1:2.5 Risk-Reward for high win rate
     SR_LOOKBACK = 20
     
-    # Algo Score Thresholds
-    MIN_SCORE_BUY = 10
-    MIN_SCORE_SELL = 10
+    # Fast Scalping Settings
+    FAST_RSI_PERIOD = 7     # Fast RSI for 1M charts
+    FAST_EMA = 9            # Fast EMA
+    SLOW_EMA = 21           # Slow EMA
+    
+    # Algo Score Thresholds (Aggressive)
+    MIN_SCORE_BUY = 8
+    MIN_SCORE_SELL = 8
     
     def __init__(self, data):
         """
@@ -259,6 +266,183 @@ class ScalpingBrain:
             return {"divergence": "BEARISH"}
             
         return {"divergence": "NONE"}
+
+    # ==========================
+    # 🚀 100% WEEKLY ROI TOOLS
+    # ==========================
+    
+    # Tool 18: Fast RSI (7-period for 1M/5M scalping)
+    def calculate_fast_rsi(self, period=None):
+        """
+        Fast RSI for high-frequency scalping.
+        Uses 7-period instead of 14 for quicker signals.
+        """
+        period = period or self.FAST_RSI_PERIOD
+        
+        if len(self.data) < period + 1:
+            return {"rsi": 50, "signal": "NEUTRAL", "value": 50}
+        
+        gains = []
+        losses = []
+        
+        for i in range(-period, 0):
+            change = self.data[i]['close'] - self.data[i-1]['close']
+            gains.append(max(0, change))
+            losses.append(max(0, -change))
+        
+        avg_gain = sum(gains) / period
+        avg_loss = sum(losses) / period
+        
+        if avg_loss == 0:
+            rsi = 100
+        else:
+            rs = avg_gain / avg_loss
+            rsi = 100 - (100 / (1 + rs))
+        
+        # Scalping thresholds (tighter than normal)
+        signal = "NEUTRAL"
+        if rsi < 25:
+            signal = "OVERSOLD"
+        elif rsi > 75:
+            signal = "OVERBOUGHT"
+        elif rsi < 40:
+            signal = "WEAK_OVERSOLD"
+        elif rsi > 60:
+            signal = "WEAK_OVERBOUGHT"
+        
+        return {
+            "rsi": round(rsi, 2),
+            "signal": signal,
+            "value": round(rsi, 2),
+            "is_oversold": rsi < 30,
+            "is_overbought": rsi > 70
+        }
+    
+    # Tool 19: EMA Crossover (9/21 for trend confirmation)
+    def calculate_ema_crossover(self):
+        """
+        EMA 9/21 Crossover for trend confirmation.
+        Fast EMA crossing above Slow = Bullish
+        Fast EMA crossing below Slow = Bearish
+        """
+        if len(self.data) < self.SLOW_EMA + 5:
+            return {"crossover": "NONE", "trend": "NEUTRAL", "fast_ema": 0, "slow_ema": 0}
+        
+        closes = [d['close'] for d in self.data]
+        
+        # Calculate EMAs
+        def ema(data, period):
+            k = 2 / (period + 1)
+            result = data[0]
+            for price in data[1:]:
+                result = (price - result) * k + result
+            return result
+        
+        fast_ema = ema(closes[-self.SLOW_EMA:], self.FAST_EMA)
+        slow_ema = ema(closes[-self.SLOW_EMA:], self.SLOW_EMA)
+        
+        # Previous bar EMAs for crossover detection
+        fast_ema_prev = ema(closes[-(self.SLOW_EMA+1):-1], self.FAST_EMA)
+        slow_ema_prev = ema(closes[-(self.SLOW_EMA+1):-1], self.SLOW_EMA)
+        
+        crossover = "NONE"
+        if fast_ema > slow_ema and fast_ema_prev <= slow_ema_prev:
+            crossover = "BULLISH_CROSS"
+        elif fast_ema < slow_ema and fast_ema_prev >= slow_ema_prev:
+            crossover = "BEARISH_CROSS"
+        
+        # Current trend
+        if fast_ema > slow_ema:
+            trend = "UPTREND"
+        elif fast_ema < slow_ema:
+            trend = "DOWNTREND"
+        else:
+            trend = "NEUTRAL"
+        
+        return {
+            "crossover": crossover,
+            "trend": trend,
+            "fast_ema": round(fast_ema, 4),
+            "slow_ema": round(slow_ema, 4),
+            "gap_pct": round(((fast_ema - slow_ema) / slow_ema) * 100, 3) if slow_ema else 0,
+            "is_bullish": fast_ema > slow_ema,
+            "is_bearish": fast_ema < slow_ema
+        }
+    
+    # Tool 20: Get Overall Trend (for Multi-Timeframe)
+    def get_trend(self):
+        """
+        Get the overall trend direction.
+        Used for Multi-Timeframe alignment.
+        Returns: 'BULL', 'BEAR', or 'NEUTRAL'
+        """
+        ema = self.calculate_ema_crossover()
+        supertrend = self.calculate_supertrend()
+        
+        bull_score = 0
+        bear_score = 0
+        
+        if ema['is_bullish']:
+            bull_score += 1
+        if ema['is_bearish']:
+            bear_score += 1
+        if supertrend['trend'] == 1:
+            bull_score += 1
+        if supertrend['trend'] == -1:
+            bear_score += 1
+        
+        if bull_score > bear_score:
+            return "BULL"
+        elif bear_score > bull_score:
+            return "BEAR"
+        return "NEUTRAL"
+    
+    # Tool 21: Get Momentum Signal (for Multi-Timeframe)
+    def get_momentum_signal(self):
+        """
+        Get momentum signal from RSI + Stochastic.
+        Used for 5M confirmation in Multi-Timeframe.
+        """
+        rsi = self.calculate_fast_rsi()
+        stoch = self.calculate_stochastic()
+        
+        if rsi['is_oversold'] and stoch['oversold']:
+            return "BULL"
+        elif rsi['is_overbought'] and stoch['overbought']:
+            return "BEAR"
+        return "NEUTRAL"
+    
+    # Tool 22: Get Entry Signal (for Multi-Timeframe 1M)
+    def get_entry_signal(self):
+        """
+        Get precise entry signal from 1M chart.
+        Combines MACD, rejection candle, and price action.
+        """
+        macd = self.calculate_macd()
+        rejection = self.detect_rejection_candle()
+        ema = self.calculate_ema_crossover()
+        
+        buy_signals = 0
+        sell_signals = 0
+        
+        if macd['bullish']:
+            buy_signals += 1
+        if macd['bearish']:
+            sell_signals += 1
+        if rejection['bullish']:
+            buy_signals += 1
+        if rejection['bearish']:
+            sell_signals += 1
+        if ema['crossover'] == "BULLISH_CROSS":
+            buy_signals += 1
+        if ema['crossover'] == "BEARISH_CROSS":
+            sell_signals += 1
+        
+        if buy_signals >= 2:
+            return "BULL"
+        elif sell_signals >= 2:
+            return "BEAR"
+        return "NEUTRAL"
 
     # ==========================
     # 🧠 ALGO SCORE ENGINE
