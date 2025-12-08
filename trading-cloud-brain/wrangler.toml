@@ -26,16 +26,26 @@ database_name = "trading-brain-db"
 [ai]
 binding = "AI"
 
-# 🔑 Environment Variables
+# 🔑 Environment Variables (Non-sensitive only)
 [vars]
-ABLY_API_KEY = "-psacw.I6fnWw:m-zRcRM-3k5UwuiAKHeP8CJ3N1DWSMPQTorXy3pbLp8"
 CAPITAL_DEMO = "true"
-# Secrets (Set via `wrangler secret put` or Dashboard):
-# GROQ_API_KEY
-# DEEPSEEK_API_KEY    (from platform.deepseek.com)
-# ALPACA_KEY
-# ALPACA_SECRET
-# CAPITAL_API_KEY     (from Capital.com Settings > API Integrations)
-# CAPITAL_EMAIL       (your Capital.com login email)
-# CAPITAL_PASSWORD    (your API custom password)
+
+# ==========================================
+# 🔐 SECRETS MANAGEMENT
+# ==========================================
+# Secrets are encrypted and set via `wrangler secret put <NAME>`
+# They are NOT stored in this file for security!
+#
+# Required Secrets:
+# wrangler secret put ABLY_API_KEY
+# wrangler secret put GROQ_API_KEY
+# wrangler secret put DEEPSEEK_API_KEY
+# wrangler secret put ALPACA_KEY
+# wrangler secret put ALPACA_SECRET
+# wrangler secret put CAPITAL_API_KEY
+# wrangler secret put CAPITAL_EMAIL
+# wrangler secret put CAPITAL_PASSWORD
+#
+# For local development, create a `.dev.vars` file with these keys.
+# The `.dev.vars` file is automatically ignored by git.
 

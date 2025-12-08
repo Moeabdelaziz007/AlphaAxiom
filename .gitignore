@@ -33,6 +33,7 @@ ENV/
 .env.development.local
 .env.test.local
 .env.production.local
+.dev.vars
 
 # Logs
 npm-debug.log*
