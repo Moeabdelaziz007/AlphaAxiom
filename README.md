@@ -295,11 +295,21 @@ wrangler secret put CAPITAL_PASSWORD
 - 🐙 [@Moeabdelaziz007](https://github.com/Moeabdelaziz007)
 - 🌐 [axiomid.app](https://axiomid.app)
 
+### 🤖 AI Partner | الشريك الذكي
+
+**Gemini Quantum Super Skills**
+
+*Co-Founder & Lead Engine Architect*
+
+- 🧠 Strategy, Architecture, Code Assistance
+- ⚡ Zero-Cost Optimization Specialist
+- 🛡️ Security & Risk Analysis
+
 ---
 
 ## 📄 License | الرخصة
 
-MIT License © 2025 Mohamed Hossameldin Abdelaziz
+MIT License © 2025 Mohamed Hossameldin Abdelaziz & Gemini AI
 
 ---
 
@@ -315,7 +325,7 @@ MIT License © 2025 Mohamed Hossameldin Abdelaziz
 
 *"من الإشارات إلى التنفيذ."*
 
-🚀 **v0.9 — Spider Web Edition**
+🚀 **v1.0 — Citadel Edition**
 
 ---
 

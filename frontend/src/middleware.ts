@@ -1,14 +1,22 @@
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import createMiddleware from 'next-intl/middleware';
 
-export default createMiddleware({
-    // A list of all locales that are supported
+const intlMiddleware = createMiddleware({
     locales: ['en', 'ar'],
-
-    // Used when no locale matches
     defaultLocale: 'en'
 });
 
+const isProtectedRoute = createRouteMatcher([
+    '/dashboard(.*)',
+    '/trade(.*)',
+    '/portfolio(.*)'
+]);
+
+export default clerkMiddleware((auth, req) => {
+    if (isProtectedRoute(req)) auth().protect();
+    return intlMiddleware(req);
+});
+
 export const config = {
-    // Match only internationalized pathnames
-    matcher: ['/((?!api|_next|.*\\..*).*)']
+    matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
 };
