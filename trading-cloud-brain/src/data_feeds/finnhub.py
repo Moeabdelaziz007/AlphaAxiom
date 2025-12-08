@@ -5,8 +5,19 @@ Market Data, News, and Company Fundamentals
 FREE TIER: 60 API calls/minute
 FEATURES: Real-time quotes, company news, earnings, forex rates
 
-Note: Sentiment Analysis is PREMIUM only.
-For free tier, we use news headlines for basic sentiment scoring.
+Based on User Capability List (Dec 2025):
+✅ FREE/HIGH USAGE:
+- Quote, Company News, Basic Financials
+- Market Status, Market Holiday
+- Insider Transactions, Insider Sentiment (New)
+- Recommendation Trends, Earnings Calendar
+- WebSocket (Trades)
+
+⛔ PREMIUM:
+- News Sentiment, SEC Sentiment
+- Candles (OHLCV) for Stocks/Forex/Crypto
+- Technical Indicators (All)
+- Company Profile 2
 
 API Documentation: https://finnhub.io/docs/api
 """
@@ -24,11 +35,6 @@ class FinnhubConnector:
     - Company news
     - Earnings calendar
     - Basic fundamentals
-    
-    Premium Only (not included):
-    - Sentiment Analysis
-    - SEC filings sentiment
-    - Social media sentiment
     """
     
     BASE_URL = "https://finnhub.io/api/v1"
@@ -54,6 +60,8 @@ class FinnhubConnector:
         
         if response.status == 429:
             return {"error": "Rate limit exceeded (60 calls/min)"}
+        if response.status == 403:
+            return {"error": "Premium feature - Access Denied"}
         
         data = await response.json()
         return data
@@ -65,12 +73,7 @@ class FinnhubConnector:
     async def get_quote(self, symbol: str) -> dict:
         """
         Get real-time quote for a symbol.
-        
-        Args:
-            symbol: Stock symbol (e.g., "AAPL", "TSLA")
-        
-        Returns:
-            dict: {current, high, low, open, prev_close, change, change_pct}
+        High Usage Endpoint.
         """
         data = await self._fetch("/quote", {"symbol": symbol})
         
@@ -94,83 +97,9 @@ class FinnhubConnector:
             "timestamp": data.get("t", 0)
         }
     
-    async def get_forex_rate(self, symbol: str = "EUR/USD") -> dict:
-        """
-        Get forex exchange rate.
-        
-        Args:
-            symbol: Forex pair (e.g., "EUR/USD", "GBP/USD")
-        
-        Returns:
-            dict: {rate, timestamp}
-        """
-        # Finnhub uses different symbols for forex
-        forex_symbol = f"OANDA:{symbol.replace('/', '_')}"
-        
-        data = await self._fetch("/quote", {"symbol": forex_symbol})
-        
-        if "error" in data or "c" not in data:
-            return {"error": "Failed to fetch forex rate"}
-        
-        return {
-            "symbol": symbol,
-            "rate": data.get("c", 0),
-            "high": data.get("h", 0),
-            "low": data.get("l", 0),
-            "prev_close": data.get("pc", 0),
-            "timestamp": data.get("t", 0)
-        }
-    
-    async def get_crypto_candles(
-        self,
-        symbol: str,
-        resolution: str = "5",
-        from_ts: int = None,
-        to_ts: int = None
-    ) -> list:
-        """
-        Get crypto candlestick data.
-        
-        Args:
-            symbol: Crypto symbol (e.g., "BINANCE:BTCUSDT")
-            resolution: 1, 5, 15, 30, 60, D, W, M
-            from_ts: Unix timestamp start
-            to_ts: Unix timestamp end
-        """
-        import time
-        
-        to_ts = to_ts or int(time.time())
-        from_ts = from_ts or (to_ts - 86400)  # Last 24 hours
-        
-        data = await self._fetch("/crypto/candle", {
-            "symbol": symbol,
-            "resolution": resolution,
-            "from": str(from_ts),
-            "to": str(to_ts)
-        })
-        
-        if data.get("s") != "ok":
-            return {"error": "No data available"}
-        
-        candles = []
-        times = data.get("t", [])
-        opens = data.get("o", [])
-        highs = data.get("h", [])
-        lows = data.get("l", [])
-        closes = data.get("c", [])
-        volumes = data.get("v", [])
-        
-        for i in range(len(times)):
-            candles.append({
-                "time": times[i],
-                "open": opens[i],
-                "high": highs[i],
-                "low": lows[i],
-                "close": closes[i],
-                "volume": volumes[i]
-            })
-        
-        return candles
+    async def get_market_status(self, exchange: str = "US") -> dict:
+        """Get market status (Open/Closed/Holiday). (New/Free)"""
+        return await self._fetch("/stock/market-status", {"exchange": exchange})
     
     # ==========================================
     # 📰 NEWS & FUNDAMENTALS
@@ -184,14 +113,7 @@ class FinnhubConnector:
     ) -> list:
         """
         Get company news headlines.
-        
-        Args:
-            symbol: Stock symbol
-            from_date: YYYY-MM-DD
-            to_date: YYYY-MM-DD
-        
-        Returns:
-            list: News articles with headline, summary, source
+        High Usage Endpoint.
         """
         from datetime import datetime, timedelta
         
@@ -222,35 +144,54 @@ class FinnhubConnector:
         
         return news
     
-    async def get_market_news(self, category: str = "general") -> list:
+    async def get_basic_financials(self, symbol: str, metric: str = "all") -> dict:
         """
-        Get general market news.
-        
-        Args:
-            category: general, forex, crypto, merger
+        Get basic financial data. 
+        High Usage Endpoint.
         """
-        data = await self._fetch("/news", {"category": category})
+        data = await self._fetch("/stock/metric", {
+            "symbol": symbol,
+            "metric": metric
+        })
         
-        if isinstance(data, dict) and "error" in data:
-            return []
-        
-        news = []
-        for article in data[:15]:
-            news.append({
-                "headline": article.get("headline", ""),
-                "summary": article.get("summary", "")[:200],
-                "source": article.get("source", ""),
-                "url": article.get("url", ""),
-                "datetime": article.get("datetime", 0),
-                "category": category
-            })
-        
-        return news
-    
+        if "error" in data:
+            return data
+            
+        return {
+            "symbol": symbol,
+            "metric_type": data.get("metricType"),
+            "metrics": data.get("metric", {})
+        }
+
+    async def get_recommendation_trends(self, symbol: str) -> list:
+        """Get analyst recommendation trends (Buy/Sell/Hold)."""
+        data = await self._fetch("/stock/recommendation", {"symbol": symbol})
+        if isinstance(data, list):
+            return data[:5] # Last 5 periods
+        return []
+
     # ==========================================
-    # 🎯 BASIC SENTIMENT (FREE ALTERNATIVE)
+    # 🧠 SENTIMENT (New/Free & Custom)
     # ==========================================
-    
+
+    async def get_insider_sentiment(self, symbol: str) -> dict:
+        """
+        Get insider sentiment data.
+        Marked as 'New' in docs - might be free or trial.
+        """
+        from datetime import datetime, timedelta
+        
+        to_date = datetime.now().strftime("%Y-%m-%d")
+        from_date = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d") # Last 90 days
+        
+        data = await self._fetch("/stock/insider-sentiment", {
+            "symbol": symbol,
+            "from": from_date,
+            "to": to_date
+        })
+        
+        return data  # Return raw data for analysis if available
+
     async def get_news_sentiment_basic(self, symbol: str) -> dict:
         """
         Basic sentiment analysis using news headlines.
@@ -336,22 +277,49 @@ class FinnhubConnector:
             "revenue_estimate": e.get("revenueEstimate"),
             "hour": e.get("hour", "unknown")
         } for e in earnings[:50]]
+
+
+class FinnhubStreamHandler:
+    """
+    WebSocket Handler for Real-time Trades.
+    Docs: https://finnhub.io/docs/api/websocket-trades
+    """
     
-    async def get_company_profile(self, symbol: str) -> dict:
-        """Get company profile/fundamentals."""
-        data = await self._fetch("/stock/profile2", {"symbol": symbol})
+    WEBSOCKET_URL = "wss://ws.finnhub.io"
+    
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.url = f"{self.WEBSOCKET_URL}?token={api_key}"
+    
+    def get_subscription_message(self, symbol: str) -> dict:
+        """Get message to subscribe to a symbol."""
+        return {"type": "subscribe", "symbol": symbol}
         
-        if not data or "error" in data:
-            return {"error": "Company not found"}
-        
-        return {
-            "symbol": symbol,
-            "name": data.get("name", ""),
-            "industry": data.get("finnhubIndustry", ""),
-            "market_cap": data.get("marketCapitalization", 0),
-            "country": data.get("country", ""),
-            "exchange": data.get("exchange", ""),
-            "ipo": data.get("ipo", ""),
-            "logo": data.get("logo", ""),
-            "weburl": data.get("weburl", "")
-        }
+    def get_unsubscription_message(self, symbol: str) -> dict:
+        """Get message to unsubscribe from a symbol."""
+        return {"type": "unsubscribe", "symbol": symbol}
+    
+    def parse_message(self, message: str) -> dict:
+        """Parse incoming WebSocket message."""
+        try:
+            data = json.loads(message)
+            if data.get("type") == "trade":
+                # Finnhub sends batched trades
+                trades = data.get("data", [])
+                return {
+                    "type": "trade",
+                    "trades": [{
+                        "symbol": t.get("s"),
+                        "price": t.get("p"),
+                        "volume": t.get("v"),
+                        "timestamp": t.get("t")
+                    } for t in trades]
+                }
+            elif data.get("type") == "ping":
+                return {"type": "ping"}
+            
+            return {"type": "unknown", "raw": data}
+            
+        except json.JSONDecodeError:
+            return {"type": "error", "message": "Invalid JSON"}
+
