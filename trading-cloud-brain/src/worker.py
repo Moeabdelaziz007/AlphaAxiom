@@ -2948,16 +2948,21 @@ async def handle_mcp_request(request, env, headers):
                     emoji = "🚀" if signal["direction"] == "STRONG_BUY" else "💥"
                     direction_text = "BUY" if "BUY" in signal["direction"] else "SELL"
                     asset_emoji = "🪙" if is_crypto else "📊"
+                    factors_str = ", ".join(signal.get("factors", []))
+                    timestamp = __import__('datetime').datetime.utcnow().strftime("%H:%M UTC")
                     
-                    alert_msg = f"""{emoji} <b>Smart MCP Alert</b> {emoji}
+                    alert_msg = f"""{emoji} <b>AXIOM SIGNAL ALERT</b> {emoji}
 
-{asset_emoji} <b>{symbol}</b> ({data.asset_type if 'data' in dir() else 'crypto' if is_crypto else 'stock'})
-💰 Price: ${price_data.get('current', 0):,.2f}
-📈 Change: {priceChange:.2f}%
+{asset_emoji} <b>{symbol}</b> ({("crypto" if is_crypto else "stock")})
+━━━━━━━━━━━━━━━━━━━━━
+💰 Price: <code>${price_data.get('current', 0):,.2f}</code>
+📈 Change: <code>{change * 100:.2f}%</code>
 🎯 Signal: <b>{signal['direction'].replace('_', ' ')}</b>
-✨ Confidence: {int(signal['confidence'] * 100)}%
-
-<i>Source: {price_data.get('source', 'unknown')} | Zero-Cost MCP</i>"""
+✨ Confidence: <b>{int(signal['confidence'] * 100)}%</b>
+📋 Factors: <i>{factors_str}</i>
+━━━━━━━━━━━━━━━━━━━━━
+⏰ {timestamp} | Source: {price_data.get('source', 'unknown')}
+<i>💎 Axiom Data Engine | Zero-Cost MCP</i>"""
                     
                     await send_telegram_alert(env, alert_msg)
                 except Exception as tg_error:
