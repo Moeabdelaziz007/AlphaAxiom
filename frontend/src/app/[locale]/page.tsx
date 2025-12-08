@@ -1,108 +1,65 @@
-"use client";
-import PortfolioDonut from '@/components/PortfolioDonut';
-import PLChart from '@/components/PLChart';
-import ActiveBots from '@/components/ActiveBots';
-import TelegramWidget from '@/components/TelegramWidget';
-import LivePositions from '@/components/LivePositions';
-import TwinTurboGauges from '@/components/TwinTurboGauges';
-import SentimentPanel from '@/components/SentimentPanel';
-import PatternAlerts from '@/components/PatternAlerts';
-import NewsImpactBadge from '@/components/NewsImpactBadge';
-import SignalFeed from '@/components/SignalFeed';
-import { useEffect, useState } from 'react';
+'use client';
 
-interface AccountData {
-    equity: string;
-    portfolio_value: string;
-    source?: string;
-}
+import { Sidebar } from '@/components/dashboard/Sidebar';
+import { Header } from '@/components/dashboard/Header';
+import { BotScores } from '@/components/dashboard/BotScores';
+import { PriceChart } from '@/components/dashboard/PriceChart';
+import { AutomationPipeline } from '@/components/dashboard/AutomationPipeline';
+import { TransactionsTable } from '@/components/dashboard/TransactionsTable';
+import { TrendingTopics } from '@/components/dashboard/TrendingTopics';
+import { PatternRecognition } from '@/components/dashboard/PatternRecognition';
+import { useState } from 'react';
 
 export default function Dashboard() {
-    const [account, setAccount] = useState<AccountData | null>(null);
-
-    useEffect(() => {
-        const fetchAccount = async () => {
-            try {
-                const res = await fetch('/api/account');
-                if (res.ok) {
-                    const data = await res.json();
-                    setAccount(data);
-                }
-            } catch (e) {
-                console.error('Failed to fetch account', e);
-            }
-        };
-        fetchAccount();
-        const interval = setInterval(fetchAccount, 10000);
-        return () => clearInterval(interval);
-    }, []);
-
-    const equity = parseFloat(account?.equity || account?.portfolio_value || '100000');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     return (
-        <div className="space-y-6 animate-fade-in">
-            {/* Page Title + News Impact */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-white">My Dashboard</h1>
-                    <p className="text-sm text-[var(--text-muted)]">
-                        {account?.source ? `Connected to ${account.source}` : 'Demo Mode'}
-                    </p>
-                </div>
-                <NewsImpactBadge />
-            </div>
+        <div className="min-h-screen bg-axiom-bg text-gray-300 font-sans">
+            <Sidebar isOpen={isSidebarOpen} />
 
-            {/* Bento Grid - Row 1 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <PortfolioDonut equity={equity} />
-                <PLChart />
-                <ActiveBots />
-            </div>
+            <div className={`transition-all duration-300 ${isSidebarOpen ? 'lg:pl-64' : 'lg:pl-20'}`}>
+                <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-            {/* Bento Grid - Row 2: AI Intelligence */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <SentimentPanel />
-                <PatternAlerts />
-                <SignalFeed />
-            </div>
+                <main className="p-4 lg:p-6 max-w-[1600px] mx-auto space-y-6">
 
-            {/* Bento Grid - Row 3: Positions */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <LivePositions />
-                </div>
-                <TelegramWidget />
-            </div>
-
-            {/* Bento Grid - Row 4: AI Engines */}
-            <div className="grid grid-cols-1 gap-6">
-                <TwinTurboGauges />
-            </div>
-
-            {/* Bottom Stats Banner */}
-            <div className="bento-card flex flex-col md:flex-row items-center justify-between p-4 gap-4">
-                <div className="flex items-center gap-8">
-                    <div>
-                        <p className="text-xs text-[var(--text-dim)] uppercase">Total Equity</p>
-                        <p className="text-xl font-bold font-mono text-white">${equity.toLocaleString()}</p>
+                    {/* Top Grid: Bot Scores & Price Chart */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div className="lg:col-span-4 xl:col-span-3">
+                            <BotScores />
+                        </div>
+                        <div className="lg:col-span-8 xl:col-span-9 h-[400px] lg:h-auto">
+                            <PriceChart />
+                        </div>
                     </div>
-                    <div className="w-px h-10 bg-[var(--glass-border)]" />
-                    <div>
-                        <p className="text-xs text-[var(--text-dim)] uppercase">Today&apos;s P/L</p>
-                        <p className="text-xl font-bold font-mono text-[var(--neon-green)]">+$1,245.00</p>
+
+                    {/* Middle Grid: Pipeline, Trending, Patterns */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div className="lg:col-span-4 xl:col-span-3">
+                            <AutomationPipeline />
+                        </div>
+                        <div className="lg:col-span-4 xl:col-span-4">
+                            <TrendingTopics />
+                        </div>
+                        <div className="lg:col-span-4 xl:col-span-5">
+                            <PatternRecognition />
+                        </div>
                     </div>
-                    <div className="w-px h-10 bg-[var(--glass-border)]" />
-                    <div>
-                        <p className="text-xs text-[var(--text-dim)] uppercase">Active Trades</p>
-                        <p className="text-xl font-bold font-mono text-white">3</p>
+
+                    {/* Bottom: Transactions */}
+                    <div className="grid grid-cols-1">
+                        <TransactionsTable />
                     </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-[var(--neon-green)] rounded-full animate-pulse" />
-                    <span className="text-sm text-[var(--neon-green)] font-medium">Market Open</span>
-                </div>
+
+                </main>
             </div>
+
+            {/* Mobile overlay for sidebar */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
         </div>
     );
 }
-

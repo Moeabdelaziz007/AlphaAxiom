@@ -4,35 +4,26 @@
 
 ## 📅 سجل الجلسات
 
-### الجلسة: 8 ديسمبر 2025 (مُحدّث 11:00)
+### الجلسة: 8 ديسمبر 2025 (مُحدّث 12:01)
 
 **الإنجازات:**
 
-- ✅ Phase 24 (Auth): Clerk integration complete.
-- ✅ Phase 25 (Data Layer): `/api/dashboard` + `useMarketStream` hook.
-- ✅ Phase 29: MCP/API Research complete.
-- ✅ Phase 30: **100% Weekly ROI Implementation:**
-  - Fast RSI (7-period) + EMA 9/21 Crossover
-  - MultiTimeframeScalper class (1M/5M/15M alignment)
-  - HighLeverageRiskManager (100x support)
-  - Bybit Perpetuals Connector (NEW)
-  - OANDA Scalping Enhancement
-  - 9 new tests passing
-- ✅ **Phase 31: تكامل مصادر البيانات الخارجية:**
-  - Alpha Vantage Connector (RSI, MACD, ADX, ATR, BBands)
-  - Finnhub Connector + WebSocket (News, Financials, Quotes)
-  - Bybit API Keys → Cloudflare Secrets
-  - Alpha Vantage Key → Cloudflare Secrets
-  - Finnhub Key → Cloudflare Secrets
-- ✅ **Frontend UI Prompt:** تم إنشاء prompt مُفصّل لـ AI Studio
-  - Cyberpunk Neon + Carbon Fiber theme
-  - 7 component specifications
-  - API integration details
-- ✅ Skill System: Level 4 achieved (Expert)
-- ✅ Git pushed: c48d566
-- ✅ **Cloudflare Deploy:** 56 modules (346KB)
+- ✅ Phase 24-30: Auth, Data Layer, 100% Weekly ROI, Bybit Connector
+- ✅ **Phase 31: تكامل مصادر البيانات:**
+  - Alpha Vantage (RSI, MACD, ADX, ATR)
+  - Finnhub + WebSocket (News, Financials)
+  - NewsData.io (200 req/day) - Crypto, Forex, Market News
+  - NewsAPI.ai - Advanced Search
+  - All keys stored in Cloudflare Secrets
+- ✅ **Phase 32: Frontend AI Studio Integration:**
+  - 8 new dashboard components
+  - Deleted 14 old components
+  - Logo + SYSTEM ONLINE in Header
+  - API hooks (useDashboard.ts)
+  - Tailwind Axiom colors
+- ✅ Cloudflare Deploy: 56 modules (346KB)
   - URL: <https://trading-brain-v1.amrikyy1.workers.dev>
-  - /health ✅ | /api/dashboard ✅
+- ✅ Git pushed: 7d14e9f
 
 **القرارات التقنية:**
 
@@ -56,7 +47,14 @@
 - **النمط:** `async` handlers for webhooks.
 - **النمط:** KV for engine state (AEXI/Dream scores).
 
-### 2. D1 + R2 Strategy
+### 2. Primary Brain: Z.ai GLM-4.6
+
+- **Role:** High-Level Reasoning & Agentic Planning.
+- **Context:** 200K Tokens (Large context window).
+- **Equivalent:** Acts as "Brain" (simulating Claude Sonnet via Z.ai Coding Plan).
+- **Integration:** Replaces DeepSeek for complex reasoning.
+
+### 3. D1 + R2 Strategy
 
 - Hot: Durable Objects (Trade State).
 - Warm: D1 SQL (Trade History).

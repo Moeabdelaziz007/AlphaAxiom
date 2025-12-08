@@ -4,8 +4,6 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import "../globals.css";
 import { Providers } from "./providers";
-import ModeToggle from "@/components/ModeToggle";
-import DeepSeekPanel from "@/components/DeepSeekPanel";
 import Link from "next/link";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
@@ -109,8 +107,6 @@ export default async function RootLayout({
 
                             {/* Right Side */}
                             <div className="flex items-center gap-4">
-                                <ModeToggle />
-
                                 {/* User Avatar */}
                                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--neon-purple)] to-[var(--neon-magenta)] flex items-center justify-center text-sm font-bold">
                                     U
@@ -122,9 +118,6 @@ export default async function RootLayout({
                         <main className="pt-20 px-4 md:px-6 pb-8 max-w-7xl mx-auto">
                             {children}
                         </main>
-
-                        {/* DeepSeek AI Chat */}
-                        <DeepSeekPanel />
                     </Providers>
                 </NextIntlClientProvider>
             </body>
