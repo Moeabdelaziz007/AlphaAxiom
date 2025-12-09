@@ -21,6 +21,17 @@ const nextConfig = {
         ignoreBuildErrors: false,
     },
     
+    // ━━━ 📂 Page Extensions & Exclusions ━━━
+    pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+    // Exclude legacy directory from build (symlink to legacy-components)
+    webpack: (config, { isServer }) => {
+        config.watchOptions = {
+            ...config.watchOptions,
+            ignored: ['**/src/legacy/**', '**/legacy-components/**'],
+        };
+        return config;
+    },
+    
     // ━━━ 🔐 Security Headers | رؤوس الأمان ━━━
     async headers() {
         return [
