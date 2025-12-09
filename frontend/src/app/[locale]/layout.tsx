@@ -55,7 +55,6 @@ export default async function RootLayout({
     const messages = await getMessages();
     const dir = locale === 'ar' ? 'rtl' : 'ltr';
     const fontVariable = locale === 'ar' ? cairo.variable : inter.variable;
-    const fontClass = locale === 'ar' ? cairo.className : inter.className;
 
     return (
         <html lang={locale} dir={dir} className="dark">
@@ -64,7 +63,7 @@ export default async function RootLayout({
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <meta name="mobile-web-app-capable" content="yes" />
             </head>
-            <body className={`${fontClass} ${fontVariable} ${orbitron.variable} ${mono.variable} bg-[var(--void)] text-white min-h-screen`}>
+            <body className={`${inter.variable} ${cairo.variable} ${orbitron.variable} ${mono.variable} font-sans bg-[var(--void)] text-white min-h-screen`}>
                 {/* Topographic Background */}
                 <div className="topo-bg" />
 

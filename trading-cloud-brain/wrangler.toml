@@ -10,7 +10,12 @@ workers_dev = true
 # ⏰ THE HEARTBEAT: Single Cron (Free Tier Limit)
 # Internal dispatch logic in worker.py handles 5min/4hr cycles
 [triggers]
-crons = ["* * * * *"]
+crons = [
+    "* * * * *",    # 🛡️ RiskGuardian (1m)
+    "*/5 * * * *",  # ⚡ Scalper (5m)
+    "*/15 * * * *", # 📰 Journalist (15m)
+    "0 * * * *"     # 🧠 Strategist (1h)
+]
 
 # 🧠 MEMORY: KV Namespace
 [[kv_namespaces]]

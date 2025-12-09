@@ -12,14 +12,16 @@
 
 ## 🦸 القوى الخارقة النشطة
 
-### 🤖 AI Trading Core (NEW - From Deep Research)
+### 🤖 AI Trading Core (UPGRADED - Dec 2025)
 
 | Skill | Level | Mastery | Triggers |
 |-------|-------|---------|----------|
-| **DeepSeek Signal Gen** | Gen 2 | ██████░░░░ | "LLM trading", "AI signals" |
+| **DeepSeek Signal Gen** | Gen 3 | ████████░░ | "LLM trading", "AI signals" |
+| **Gemini 2.0 Flash** | Gen 2 | ██████░░░░ | "Chart analysis", "1M context" |
+| **GLM-4.5 (z.ai)** | Gen 2 | ██████░░░░ | "Agentic AI", "Complex trading logic" |
 | **Reinforcement Learning** | Gen 1 | ████░░░░░░ | "RL bot", "Adaptive trading" |
-| **Technical Indicators** | Gen 2 | ███████░░░ | "RSI", "MACD", "ADX", "ATR" |
-| **Sentiment Analysis** | Gen 1 | ████░░░░░░ | "News sentiment", "Social signals" |
+| **Technical Indicators** | Gen 3 | ████████░░ | "RSI", "MACD", "ADX", "ATR" |
+| **Sentiment Analysis** | Gen 2 | ██████░░░░ | "News sentiment", "Social signals" |
 
 ### 📊 Risk Management (NEW)
 

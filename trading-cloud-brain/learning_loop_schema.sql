@@ -97,3 +97,79 @@ CREATE TABLE IF NOT EXISTS learning_metrics (
 CREATE INDEX IF NOT EXISTS idx_metrics_symbol_dir ON learning_metrics(symbol, signal_direction);
 CREATE INDEX IF NOT EXISTS idx_metrics_accuracy ON learning_metrics(accuracy_pct DESC);
 CREATE INDEX IF NOT EXISTS idx_metrics_timeframe ON learning_metrics(timeframe);
+-- ========================================
+-- Table 4: weight_history (The Evolution Log)
+-- ========================================
+-- Tracks every weight optimization with full audit trail
+CREATE TABLE IF NOT EXISTS weight_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    version INTEGER NOT NULL,
+    weights TEXT NOT NULL,
+    -- JSON: {"momentum": 0.4, "rsi": 0.2, ...}
+    based_on_signals INTEGER DEFAULT 0,
+    previous_accuracy REAL DEFAULT 0.0,
+    expected_improvement REAL DEFAULT 0.0,
+    factor_accuracies TEXT,
+    -- JSON: per-factor accuracy
+    created_at INTEGER NOT NULL,
+    status TEXT DEFAULT 'ACTIVE',
+    -- ACTIVE, SUPERSEDED, ROLLED_BACK
+    notes TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_weight_version ON weight_history(version DESC);
+CREATE INDEX IF NOT EXISTS idx_weight_status ON weight_history(status);
+-- ========================================
+-- Table 5: system_alerts (The Immune System)
+-- ========================================
+-- Records critical events and anomalies
+CREATE TABLE IF NOT EXISTS system_alerts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alert_id TEXT UNIQUE,
+    severity TEXT NOT NULL,
+    -- INFO, WARNING, ERROR, CRITICAL
+    category TEXT NOT NULL,
+    -- ACCURACY_DROP, DATA_QUALITY, ROLLBACK, etc.
+    title TEXT NOT NULL,
+    message TEXT,
+    status TEXT DEFAULT 'OPEN',
+    -- OPEN, ACKNOWLEDGED, RESOLVED
+    created_at INTEGER NOT NULL,
+    resolved_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_alert_severity ON system_alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_alert_status ON system_alerts(status);
+-- ========================================
+-- SQL Views for Dashboard (Optional)
+-- ========================================
+-- View: Current overall accuracy
+CREATE VIEW IF NOT EXISTS v_current_accuracy AS
+SELECT ROUND(
+        SUM(
+            CASE
+                WHEN was_correct_1h = 1 THEN 1
+                ELSE 0
+            END
+        ) * 100.0 / COUNT(*),
+        2
+    ) as accuracy_1h,
+    ROUND(
+        SUM(
+            CASE
+                WHEN was_correct_4h = 1 THEN 1
+                ELSE 0
+            END
+        ) * 100.0 / COUNT(*),
+        2
+    ) as accuracy_4h,
+    ROUND(
+        SUM(
+            CASE
+                WHEN was_correct_24h = 1 THEN 1
+                ELSE 0
+            END
+        ) * 100.0 / COUNT(*),
+        2
+    ) as accuracy_24h,
+    COUNT(*) as total_tracked
+FROM signal_outcomes
+WHERE was_correct_1h IS NOT NULL;

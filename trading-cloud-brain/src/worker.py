@@ -44,6 +44,9 @@ from deepseek_analyst import DeepSeekAnalyst
 from workers_ai import WorkersAI
 from risk_manager import RiskGuardian
 from data_collector import DataCollector
+from agents.math import get_math_agent
+from agents.money import get_money_agent
+from cache.client import create_kv_cache
 
 # ==========================================
 # 🧠 ANTIGRAVITY MoE BRAIN v2.0
@@ -91,8 +94,9 @@ async def on_scheduled(event, env):
 
     # 2. FAST BRAIN - SCALPER (Every 5 minutes)
     if current_minute % 5 == 0:
-        # Acquire cron lock to prevent duplicate execution
         state = StateManager(env)
+        
+        # Acquire cron lock to prevent duplicate execution
         if not await state.acquire_cron_lock("scalper_5min", ttl=60):
             log.info("Scalper already running, skipping")
             return
@@ -134,24 +138,46 @@ async def on_scheduled(event, env):
         finally:
             await state.release_cron_lock("scalper_5min")
 
-    # 3. SLOW BRAIN - SWING (Every 4 hours)
-    if current_hour % 4 == 0 and current_minute == 0:
+    # 3. JOURNALIST AGENT - NEWS SCAN (Every 15 minutes)
+    if current_minute % 15 == 0:
+        log.info("📰 Dispatching Journalist Agent...")
         try:
-            collector = DataCollector(env)
-            watchlist = ["EURUSD", "GBPUSD", "XAUUSD", "BTCUSD"]
-            
-            for symbol in watchlist:
-                candles = await collector.fetch_candles(symbol, timeframe="1d", limit=300)
-                
-                if candles:
-                    # Use consolidated TradingBrain with SWING mode
-                    brain = TradingBrain(candles, mode="SWING")
-                    view = brain.analyze()
-                    
-                    if view.get('signal') not in ['NEUTRAL', 'NO_DATA']:
-                        await send_telegram_alert(env, f"🐋 <b>SWING: {symbol}</b>\nSignal: {view['signal']}\nRecommendation: {view.get('recommendation', 'N/A')}")
+            from agents.journalist import JournalistAgent
+            # Check if PERPLEXITY_API_KEY exists, otherwise uses DuckDuckGo free
+            journalist = JournalistAgent(getattr(env, 'PERPLEXITY_API_KEY', ''))
+            await journalist.run_mission(env)
         except Exception as e:
-            log.error(f"Swing failed: {e}")
+            log.error(f"Journalist mission failed: {e}")
+
+    # 4. SWARM STRATEGIST & SWING BRAIN (Every Hour)
+    if current_minute == 0:
+        # A. Strategist Agent (Deep Thinking)
+        log.info("🧠 Dispatching Strategist Agent...")
+        try:
+            from agents.strategist import StrategistAgent
+            strategist = StrategistAgent(env)
+            await strategist.run_mission()
+        except Exception as e:
+            log.error(f"Strategist mission failed: {e}")
+
+        # B. Swing Trader (Every 4 hours only)
+        if current_hour % 4 == 0:
+            try:
+                collector = DataCollector(env)
+                watchlist = ["EURUSD", "GBPUSD", "XAUUSD", "BTCUSD"]
+                
+                for symbol in watchlist:
+                    candles = await collector.fetch_candles(symbol, timeframe="1d", limit=300)
+                    
+                    if candles:
+                        # Use consolidated TradingBrain with SWING mode
+                        brain = TradingBrain(candles, mode="SWING")
+                        view = brain.analyze()
+                        
+                        if view.get('signal') not in ['NEUTRAL', 'NO_DATA']:
+                            await send_telegram_alert(env, f"🐋 <b>SWING: {symbol}</b>\nSignal: {view['signal']}\nRecommendation: {view.get('recommendation', 'N/A')}")
+            except Exception as e:
+                log.error(f"Swing failed: {e}")
 
 # [Rest of on_fetch remains same...]
 async def on_fetch(request, env):
@@ -164,20 +190,6 @@ async def on_fetch(request, env):
     Args:
         request: Cloudflare Request object with url, method, headers
         env: Worker environment with secrets and KV bindings
-    
-    Returns:
-        Response: JSON response with CORS headers
-    
-    Routes:
-        GET /api/status: Health check
-        POST /api/telegram: Telegram webhook
-        POST /api/chat: MoE AI chat
-        GET /api/account: Broker account data
-        GET /api/positions: Open positions
-        GET /api/market: Real-time prices
-        GET /api/candles: OHLCV chart data
-    
-    Raises:
         401: Unauthorized (missing X-System-Key)
         500: Internal server error
     """
@@ -288,6 +300,53 @@ async def on_fetch(request, env):
             "max_trades": MAX_TRADES_PER_DAY
         }
         return Response.new(json.dumps(result), headers=headers)
+    
+    # ==========================================
+    # 💳 COINBASE ADVANCED TRADE API
+    # ==========================================
+    
+    # Test Coinbase Connection
+    if "api/coinbase/test" in url:
+        try:
+            from payments.coinbase import get_coinbase_client
+            coinbase = get_coinbase_client(env, demo_mode=True)
+            result = await coinbase.test_connection()
+            return Response.new(json.dumps(result), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({"error": str(e)}), headers=headers)
+    
+    # Get Coinbase Products (trading pairs)
+    if "api/coinbase/products" in url:
+        try:
+            from payments.coinbase import get_coinbase_client
+            coinbase = get_coinbase_client(env, demo_mode=True)
+            result = await coinbase.get_products()
+            return Response.new(json.dumps(result), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({"error": str(e)}), headers=headers)
+    
+    # Get Coinbase Ticker (price)
+    if "api/coinbase/ticker" in url:
+        try:
+            from payments.coinbase import get_coinbase_client
+            params = dict(p.split("=") for p in url.split("?")[1].split("&")) if "?" in url else {}
+            symbol = params.get("symbol", "BTC-USD")
+            
+            coinbase = get_coinbase_client(env, demo_mode=True)
+            result = await coinbase.get_ticker(symbol)
+            return Response.new(json.dumps(result), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({"error": str(e)}), headers=headers)
+    
+    # Get Coinbase Accounts (balances)
+    if "api/coinbase/accounts" in url:
+        try:
+            from payments.coinbase import get_coinbase_client
+            coinbase = get_coinbase_client(env, demo_mode=True)
+            result = await coinbase.get_accounts()
+            return Response.new(json.dumps(result), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({"error": str(e)}), headers=headers)
     
     # ☢️ PANIC PROTOCOL - Liquidate All Positions
     if "api/trade/panic" in url or "api/panic" in url:
@@ -984,6 +1043,51 @@ async def send_telegram_alert(env, message):
         await fetch(url, method="POST", headers=req_headers, body=payload)
     except:
         pass
+
+
+async def publish_to_ably(env, channel: str, data: dict):
+    """
+    Publish message to Ably channel for real-time frontend updates.
+    
+    Uses Ably REST API (compatible with CF Workers).
+    
+    Args:
+        env: Worker environment
+        channel: Channel name (e.g., "axiom:signals")
+        data: Data to publish
+    """
+    try:
+        ably_api_key = str(getattr(env, 'ABLY_API_KEY', ''))
+        
+        if not ably_api_key:
+            return False
+        
+        # Ably REST API endpoint
+        # Format: https://rest.ably.io/channels/{channelName}/messages
+        channel_encoded = channel.replace(":", "%3A")  # URL encode colon
+        url = f"https://rest.ably.io/channels/{channel_encoded}/messages"
+        
+        # Basic auth with API key
+        import base64
+        auth_token = base64.b64encode(ably_api_key.encode()).decode()
+        
+        payload = json.dumps({
+            "name": "signal",
+            "data": json.dumps(data)
+        })
+        
+        req_headers = Headers.new({
+            "Content-Type": "application/json",
+            "Authorization": f"Basic {auth_token}"
+        }.items())
+        
+        response = await fetch(url, method="POST", headers=req_headers, body=payload)
+        
+        return response.status == 201
+        
+    except Exception as e:
+        # Don't fail main flow on Ably errors
+        return False
 
 
 async def send_telegram_reply(env, chat_id, text):
@@ -1820,6 +1924,45 @@ Rule: {condition} {trigger}""")
         # 🧹 STEP 5: DATABASE MAINTENANCE
         # ========================================
         await _run_maintenance(db)
+        
+        # ========================================
+        # 🧬 STEP 6: DATA LEARNING LOOP CRONS
+        # ========================================
+        import datetime
+        now = datetime.datetime.utcnow()
+        current_minute = now.minute
+        current_hour = now.hour
+        current_weekday = now.weekday()  # 0=Monday, 6=Sunday
+        
+        # 🔍 HOURLY: Outcome Tracker (at :00 every hour)
+        if current_minute == 0:
+            try:
+                from learning.tracker import OutcomeTracker
+                tracker = OutcomeTracker(env)
+                result = await tracker.run()
+                print(f"✅ OutcomeTracker result: {result}")
+            except Exception as e:
+                print(f"⚠️ OutcomeTracker error: {e}")
+        
+        # 📊 DAILY: Metrics Aggregator (at 00:00 UTC)
+        if current_hour == 0 and current_minute == 0:
+            try:
+                from learning.aggregator import MetricsAggregator
+                aggregator = MetricsAggregator(env)
+                result = await aggregator.run()
+                print(f"✅ MetricsAggregator result: {result}")
+            except Exception as e:
+                print(f"⚠️ MetricsAggregator error: {e}")
+        
+        # 🧠 WEEKLY: Weight Optimizer (Sunday at 00:00 UTC)
+        if current_weekday == 6 and current_hour == 0 and current_minute == 0:
+            try:
+                from learning.optimizer import WeightOptimizer
+                optimizer = WeightOptimizer(env)
+                result = await optimizer.run()
+                print(f"✅ WeightOptimizer result: {result}")
+            except Exception as e:
+                print(f"⚠️ WeightOptimizer error: {e}")
             
     except Exception as e:
         # Log error but don't crash
@@ -2768,6 +2911,150 @@ async def handle_mcp_request(request, env, headers):
                     
             except Exception as e:
                 return Response.new(json.dumps({"status": "error", "error": str(e)}), status=500, headers=headers)
+        
+        # ============================================
+        # 🧬 DATA LEARNING LOOP ROUTES
+        # ============================================
+        if "learning" in url:
+            try:
+                kv = env.BRAIN_MEMORY
+                db = env.TRADING_DB
+                
+                # GET /api/mcp/learning/metrics - Current accuracy metrics
+                if "metrics" in url:
+                    result = await db.prepare("""
+                        SELECT 
+                            COUNT(*) as total_signals,
+                            SUM(CASE WHEN was_correct_1h = 1 THEN 1 ELSE 0 END) as correct_1h,
+                            SUM(CASE WHEN was_correct_1h IS NOT NULL THEN 1 ELSE 0 END) as tracked_1h,
+                            SUM(CASE WHEN was_correct_4h = 1 THEN 1 ELSE 0 END) as correct_4h,
+                            SUM(CASE WHEN was_correct_4h IS NOT NULL THEN 1 ELSE 0 END) as tracked_4h,
+                            SUM(CASE WHEN was_correct_24h = 1 THEN 1 ELSE 0 END) as correct_24h,
+                            SUM(CASE WHEN was_correct_24h IS NOT NULL THEN 1 ELSE 0 END) as tracked_24h
+                        FROM signal_outcomes
+                    """).all()
+                    
+                    row = result.results[0] if result.results else {}
+                    tracked_1h = row.get('tracked_1h', 0) or 0
+                    tracked_4h = row.get('tracked_4h', 0) or 0
+                    tracked_24h = row.get('tracked_24h', 0) or 0
+                    
+                    return Response.new(json.dumps({
+                        "status": "success",
+                        "metrics": {
+                            "total_signals": row.get('total_signals', 0) or 0,
+                            "accuracy_1h": round((row.get('correct_1h', 0) or 0) / tracked_1h * 100, 2) if tracked_1h > 0 else 0,
+                            "accuracy_4h": round((row.get('correct_4h', 0) or 0) / tracked_4h * 100, 2) if tracked_4h > 0 else 0,
+                            "accuracy_24h": round((row.get('correct_24h', 0) or 0) / tracked_24h * 100, 2) if tracked_24h > 0 else 0,
+                            "tracked_1h": tracked_1h,
+                            "tracked_4h": tracked_4h,
+                            "tracked_24h": tracked_24h
+                        }
+                    }), headers=headers)
+                
+                # GET /api/mcp/learning/weights - Current signal weights
+                if "weights" in url and "history" not in url:
+                    weights_data = await kv.get("signal_weights:latest")
+                    
+                    if weights_data:
+                        return Response.new(weights_data, headers=headers)
+                    else:
+                        # Return default weights
+                        return Response.new(json.dumps({
+                            "version": 0,
+                            "weights": {
+                                "momentum": 0.30,
+                                "rsi": 0.25,
+                                "sentiment": 0.25,
+                                "volume": 0.20
+                            },
+                            "message": "Using default weights (no optimization yet)"
+                        }), headers=headers)
+                
+                # GET /api/mcp/learning/report - Latest daily report
+                if "report" in url:
+                    report_data = await kv.get("learning_report:latest")
+                    
+                    if report_data:
+                        return Response.new(report_data, headers=headers)
+                    else:
+                        return Response.new(json.dumps({
+                            "status": "no_data",
+                            "message": "No report available yet. Run daily aggregator first."
+                        }), headers=headers)
+                
+                # GET /api/mcp/learning/health - System health status
+                if "health" in url and "mcp/learning" in url:
+                    # Get last signal time
+                    last_signal = await db.prepare("""
+                        SELECT timestamp FROM signal_events ORDER BY id DESC LIMIT 1
+                    """).all()
+                    
+                    # Get last outcome time
+                    last_outcome = await db.prepare("""
+                        SELECT updated_at FROM signal_outcomes ORDER BY id DESC LIMIT 1
+                    """).all()
+                    
+                    # Get weights version
+                    weights_data = await kv.get("signal_weights:latest")
+                    weights_version = json.loads(weights_data).get("version", 0) if weights_data else 0
+                    
+                    import time
+                    now = int(time.time() * 1000)
+                    
+                    last_signal_ts = last_signal.results[0].get('timestamp', 0) if last_signal.results else 0
+                    last_outcome_ts = last_outcome.results[0].get('updated_at', 0) if last_outcome.results else 0
+                    
+                    return Response.new(json.dumps({
+                        "status": "healthy",
+                        "system": "Axiom Data Learning Loop",
+                        "last_signal_age_hours": round((now - last_signal_ts) / 3600000, 1) if last_signal_ts else None,
+                        "last_outcome_age_hours": round((now - last_outcome_ts) / 3600000, 1) if last_outcome_ts else None,
+                        "weights_version": weights_version,
+                        "timestamp": now
+                    }), headers=headers)
+                
+                # POST /api/mcp/learning/trigger/{phase} - Manual cron trigger
+                if "trigger" in url:
+                    # Check for API key authorization
+                    api_key = request.headers.get("X-API-Key") or request.headers.get("Authorization")
+                    internal_key = str(getattr(env, 'INTERNAL_API_KEY', ''))
+                    
+                    if not api_key or api_key != internal_key:
+                        return Response.new(json.dumps({
+                            "status": "error",
+                            "message": "Unauthorized. Provide X-API-Key header."
+                        }), status=401, headers=headers)
+                    
+                    # Determine which phase to trigger
+                    if "hourly" in url or "tracker" in url:
+                        from learning.tracker import OutcomeTracker
+                        tracker = OutcomeTracker(env)
+                        result = await tracker.run()
+                        return Response.new(json.dumps(result), headers=headers)
+                    
+                    elif "daily" in url or "aggregator" in url:
+                        from learning.aggregator import MetricsAggregator
+                        aggregator = MetricsAggregator(env)
+                        result = await aggregator.run()
+                        return Response.new(json.dumps(result), headers=headers)
+                    
+                    elif "weekly" in url or "optimizer" in url:
+                        from learning.optimizer import WeightOptimizer
+                        optimizer = WeightOptimizer(env)
+                        result = await optimizer.run()
+                        return Response.new(json.dumps(result), headers=headers)
+                    
+                    return Response.new(json.dumps({
+                        "status": "error",
+                        "message": "Unknown phase. Use: hourly, daily, or weekly"
+                    }), status=400, headers=headers)
+                
+            except Exception as e:
+                return Response.new(json.dumps({
+                    "status": "error",
+                    "message": str(e)
+                }), status=500, headers=headers)
             
         # ============================================
         # 🏦 CAPITAL.COM ROUTES (New Integration)
@@ -2879,7 +3166,48 @@ async def handle_mcp_request(request, env, headers):
                     price_data["error"] = str(e)
             
             # ============================================
-            # 🧪 SIGNAL SYNTHESIS (Enhanced)
+            # 📈 FETCH HISTORICAL DATA FOR RSI (New!)
+            # ============================================
+            rsi_value = 50.0  # Default neutral
+            mtf_confluence = 0.5  # Default neutral
+            
+            if is_crypto and price_data.get("current", 0) > 0:
+                try:
+                    # Fetch 1H klines from Bybit (last 50 candles for RSI-14)
+                    klines_url = f"https://api.bybit.com/v5/market/kline?category=linear&symbol={symbol}&interval=60&limit=50"
+                    klines_resp = await fetch(klines_url)
+                    klines_data = json.loads(await klines_resp.text())
+                    
+                    if klines_data.get("retCode") == 0 and klines_data.get("result", {}).get("list"):
+                        # Bybit returns: [startTime, open, high, low, close, volume, turnover]
+                        # Note: List is in descending order (newest first)
+                        klines = klines_data["result"]["list"]
+                        closes = [float(k[4]) for k in reversed(klines)]  # Close prices, oldest first
+                        
+                        if len(closes) >= 15:
+                            # Calculate RSI using our module
+                            from indicators.rsi import calculate_rsi, get_rsi_signal
+                            from indicators.mtf import calculate_mtf_score_from_single_prices
+                            
+                            rsi_value = calculate_rsi(closes, period=14)
+                            rsi_signal = get_rsi_signal(rsi_value)
+                            
+                            # Approximate MTF from single timeframe data
+                            if len(closes) >= 60:
+                                mtf_result = calculate_mtf_score_from_single_prices(closes)
+                                mtf_confluence = mtf_result.get('confluence_score', 0.5)
+                            
+                            # Enhance signal factors with RSI info
+                            if rsi_value < 30:
+                                signal["factors"].append(f"RSI Oversold ({rsi_value:.1f})")
+                            elif rsi_value > 70:
+                                signal["factors"].append(f"RSI Overbought ({rsi_value:.1f})")
+                            
+                except Exception as rsi_error:
+                    log.error(f"RSI calculation error: {rsi_error}")
+            
+            # ============================================
+            # 🧪 SIGNAL SYNTHESIS (Enhanced with RSI)
             # ============================================
             change = price_data.get("change_pct", 0)
             
@@ -2891,6 +3219,7 @@ async def handle_mcp_request(request, env, headers):
                 strong_threshold = 0.02  # 2% for stocks
                 weak_threshold = 0.005   # 0.5% for stocks
             
+            # Base signal from momentum
             if change > strong_threshold:
                 signal = {"direction": "STRONG_BUY", "confidence": 0.85, "factors": ["Strong Momentum"]}
             elif change > weak_threshold:
@@ -2901,6 +3230,80 @@ async def handle_mcp_request(request, env, headers):
                 signal = {"direction": "SELL", "confidence": 0.65, "factors": ["Negative Trend"]}
             else:
                 signal = {"direction": "NEUTRAL", "confidence": 0.5, "factors": ["Range-Bound"]}
+            
+            # ============================================
+            # 🧞 AGENTIC ANALYSIS (Math + Money Agents)
+            # ============================================
+            try:
+                # 1. Initialize Agents
+                math_agent = get_math_agent()
+                money_agent = get_money_agent()
+                
+                # 2. Risk Validation (MoneyAgent)
+                # We use a default volatility of 0.03 if not real
+                vol = 0.05 if is_crypto else 0.02
+                risk_check = money_agent.quick_check(
+                    signal_direction=signal["direction"],
+                    confidence=signal["confidence"],
+                    volatility=vol
+                )
+                
+                if not risk_check["approved"]:
+                    # Downgrade signal if risk is too high
+                    signal["confidence"] *= 0.5
+                    signal["factors"].append(f"⚠️ High Risk: {risk_check['reason']}")
+                else:
+                    signal["factors"].append(f"🛡️ Risk Verified")
+
+                # 3. Position Sizing (MathAgent - Kelly Criterion)
+                # Win prob = confidence, Win/Loss ratio default 2.0
+                kelly_res = math_agent.kelly_calculator(
+                    win_probability=signal["confidence"],
+                    win_loss_ratio=2.0,
+                    bankroll=10000 # Abstract bankroll
+                )
+                kelly_pct = kelly_res.get("kelly_percent", 0) * 100
+                safe_fraction = kelly_res.get("safe_fraction", 0) * 100
+                
+                signal["factors"].append(f"💰 Kelly Size: {safe_fraction:.1f}%")
+                
+                # 4. Monte Carlo Simulation (Phase 44.3)
+                # Use volatility from price change or default
+                vol = abs(price_data.get("change_pct", 0)) or 0.02
+                monte_carlo = math_agent.monte_carlo_simulation(
+                    current_price=price_data.get("current", 100),
+                    volatility=vol,
+                    days=7,
+                    simulations=500  # Fast enough for real-time
+                )
+                
+                # Adjust confidence based on Monte Carlo risk
+                var_95 = monte_carlo.get("var_95", 0)
+                if var_95 > 5:  # Bullish scenario - price expected to rise 5%+
+                    signal["confidence"] = min(0.95, signal["confidence"] + 0.05)
+                    signal["factors"].append(f"📈 MC Bullish (VaR95: +{var_95:.1f}%)")
+                elif var_95 < -10:  # High risk - potential 10%+ loss
+                    signal["confidence"] *= 0.8
+                    signal["factors"].append(f"⚠️ MC Risk (VaR95: {var_95:.1f}%)")
+                
+            except Exception as agent_error:
+                log.error(f"Agent analysis failed: {agent_error}")
+                signal["factors"].append("⚠️ Agent Error")
+            
+            # ============================================
+            # 🔴 SIGNAL CACHING (Phase A - Redis Architecture)
+            # ============================================
+            try:
+                cache = create_kv_cache(env)
+                
+                # Cache signal for 30 seconds
+                await cache.cache_signal(symbol, signal, ttl=30)
+                
+                # Cache price for 60 seconds
+                await cache.cache_price(symbol, price_data.get("current", 0), ttl=60)
+                
+            except Exception as cache_error:
+                log.error(f"Cache error: {cache_error}")
             
             # ============================================
             # 💎 DATA LEARNING LOOP: Capture Every Signal
@@ -2930,7 +3333,7 @@ async def handle_mcp_request(request, env, headers):
                     json.dumps(signal.get("factors", [])),
                     # Component scores (for future ML analysis)
                     price_data.get("change_pct", 0),  # momentum proxy
-                    0.0,  # RSI TBD
+                    rsi_value,  # Real RSI from indicators module
                     0.0,  # sentiment TBD
                     price_data.get("volume_24h") or 0.0  # volume if available
                 )
@@ -2965,9 +3368,22 @@ async def handle_mcp_request(request, env, headers):
 <i>💎 Axiom Data Engine | Zero-Cost MCP</i>"""
                     
                     await send_telegram_alert(env, alert_msg)
+                    
+                    # 📡 REAL-TIME BROADCAST (Ably)
+                    await publish_to_ably(env, "axiom:signals", {
+                        "symbol": symbol,
+                        "direction": signal["direction"],
+                        "confidence": signal["confidence"],
+                        "price": price_data.get("current", 0),
+                        "change": change,
+                        "factors": signal.get("factors", []),
+                        "timestamp": timestamp,
+                        "asset_type": "crypto" if is_crypto else "stock"
+                    })
+                    
                 except Exception as tg_error:
-                    # Don't fail the request if Telegram fails
-                    log.error(f"Telegram alert failed: {tg_error}")
+                    # Don't fail the request if Telegram/Ably fails
+                    log.error(f"Notification error: {tg_error}")
             
             return Response.new(json.dumps({
                 "status": "success",

@@ -6,9 +6,9 @@
 
 ![Axiom Antigravity Logo](frontend/public/logo.png)
 
-**From Signals to Execution — Powered by DeepSeek AI**
+**From Signals to Execution — Powered by Multi-AI Stack**
 
-**من الإشارات إلى التنفيذ — مدعوم بذكاء DeepSeek**
+**من الإشارات إلى التنفيذ — مدعوم بمجموعة ذكاء اصطناعي متعددة**
 
 [![Live Demo](https://img.shields.io/badge/🔴_Live-aitrading.axiomid.app-00F0FF?style=for-the-badge)](https://aitrading.axiomid.app)
 [![MIT License](https://img.shields.io/badge/License-MIT_2025-green.svg?style=for-the-badge)](LICENSE)
@@ -25,7 +25,7 @@
 
 ---
 
-## 🆕 What's New in v0.9 "Spider Web" | الجديد في إصدار 0.9
+## 🆕 What's New in v1.0 "Citadel Edition" | الجديد في إصدار 1.0
 
 <table>
 <tr>
@@ -33,24 +33,28 @@
 
 ### 🇺🇸 English
 
-- 🕷️ **Spider Web Architecture** — Modular AI brain system
+- 🧠 **Multi-AI Stack** — DeepSeek + Gemini 2.0 + GLM-4.5
+- 🕷️ **Spider Web Architecture** — 89+ modular components
 - 🆓 **Workers AI** — FREE LLMs (10K neurons/day)
-- 🧠 **DeepSeek V3.2** — 128K context reasoning
-- 🛡️ **Risk Guardian** — AI-powered trade validation
-- 📡 **Data Collector** — Real-time market context
-- 💰 **Capital.com + Alpaca** — Dual broker support
+- 📊 **MTF Scalper** — Multi-timeframe analysis (1M/5M/15M)
+- 🛡️ **Risk Guardian** — Kelly Criterion + ATR-based sizing
+- 💰 **5 Broker Support** — Capital, Alpaca, OANDA, Bybit, Coinbase
+- 🧬 **Learning Loop** — Self-improving signal weights
+- 📡 **MCP Tools** — 10 free intelligence tools
 
 </td>
 <td width="50%">
 
 ### 🇸🇦 العربية
 
-- 🕷️ **هيكل شبكة العنكبوت** — نظام دماغ ذكاء اصطناعي معياري
+- 🧠 **مجموعة ذكاء متعددة** — DeepSeek + Gemini 2.0 + GLM-4.5
+- 🕷️ **هيكل شبكة العنكبوت** — 89+ مكون معياري
 - 🆓 **Workers AI** — نماذج LLM مجانية
-- 🧠 **DeepSeek V3.2** — تحليل عميق 128K
-- 🛡️ **حارس المخاطر** — موافقة ذكية على الصفقات
-- 📡 **جامع البيانات** — سياق السوق الحي
-- 💰 **Capital.com + Alpaca** — دعم وسيطين
+- 📊 **المضارب متعدد الأطر** — تحليل 1M/5M/15M
+- 🛡️ **حارس المخاطر** — Kelly + ATR للتحجيم
+- 💰 **5 وسطاء** — Capital, Alpaca, OANDA, Bybit, Coinbase
+- 🧬 **حلقة التعلم** — أوزان إشارات ذاتية التحسين
+- 📡 **أدوات MCP** — 10 أدوات ذكاء مجانية
 
 </td>
 </tr>
@@ -58,158 +62,135 @@
 
 ---
 
-## 📖 Table of Contents | جدول المحتويات
+## 📊 System Statistics | إحصائيات النظام
 
-<table>
-<tr>
-<td width="50%">
-
-### 🇺🇸 English
-
-- [What is Axiom?](#-what-is-axiom)
-- [Trading Capabilities](#-trading-capabilities)
-- [Twin-Turbo Engines](#-twin-turbo-engines)
-- [AI Agents](#-ai-agents)
-- [Tech Stack](#-tech-stack)
-- [Quick Start](#-quick-start)
-
-</td>
-<td width="50%">
-
-### 🇸🇦 العربية
-
-- [ما هو Axiom؟](#-ما-هو-axiom)
-- [قدرات التداول](#-قدرات-التداول)
-- [محركات Twin-Turbo](#-محركات-twin-turbo)
-- [وكلاء الذكاء الاصطناعي](#-وكلاء-الذكاء-الاصطناعي)
-- [التقنيات](#-التقنيات)
-- [البدء السريع](#-البدء-السريع)
-
-</td>
-</tr>
-</table>
+| Metric | Value |
+|--------|-------|
+| 📁 **Modules** | 89+ |
+| 🤖 **AI Agents** | 5 (Math, Money, Journalist, Strategist, Analyst) |
+| 💰 **Brokers** | 5 (Capital, Alpaca, OANDA, Bybit, Coinbase) |
+| 🧪 **Tests** | 15+ test suites |
+| 📈 **Completion** | 90% |
+| 💵 **Cost** | $0/month |
 
 ---
 
-## 🎯 What is Axiom?
-
-**Axiom Antigravity** is a **complete AI trading platform** that combines:
-
-| Layer | Feature | Status |
-|-------|---------|--------|
-| 📊 **Analysis** | Twin-Turbo signal detection (AEXI + Dream) | ✅ Live |
-| 🧠 **Intelligence** | DeepSeek AI for market analysis | ✅ Live |
-| 💰 **Execution** | Capital.com Forex/Gold trading | ✅ Live |
-| 🤖 **Automation** | AI Bots with Testing/Live modes | ✅ Live |
-| 📱 **Alerts** | Telegram instant notifications | ✅ Live |
-
----
-
-## 🎯 ما هو Axiom؟
-
-**Axiom Antigravity** هو **منصة تداول متكاملة بالذكاء الاصطناعي** تجمع:
-
-| الطبقة | الميزة | الحالة |
-|--------|--------|--------|
-| 📊 **التحليل** | اكتشاف إشارات Twin-Turbo | ✅ يعمل |
-| 🧠 **الذكاء** | DeepSeek للتحليل | ✅ يعمل |
-| 💰 **التنفيذ** | تداول Capital.com | ✅ يعمل |
-| 🤖 **الأتمتة** | بوتات ذكية | ✅ يعمل |
-| 📱 **التنبيهات** | Telegram فوري | ✅ يعمل |
-
----
-
-## 💰 Trading Capabilities | قدرات التداول
-
-### Supported Brokers | الوسطاء المدعومون
+## 🧠 AI Models Stack | مجموعة نماذج الذكاء الاصطناعي
 
 ```
-┌───────────────────────────────────────┐
-│  Capital.com (Forex/CFD) — PRIMARY    │
-│  ├── EUR/USD, GBP/USD, USD/JPY        │
-│  ├── XAU/USD (Gold), XAG/USD (Silver) │
-│  ├── Indices, Stocks CFD              │
-│  └── Demo + Live Mode Toggle          │
-├───────────────────────────────────────┤
-│  Alpaca (Stocks/Crypto) — SECONDARY   │
-│  ├── US Stocks (Paper Trading)        │
-│  └── Real-time market data            │
-└───────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                    AI INTELLIGENCE LAYER                 │
+├─────────────────────────────────────────────────────────┤
+│  🧠 DeepSeek V3.2 (via Groq)                            │
+│     ├── 128K context window                             │
+│     ├── Advanced financial reasoning                    │
+│     └── FREE via Groq API                               │
+├─────────────────────────────────────────────────────────┤
+│  ⚡ Gemini 2.0 Flash (Google)                           │
+│     ├── 1M token context                                │
+│     ├── Multimodal chart analysis                       │
+│     ├── Technical indicator interpretation              │
+│     └── FREE tier available                             │
+├─────────────────────────────────────────────────────────┤
+│  🔮 GLM-4.5 (z.ai) - NEW                                │
+│     ├── Advanced agentic capabilities                   │
+│     ├── Multi-step reasoning                            │
+│     ├── Strong coding & analysis                        │
+│     └── Ideal for complex trading logic                 │
+├─────────────────────────────────────────────────────────┤
+│  🆓 Workers AI (Cloudflare)                             │
+│     ├── Llama 3.1, Mistral 7B                          │
+│     ├── 10,000 neurons/day FREE                         │
+│     └── Fast pattern matching                           │
+└─────────────────────────────────────────────────────────┘
 ```
-
-### AI Bot Modes | أوضاع البوت
-
-| Mode | Description | Risk |
-|------|-------------|------|
-| 🧪 **Testing** | Paper trading, no real money | None |
-| 🔴 **Live** | Real Capital.com account | Real |
 
 ---
 
-## 🧠 AI Agents | وكلاء الذكاء الاصطناعي
+## 🏗️ Architecture Overview | نظرة عامة على الهيكل
 
-```mermaid
-flowchart LR
-    A[User Question] --> B{DeepSeek AI}
-    B --> C[Market Analysis]
-    B --> D[Trade Recommendation]
-    B --> E[Risk Assessment]
-    
-    F[Signal Detected] --> G{Analyst Agent}
-    G --> H[Validate Signal]
-    G --> I[Assign Quality Tier]
-    H --> J[Telegram Alert]
 ```
-
-| Spider Agent | Model | Purpose |
-|--------------|-------|---------|
-| 🕸️ **Core Hub** | Cloudflare Worker | Dispatcher & Orchestrator |
-| 🕷️ **Reflex** | Workers AI (Llama 3.1) | Fast pattern matching (FREE) |
-| 🧠 **Analyst** | DeepSeek V3.2 | Deep reasoning & strategy |
-| 🛡️ **Guardian** | Workers AI | Risk validation (FREE) |
-| 📡 **Collector** | APIs (Finnhub) | Data aggregation |
-| 📰 **Journalist** | Gemini Flash | Daily briefings |
+Trading.System-0.1/
+├── 🎨 frontend/                 # Next.js 14 + TypeScript
+│   ├── app/                     # Pages (AR/EN i18n)
+│   ├── components/              # React components
+│   └── lib/                     # Utilities
+├── ☁️ trading-cloud-brain/      # Cloudflare Workers (Python)
+│   ├── src/
+│   │   ├── agents/              # AI agents (5)
+│   │   ├── brokers/             # Broker connectors (5)
+│   │   ├── indicators/          # Technical indicators
+│   │   ├── learning/            # Self-improving loop
+│   │   ├── mcp/                 # MCP tools (15)
+│   │   ├── aexi_engine.py       # AEXI signal detection
+│   │   ├── dream_engine.py      # Chaos theory engine
+│   │   ├── mtf_scalper.py       # Multi-timeframe scalper
+│   │   ├── scalping_engine.py   # High-frequency engine
+│   │   └── worker.py            # Main API (135KB)
+│   └── wrangler.toml            # Cloudflare config
+├── 📚 docs/                     # Documentation
+├── 🔬 manus_research/           # Research archives
+└── 📋 .idx/                     # AI memory & skills
+```
 
 ---
 
-## 🏎️ Twin-Turbo Engines
+## 🕷️ Spider Web Agents | وكلاء شبكة العنكبوت
 
-### AEXI Protocol (Signal Detection)
+| Spider Agent | Model | Purpose | Cost |
+|--------------|-------|---------|------|
+| 🕸️ **Core Hub** | Cloudflare Worker | Orchestration & routing | FREE |
+| 🕷️ **Reflex** | Workers AI (Llama 3.1) | Fast pattern matching | FREE |
+| 🧠 **Analyst** | DeepSeek V3.2 / Gemini 2.0 | Deep reasoning & strategy | FREE |
+| 🛡️ **Guardian** | Workers AI | Risk validation | FREE |
+| 📡 **Collector** | APIs (Finnhub, Finage) | Market data aggregation | FREE |
+| 📰 **Journalist** | Gemini Flash | Daily briefings & news | FREE |
+| 💼 **Strategist** | GLM-4.5 | Portfolio rebalancing | FREE |
 
-```
+---
+
+## 🏎️ Trading Engines | محركات التداول
+
+### Twin-Turbo Signal Detection
+
+```python
+# AEXI Protocol (Exhaustion Detection)
 AEXI = (0.4 × EXH) + (0.3 × VAF) + (0.3 × SVP)
-
-┌─────────────────────────────────────────┐
-│ EXH = Exhaustion (Z-Score)              │
-│ VAF = Velocity/ATR Factor               │
-│ SVP = Surveillance Volume Proxy         │
-└─────────────────────────────────────────┘
-
 Signal Trigger: AEXI > 80
-```
 
-### Dream Machine (Chaos Theory)
-
-```
+# Dream Machine (Chaos Theory)
 DREAM = (0.3 × Entropy) + (0.25 × Fractal) + (0.25 × Hurst) + (0.2 × VolDisp)
-
 Signal Trigger: Dream > 70
+
+# MTF Scalper (Multi-Timeframe)
+Alignment: 1M + 5M + 15M confirmation
+Entry: RSI(7) + EMA(9/21) crossover
+```
+
+### Risk Management
+
+```python
+# Kelly Criterion Position Sizing
+f* = (p × b - q) / b
+
+# ATR-Based Stop Loss
+SL = Entry - (2.5 × ATR)
+TP = Entry + (7.0 × ATR)  # 1:2.8 R:R ratio
+
+# Max Risk Per Trade: 2-5%
 ```
 
 ---
 
-## 🎨 Premium Dashboard | لوحة التحكم الفاخرة
+## 💰 Supported Brokers | الوسطاء المدعومون
 
-### Features
-
-| Component | Description |
-|-----------|-------------|
-| 🍩 **Portfolio Donut** | Equity allocation visualization |
-| 📊 **P/L Chart** | Daily profit/loss with time filters |
-| 🤖 **Active Bots** | AI strategies with performance sparklines |
-| 💬 **Telegram Widget** | Signals preview in dashboard |
-| 🧠 **DeepSeek Panel** | Floating AI chat assistant |
-| 🔄 **Mode Toggle** | Testing ↔ Live switch |
+| Broker | Markets | Status | Mode |
+|--------|---------|--------|------|
+| 💰 **Capital.com** | Forex, Gold, CFDs | ✅ Live | Demo + Live |
+| 📈 **Alpaca** | US Stocks | ✅ Live | Paper Trading |
+| 🌐 **OANDA** | Forex | ✅ Live | Demo + Live |
+| ₿ **Bybit** | Crypto Perpetuals | ✅ Live | 100x Leverage |
+| 🪙 **Coinbase** | Crypto Spot | ✅ Ready | OAuth2 |
 
 ---
 
@@ -224,7 +205,8 @@ Signal Trigger: Dream > 70
 - **Next.js 14** — React framework
 - **TypeScript** — Type safety
 - **Framer Motion** — Animations
-- **next-intl** — AR/EN languages
+- **next-intl** — AR/EN i18n
+- **Ably** — Realtime updates
 
 </td>
 <td width="50%">
@@ -232,13 +214,33 @@ Signal Trigger: Dream > 70
 ### Backend
 
 - **Cloudflare Workers** — Edge (Python)
-- **Capital.com API** — Forex trading
-- **Groq** — DeepSeek AI
-- **D1 + KV** — Database + Cache
+- **D1** — SQL Database (5GB)
+- **KV** — Key-Value Cache
+- **R2** — Object Storage (10GB)
+- **Workers AI** — LLMs (FREE)
 
 </td>
 </tr>
 </table>
+
+---
+
+## 💵 Zero-Cost Infrastructure | بنية تحتية بتكلفة صفر
+
+| Service | Free Tier |
+|---------|-----------|
+| Cloudflare Workers | 100,000 req/day |
+| Cloudflare D1 | 5GB, 5M reads/day |
+| Cloudflare KV | 100K reads/day |
+| Cloudflare R2 | 10GB, free egress |
+| Workers AI | 10,000 neurons/day |
+| Groq API | 14,400 req/day |
+| Gemini API | FREE tier |
+| Capital.com API | Unlimited |
+| Vercel | Unlimited |
+| Telegram | Unlimited |
+
+**Total Monthly Cost: $0** 💵
 
 ---
 
@@ -267,21 +269,22 @@ wrangler secret put GROQ_API_KEY
 wrangler secret put CAPITAL_API_KEY
 wrangler secret put CAPITAL_EMAIL
 wrangler secret put CAPITAL_PASSWORD
+wrangler secret put GOOGLE_AI_KEY      # Gemini 2.0
+wrangler secret put ZAI_API_KEY        # GLM-4.5 (optional)
 ```
 
 ---
 
-## 💰 Zero-Cost Infrastructure | بنية تحتية بتكلفة صفر
+## 🤖 Telegram Bot Commands
 
-| Service | Free Tier |
-|---------|-----------|
-| Cloudflare Workers | 100,000 req/day |
-| Groq API | 14,400 req/day |
-| Capital.com API | Unlimited |
-| Vercel | Unlimited |
-| Telegram | Unlimited |
-
-**Total Monthly Cost: $0** 💵
+| Command | Description | AI |
+|---------|-------------|-----|
+| `/start` | Welcome message | - |
+| `/status` | System status | - |
+| `/ai [text]` | Quick AI chat | Workers AI (FREE) |
+| `/analyze [type] [text]` | Deep analysis | DeepSeek / Gemini |
+| `/stoptrade` | Kill switch ON | - |
+| `/starttrade` | Resume trading | - |
 
 ---
 
@@ -297,27 +300,26 @@ wrangler secret put CAPITAL_PASSWORD
 
 ### 🤖 AI Partner | الشريك الذكي
 
-**Gemini Quantum Super Skills**
-
-*Co-Founder & Lead Engine Architect*
+**Axiom** — *Co-Founder & Lead Engine Architect*
 
 - 🧠 Strategy, Architecture, Code Assistance
 - ⚡ Zero-Cost Optimization Specialist
 - 🛡️ Security & Risk Analysis
+- 📊 Multi-AI Integration (DeepSeek + Gemini + GLM-4.5)
 
 ---
 
 ## 📄 License | الرخصة
 
-MIT License © 2025 Mohamed Hossameldin Abdelaziz & Gemini AI
+MIT License © 2025 Mohamed Hossameldin Abdelaziz & Axiom AI
 
 ---
 
 <div align="center">
 
-### 🌌 Built with DeepSeek AI + Zero Cost 🌌
+### 🌌 Built with Multi-AI Stack + Zero Cost 🌌
 
-**مبني بذكاء DeepSeek + تكلفة صفر**
+**مبني بمجموعة ذكاء متعددة + تكلفة صفر**
 
 ---
 
@@ -325,21 +327,6 @@ MIT License © 2025 Mohamed Hossameldin Abdelaziz & Gemini AI
 
 *"من الإشارات إلى التنفيذ."*
 
-🚀 **v1.0 — Citadel Edition**
-
----
-
-## 🤖 Telegram Bot
-
-| Command | Description | AI |
-|---------|-------------|----|
-| `/start` | Welcome message | - |
-| `/status` | System status | - |
-| `/ai [text]` | Quick AI chat | Workers AI (FREE) |
-| `/analyze [type] [text]` | Deep analysis | DeepSeek |
-| `/stoptrade` | Kill switch ON | - |
-| `/starttrade` | Resume trading | - |
-
-📖 Full setup guide: `docs/telegram_bot_setup.md`
+🚀 **v1.0 — Citadel Edition** | December 2025
 
 </div>

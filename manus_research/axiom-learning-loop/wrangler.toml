@@ -1,0 +1,21 @@
+# AXIOM Learning Loop - Root Configuration
+
+# This file is used for shared configuration across all workers
+
+[vars]
+LOG_LEVEL = "info"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "axiom-learning-db"
+database_id = "{{D1_DATABASE_ID}}"
+
+[[kv_namespaces]]
+binding = "KV"
+namespace_id = "{{KV_NAMESPACE_ID}}"
+
+# Environment variables for APIs
+[vars]
+FINAGE_API_KEY = "{{FINAGE_API_KEY}}"
+TELEGRAM_BOT_TOKEN = "{{TELEGRAM_BOT_TOKEN}}"
+TELEGRAM_CHAT_ID = "{{TELEGRAM_CHAT_ID}}"

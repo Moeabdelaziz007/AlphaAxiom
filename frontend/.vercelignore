@@ -1,0 +1,6 @@
+# Vercel Ignore
+axiom-new
+.env.local
+.env
+.git
+.DS_Store

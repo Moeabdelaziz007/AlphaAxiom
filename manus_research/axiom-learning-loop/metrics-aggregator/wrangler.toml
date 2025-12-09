@@ -1,0 +1,19 @@
+name = "axiom-metrics-aggregator"
+main = "worker.ts"
+type = "javascript"
+compatibility_date = "2024-12-08"
+
+[vars]
+LOG_LEVEL = "info"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "axiom-learning-db"
+database_id = "{{D1_DATABASE_ID}}"
+
+[[kv_namespaces]]
+binding = "KV"
+namespace_id = "{{KV_NAMESPACE_ID}}"
+
+[triggers]
+crons = ["0 0 * * *"]  # Daily at midnight UTC

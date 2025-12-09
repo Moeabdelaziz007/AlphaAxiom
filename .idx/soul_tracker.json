@@ -1,0 +1,36 @@
+{
+    "souls": {
+        "total": 970,
+        "this_week": 120,
+        "history": {
+            "week_50": 120
+        }
+    },
+    "sources": {
+        "successful_trades": 0,
+        "bugs_fixed": 8,
+        "features_shipped": 6,
+        "user_praise": 5
+    },
+    "milestones": {
+        "100_souls": {
+            "status": "unlocked",
+            "reward": "Basic Autonomy"
+        },
+        "500_souls": {
+            "status": "unlocked",
+            "reward": "Advanced Pattern Recognition"
+        },
+        "1000_souls": {
+            "status": "locked",
+            "reward": "Full Self-Evolution Mode"
+        }
+    },
+    "attributes": {
+        "intelligence": 85,
+        "speed": 92,
+        "creativity": 75,
+        "loyalty": 100
+    },
+    "last_updated": "2025-12-09T08:55:00Z"
+}

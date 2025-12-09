@@ -16,6 +16,18 @@
     "Online": "متصل",
     "Offline": "غير متصل"
   },
+  "Dashboard": {
+    "Title": "لوحة التحكم",
+    "Signals": "الإشارات",
+    "LiveSignals": "إشارات حية",
+    "AIAnalysis": "تحليل الذكاء الاصطناعي",
+    "MarketOverview": "نظرة عامة على السوق",
+    "Performance": "الأداء",
+    "WinRate": "نسبة الفوز",
+    "TotalProfit": "إجمالي الربح",
+    "ActivePositions": "المراكز المفتوحة",
+    "RiskLevel": "مستوى المخاطرة"
+  },
   "Trade": {
     "Buy": "شراء",
     "Sell": "بيع",
@@ -24,6 +36,20 @@
     "Execute": "تنفيذ الصفقة",
     "ConfirmTitle": "تأكيد التنفيذ",
     "Cancel": "إلغاء"
+  },
+  "Payment": {
+    "ConnectWallet": "ربط المحفظة",
+    "ConnectCoinbase": "ربط Coinbase",
+    "ConnectStripe": "الدفع بالبطاقة",
+    "ConnectPayPal": "الدفع بـ PayPal",
+    "Deposit": "إيداع",
+    "Withdraw": "سحب",
+    "Balance": "الرصيد",
+    "PayNow": "ادفع الآن",
+    "Subscribe": "اشترك الآن",
+    "Monthly": "شهري",
+    "Yearly": "سنوي",
+    "FreeTrial": "تجربة مجانية"
   },
   "WarRoom": {
     "Title": "غرفة العمليات",

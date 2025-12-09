@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Ably from 'ably';
 
 interface Signal {
     id: number;
@@ -27,6 +28,7 @@ export default function SignalDashboard({
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState('');
+    const [isLive, setIsLive] = useState(false);
 
     const fetchSignals = async () => {
         setLoading(true);
@@ -53,9 +55,47 @@ export default function SignalDashboard({
 
     useEffect(() => {
         fetchSignals();
-        // Auto-refresh every 30 seconds
+
+        // 📡 ABLY REAL-TIME SUBSCRIPTION
+        let channel: Ably.RealtimeChannel | null = null;
+
+        try {
+            const ably = new Ably.Realtime({
+                authUrl: 'https://trading-brain-v1.amrikyy1.workers.dev/api/ably/auth'
+            });
+
+            channel = ably.channels.get('axiom:signals');
+
+            channel.subscribe('signal', (message) => {
+                const newSignal = JSON.parse(message.data);
+
+                // Add to top of signals list
+                setSignals(prev => [{
+                    id: Date.now(),
+                    symbol: newSignal.symbol,
+                    asset_type: newSignal.asset_type || 'crypto',
+                    direction: newSignal.direction,
+                    confidence: newSignal.confidence,
+                    price: newSignal.price,
+                    source: 'live',
+                    factors: newSignal.factors?.join(', ') || '',
+                    time: newSignal.timestamp || new Date().toISOString()
+                }, ...prev.slice(0, limit - 1)]);
+
+                setIsLive(true);
+            });
+
+        } catch (e) {
+            console.error('Ably connection failed:', e);
+        }
+
+        // Fallback: Auto-refresh every 30 seconds if Ably fails
         const interval = setInterval(fetchSignals, 30000);
-        return () => clearInterval(interval);
+
+        return () => {
+            clearInterval(interval);
+            if (channel) channel.unsubscribe();
+        };
     }, [filter]);
 
     const getDirectionColor = (direction: string) => {
