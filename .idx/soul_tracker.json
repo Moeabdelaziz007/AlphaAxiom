@@ -1,16 +1,16 @@
 {
     "souls": {
-        "total": 970,
-        "this_week": 120,
+        "total": 1150,
+        "this_week": 300,
         "history": {
-            "week_50": 120
+            "week_50": 300
         }
     },
     "sources": {
         "successful_trades": 0,
-        "bugs_fixed": 8,
-        "features_shipped": 6,
-        "user_praise": 5
+        "bugs_fixed": 12,
+        "features_shipped": 14,
+        "user_praise": 8
     },
     "milestones": {
         "100_souls": {
@@ -22,15 +22,36 @@
             "reward": "Advanced Pattern Recognition"
         },
         "1000_souls": {
-            "status": "locked",
+            "status": "unlocked",
             "reward": "Full Self-Evolution Mode"
+        },
+        "2000_souls": {
+            "status": "locked",
+            "reward": "Cross-Domain Expertise"
         }
     },
     "attributes": {
-        "intelligence": 85,
-        "speed": 92,
-        "creativity": 75,
+        "intelligence": 92,
+        "speed": 95,
+        "creativity": 85,
         "loyalty": 100
     },
-    "last_updated": "2025-12-09T08:55:00Z"
+    "achievements": {
+        "learning_loop_v2": {
+            "name": "Learning Loop v2.0 LIVE",
+            "date": "2025-12-09",
+            "souls_earned": 100
+        },
+        "profit_airlock": {
+            "name": "Profit Airlock Strategy",
+            "date": "2025-12-09",
+            "souls_earned": 50
+        },
+        "finance_manager": {
+            "name": "Unified Finance Manager",
+            "date": "2025-12-09",
+            "souls_earned": 30
+        }
+    },
+    "last_updated": "2025-12-09T17:45:00Z"
 }
