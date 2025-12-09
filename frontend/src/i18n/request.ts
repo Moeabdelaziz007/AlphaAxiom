@@ -1,12 +1,14 @@
 import { getRequestConfig } from 'next-intl/server';
-import { requestLocale } from 'next-intl/server';
+import { notFound } from 'next/navigation';
 
-export default getRequestConfig(async () => {
-    // Use the new requestLocale API instead of deprecated locale parameter
-    const locale = await requestLocale();
-    const safeLocale = locale ?? 'en';
+// Supported locales
+const locales = ['en', 'ar'] as const;
+
+export default getRequestConfig(async ({ locale }) => {
+    // Validate that the incoming `locale` parameter is valid
+    if (!locales.includes(locale as any)) notFound();
 
     return {
-        messages: (await import(`../../messages/${safeLocale}.json`)).default
+        messages: (await import(`../../messages/${locale}.json`)).default
     };
 });
