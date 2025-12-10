@@ -1,11 +1,12 @@
 import React from 'react';
-import { LayoutDashboard, LineChart, Bot, Layers, Settings, Zap } from 'lucide-react';
+import { LayoutDashboard, LineChart, Bot, Layers, Settings, Zap, X } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
+  onClose?: () => void; // Add onClose callback
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', active: true },
     { icon: LineChart, label: 'Analytics', active: false },
@@ -17,11 +18,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 
   return (
     <aside className={`fixed top-0 left-0 h-full bg-[#0D0D0D] border-r border-white/5 z-40 transition-all duration-300 ease-in-out ${isOpen ? 'w-64' : 'w-0 lg:w-20'} overflow-hidden`}>
-      <div className="flex items-center justify-center h-16 border-b border-white/5">
-        <div className={`w-8 h-8 rounded bg-gradient-to-br from-axiom-primary to-blue-600 flex items-center justify-center text-black font-bold text-xl shadow-[0_0_15px_rgba(0,255,136,0.4)] ${isOpen ? 'mr-3' : 'mr-0'}`}>
-          A
+      <div className="flex items-center justify-between h-16 border-b border-white/5 px-4">
+        <div className="flex items-center">
+          <div className={`w-8 h-8 rounded bg-gradient-to-br from-axiom-primary to-blue-600 flex items-center justify-center text-black font-bold text-xl shadow-[0_0_15px_rgba(0,255,136,0.4)] ${isOpen ? 'mr-3' : 'mr-0'}`}>
+            A
+          </div>
+          {isOpen && <span className="font-bold text-xl tracking-tight text-white">AXIOM</span>}
         </div>
-        {isOpen && <span className="font-bold text-xl tracking-tight text-white">AXIOM</span>}
+        {/* Close button - only visible when sidebar is open */}
+        {isOpen && (
+          <button 
+            onClick={onClose}
+            className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Close sidebar"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
       </div>
 
       <nav className="p-4 space-y-2 mt-4">

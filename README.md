@@ -219,6 +219,40 @@ TP = Entry + (7.0 × ATR)  # 1:2.8 R:R ratio
 
 ---
 
+## 🎮 Self-Play Dashboard | لوحة التعلم الذاتي
+
+> *NEW in v1.1 — Built with Google AI Studio*
+
+Real-time visualization of the dialectic self-play learning loop:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              🎮 SELF-PLAY DASHBOARD                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  🔵 CORE_AGENT          ⚡ SYNTHESIS          🔴 SHADOW_AGENT │
+│  ├── Confidence: 84%    Decision Orb         ├── Regret: 32%│
+│  └── Thesis: LONG      ════════════════       └── Antithesis │
+│                                                             │
+│  📈 FITNESS LANDSCAPE                                       │
+│  └── Generation: 30 | Population: 128 | Best: 95.2%        │
+│                                                             │
+│  🛡️ RESILIENCE MONITOR                                      │
+│  └── System Health | Uptime | Error Rate                   │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Access:** `/dashboard/shadow-center` (War Room in Sidebar)
+
+| Component | Purpose |
+|-----------|---------|
+| 🔵 **Dialectic War Room** | Core vs Shadow agent debate |
+| 📈 **Evolutionary Optimization** | Fitness tracking over generations |
+| 🛡️ **Resilience Monitor** | System health metrics |
+
+---
+
 ## ⏰ Autonomous Swarm | السرب المستقل
 
 **Cloudflare Cron-Triggered AI Agents** — Running 24/7 with zero human intervention:

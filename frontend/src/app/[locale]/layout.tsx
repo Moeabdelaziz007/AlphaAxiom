@@ -5,6 +5,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import "../globals.css";
 import { Providers } from "./providers";
 import Link from "next/link";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: '--font-jetbrains' });
@@ -112,12 +113,20 @@ export default async function RootLayout({
                                 </Link>
                             </nav>
 
-                            {/* Right Side */}
+                            {/* Right Side - Clerk Authentication */}
                             <div className="flex items-center gap-4">
-                                {/* User Avatar */}
-                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--neon-purple)] to-[var(--neon-magenta)] flex items-center justify-center text-sm font-bold">
-                                    U
-                                </div>
+                                <SignedOut>
+                                    <SignInButton />
+                                </SignedOut>
+                                <SignedIn>
+                                    <UserButton 
+                                        appearance={{
+                                            elements: {
+                                                avatarBox: "w-9 h-9 rounded-full border-2 border-[var(--neon-purple)]"
+                                            }
+                                        }}
+                                    />
+                                </SignedIn>
                             </div>
                         </header>
 

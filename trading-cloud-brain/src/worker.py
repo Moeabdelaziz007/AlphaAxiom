@@ -24,16 +24,11 @@ import json
 from base64 import b64encode
 
 # Consolidated package imports
-from core import Logger, log, RateLimiter
-from brokers import BrokerGateway
-from strategy import TradingBrain
-from intelligence import TwinTurbo
+from core import log
 from state import StateManager
 from patterns import PatternScanner
 # Citadel Architecture Imports
 from objects import TradeManager
-from consumers import consume_trade_queue
-
 # Export TradeManager for Cloudflare DO binding
 __all__ = ['TradeManager', 'on_fetch', 'on_scheduled']
 
@@ -53,7 +48,9 @@ from cache.client import create_kv_cache
 # ==========================================
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+ABLY_API_URL = "https://rest.ably.io"
 # ... [rest of imports/constants] ...
+
 
 async def on_scheduled(event, env):
     """
@@ -282,8 +279,7 @@ async def on_scheduled(event, env):
         # تقرير يومي + ترتيب الوكلاء
         # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         if current_hour == 0 and current_minute == 0:
-            log.info("🏆 Daily Midnight: ContestManager + WealthReport...")
-                
+            log.info("🏆 Daily Midnight: ContestManager + WealthReport...")                
             # A. ContestManager - Generate daily agent rankings
             try:
                 from agents.swarm.contest_manager import ContestManager
@@ -530,6 +526,49 @@ async def on_fetch(request, env):
                 "error": str(e),
                 "drift_active": False
             }), headers=headers)
+    
+    # ==========================================
+    # 🧠 ALPHAAXIOM v1.0 SELF-PLAY LEARNING LOOP
+    # ==========================================
+    
+    # 🎯 Dialectic Processing
+    if "api/dialectic/process" in url or "api/dialectic" in url and request.method == "POST":
+        try:
+            from learning_loop_v4.cloudflare_integration import handle_dialectic_request
+            result = await handle_dialectic_request(request, env)
+            return Response.new(json.dumps(result), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({
+                "status": "error",
+                "error": str(e),
+                "timestamp": __import__('datetime').datetime.now().isoformat()
+            }), status=500, headers=headers)
+    
+    # 🧬 Evolution Cycles
+    if "api/evolution/run" in url or "api/evolution" in url and request.method == "POST":
+        try:
+            from learning_loop_v4.cloudflare_integration import handle_evolution_request
+            result = await handle_evolution_request(request, env)
+            return Response.new(json.dumps(result), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({
+                "status": "error",
+                "error": str(e),
+                "timestamp": __import__('datetime').datetime.now().isoformat()
+            }), status=500, headers=headers)
+    
+    # 📊 System Status
+    if "api/system/status" in url or ("api/status" in url and "system" in url):
+        try:
+            from learning_loop_v4.cloudflare_integration import handle_status_request
+            result = await handle_status_request(request, env)
+            return Response.new(json.dumps(result), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({
+                "status": "error",
+                "error": str(e),
+                "timestamp": __import__('datetime').datetime.now().isoformat()
+            }), status=500, headers=headers)
     
     # ==========================================
     # 💳 COINBASE ADVANCED TRADE API

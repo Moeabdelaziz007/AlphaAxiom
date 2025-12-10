@@ -21,6 +21,7 @@
 | **Weighted Consensus Engine** | Gen 3 | ████████░░ | "Opinion aggregation", "Dynamic weighting", "Consensus" |
 | **Vector Knowledge Base** | Gen 2 | ███████░░░ | "Semantic search", "Embeddings", "Knowledge retrieval" |
 | **Alpha Series Adaptation** | Gen 2 | ██████░░░░ | "AlphaGo", "AlphaZero", "MCTS", "Self-play" |
+| **Self-Play Dashboard UI** | Gen 2 | ██████░░░░ | "Dialectic War Room", "AI Studio", "Shadow Center" |
 
 ### 🤖 AI Trading Core (UPGRADED - Dec 2025)
 
@@ -199,6 +200,14 @@ Example: $10,000 × 2% / $50 = 4 units
 
 ## 📜 Evolution Log
 
+### [2025-12-10 02:35] i18n Static Rendering Fix 🌐
+
+- **FIXED:** next-intl dynamic rendering errors
+- **IMPLEMENTED:** setRequestLocale in global not-found and root layout
+- **RESOLVED:** Vercel build issues with i18n
+
+---
+
 ### [2025-12-08 09:55] 100% Weekly ROI Implementation 🚀
 
 - **CREATED:** Fast RSI (7-period) for 1M scalping
@@ -226,3 +235,10 @@ Example: $10,000 × 2% / $50 = 4 units
 
 - **Mastered:** Unified API Pattern
 - **Mastered:** SWR Hook Pattern
+
+### [2025-12-10 08:55] Real-time Data Streaming Infrastructure
+
+- **CONFIGURED:** Cloudflare proxy routes for Ably integration
+- **FIXED:** Missing ABLY_API_URL constant in worker.py
+- **VERIFIED:** WebSocket connections for market data streaming
+- **IMPLEMENTED:** Real-time price feeds and trading updates

@@ -8,6 +8,7 @@ from .oanda import OandaProvider
 from .capital import CapitalProvider
 from .pepperstone import PepperstoneProvider
 from .icmarkets import ICMarketsProvider
+from .binance_connector import BinanceConnector
 from .gateway import BrokerGateway
 
 __all__ = [
@@ -16,6 +17,7 @@ __all__ = [
     'CapitalProvider',
     'PepperstoneProvider',
     'ICMarketsProvider',
+    'BinanceConnector',
     'BrokerGateway'
 ]
 

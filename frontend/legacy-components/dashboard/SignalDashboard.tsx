@@ -21,7 +21,7 @@ interface SignalDashboardProps {
 }
 
 export default function SignalDashboard({
-    apiUrl = 'https://trading-brain-v1.amrikyy1.workers.dev/api/mcp/signals',
+    apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'https://trading-brain-v1.amrikyy.workers.dev'}/api/mcp/signals`,
     limit = 20
 }: SignalDashboardProps) {
     const [signals, setSignals] = useState<Signal[]>([]);
@@ -61,7 +61,7 @@ export default function SignalDashboard({
 
         try {
             const ably = new Ably.Realtime({
-                authUrl: 'https://trading-brain-v1.amrikyy1.workers.dev/api/ably/auth'
+                authUrl: `${process.env.NEXT_PUBLIC_API_URL || 'https://trading-brain-v1.amrikyy.workers.dev'}/api/ably/auth`
             });
 
             channel = ably.channels.get('axiom:signals');

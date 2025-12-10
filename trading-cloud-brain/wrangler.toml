@@ -14,9 +14,11 @@ crons = [
     "* * * * *",    # 🛡️ RiskGuardian (1m)
     "*/5 * * * *",  # ⚡ Scalper (5m)
     "*/15 * * * *", # 📰 Journalist (15m)
-    "0 * * * *"     # 🧠 Strategist (1h)
+    "0 * * * *",    # 🧠 Strategist (1h)
+    "*/30 * * * *", # 🧠 AlphaAxiom v1.0 Dialectic Processing (30m)
+    "0 1 * * *",    # 🧬 AlphaAxiom v1.0 Evolution Cycle (Daily at 01:00 UTC)
+    "0 2 * * 0"     # 📊 AlphaAxiom v1.0 System Maintenance (Weekly Sunday at 02:00 UTC)
 ]
-
 # 🧠 MEMORY: KV Namespace
 [[kv_namespaces]]
 binding = "BRAIN_MEMORY"

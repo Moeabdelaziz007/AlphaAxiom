@@ -9,11 +9,15 @@ import {
     Clock,
     Shield
 } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
 
 export default function ProfilePage() {
+    const { user, isLoaded } = useUser();
+    
     // Mock Data (will be connected to API later)
-    const user = {
-        name: "Crypto Joker",
+    const userData = {
+        name: isLoaded && user ? `${user.firstName} ${user.lastName}` : "Loading...",
+        email: isLoaded && user ? user.emailAddresses[0]?.emailAddress : "",
         tier: "Diamond Pro",
         balance: 102540.50,
         pnl: 2540.50,
@@ -21,6 +25,14 @@ export default function ProfilePage() {
         trades: 142,
         joinDate: "Dec 2024"
     };
+
+    if (!isLoaded) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-pulse">Loading profile...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen space-y-6 animate-fade-in p-2 md:p-0 pb-20">
@@ -33,22 +45,30 @@ export default function ProfilePage() {
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-6 relative z-10">
                     <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[var(--neon-purple)] to-[var(--neon-cyan)] p-1">
                         <div className="w-full h-full bg-[var(--void)] rounded-xl flex items-center justify-center">
-                            <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--neon-purple)] to-[var(--neon-cyan)] animate-pulse">
-                                CJ
-                            </span>
+                            {user?.imageUrl ? (
+                                <img 
+                                    src={user.imageUrl} 
+                                    alt="Profile" 
+                                    className="w-full h-full rounded-xl object-cover"
+                                />
+                            ) : (
+                                <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--neon-purple)] to-[var(--neon-cyan)] animate-pulse">
+                                    {userData.name.charAt(0)}
+                                </span>
+                            )}
                         </div>
                     </div>
 
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <h1 className="text-3xl font-bold text-white tracking-tight">{user.name}</h1>
+                            <h1 className="text-3xl font-bold text-white tracking-tight">{userData.name}</h1>
                             <span className="px-3 py-1 rounded-full bg-[var(--neon-gold)]/20 text-[var(--neon-gold)] text-xs font-bold border border-[var(--neon-gold)]/50 flex items-center gap-1">
-                                <Trophy className="w-3 h-3" /> {user.tier}
+                                <Trophy className="w-3 h-3" /> {userData.tier}
                             </span>
                         </div>
                         <p className="text-[var(--text-muted)] font-mono text-sm flex items-center gap-4">
-                            <span className="flex items-center gap-1"><Shield className="w-4 h-4" /> ID: 8X-9291</span>
-                            <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Member since {user.joinDate}</span>
+                            <span className="flex items-center gap-1"><Shield className="w-4 h-4" /> Email: {userData.email}</span>
+                            <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Member since {userData.joinDate}</span>
                         </p>
                     </div>
                 </div>
@@ -63,7 +83,7 @@ export default function ProfilePage() {
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <p className="text-sm text-[var(--text-muted)] uppercase mb-1">Total Balance</p>
-                            <h3 className="text-3xl font-bold text-white font-mono">${user.balance.toLocaleString()}</h3>
+                            <h3 className="text-3xl font-bold text-white font-mono">${userData.balance.toLocaleString()}</h3>
                         </div>
                         <div className="p-3 rounded-xl bg-[var(--neon-green)]/10 text-[var(--neon-green)]">
                             <CreditCard className="w-6 h-6" />
@@ -81,7 +101,7 @@ export default function ProfilePage() {
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <p className="text-sm text-[var(--text-muted)] uppercase mb-1">Net P/L</p>
-                            <h3 className="text-3xl font-bold text-[var(--neon-cyan)] font-mono">+${user.pnl.toLocaleString()}</h3>
+                            <h3 className="text-3xl font-bold text-[var(--neon-cyan)] font-mono">+${userData.pnl.toLocaleString()}</h3>
                         </div>
                         <div className="p-3 rounded-xl bg-[var(--neon-cyan)]/10 text-[var(--neon-cyan)]">
                             <Activity className="w-6 h-6" />
@@ -99,13 +119,13 @@ export default function ProfilePage() {
                     <div className="flex justify-between items-start mb-4">
                         <div>
                             <p className="text-sm text-[var(--text-muted)] uppercase mb-1">Win Rate</p>
-                            <h3 className="text-3xl font-bold text-[var(--neon-purple)] font-mono">{user.winRate}%</h3>
+                            <h3 className="text-3xl font-bold text-[var(--neon-purple)] font-mono">{userData.winRate}%</h3>
                         </div>
                         <div className="p-3 rounded-xl bg-[var(--neon-purple)]/10 text-[var(--neon-purple)]">
                             <Trophy className="w-6 h-6" />
                         </div>
                     </div>
-                    <p className="text-xs text-[var(--text-muted)]">Based on {user.trades} total trades</p>
+                    <p className="text-xs text-[var(--text-muted)]">Based on {userData.trades} total trades</p>
                 </motion.div>
             </div>
 

@@ -22,6 +22,19 @@ from .weighted_consensus import (
     ConsensusResult
 )
 
+# Import core classes from causal bridge module
+from .causal_bridge import (
+    CausalLearningBridge,
+    ToolCategory,
+    DecisionType,
+    ToolCall,
+    CausalDecision,
+    DecisionOutcome
+)
+
+# Import price cache
+from .price_cache import PriceCache
+
 __all__ = [
     'IntelligentCollaborationEngine',
     'AgentInsight',
@@ -31,5 +44,12 @@ __all__ = [
     'RiskDecision',
     'WeightedConsensusEngine',
     'AgentOpinion',
-    'ConsensusResult'
+    'ConsensusResult',
+    'CausalLearningBridge',
+    'ToolCategory',
+    'DecisionType',
+    'ToolCall',
+    'CausalDecision',
+    'DecisionOutcome',
+    'PriceCache'
 ]

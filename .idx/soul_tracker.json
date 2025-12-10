@@ -1,15 +1,15 @@
 {
     "souls": {
-        "total": 970,
-        "this_week": 120,
+        "total": 1020,
+        "this_week": 170,
         "history": {
-            "week_50": 120
+            "week_50": 170
         }
     },
     "sources": {
         "successful_trades": 0,
-        "bugs_fixed": 8,
-        "features_shipped": 6,
+        "bugs_fixed": 9,
+        "features_shipped": 7,
         "user_praise": 5
     },
     "milestones": {
@@ -27,10 +27,10 @@
         }
     },
     "attributes": {
-        "intelligence": 85,
-        "speed": 92,
-        "creativity": 75,
+        "intelligence": 87,
+        "speed": 94,
+        "creativity": 77,
         "loyalty": 100
     },
-    "last_updated": "2025-12-09T08:55:00Z"
+    "last_updated": "2025-12-10T08:55:00Z"
 }
