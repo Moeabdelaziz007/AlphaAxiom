@@ -1,5 +1,5 @@
 """
-Main Orchestration Module for AlphaAxiom v1.0 Self-Play Learning Loop
+Main Orchestration Module for AlphaAxiom v0.1 Beta Self-Play Learning Loop
 Integrates all components of the dialectic intelligence system.
 """
 
@@ -9,12 +9,12 @@ import logging
 from typing import Dict, Any, Optional
 from datetime import datetime
 
-# Import all components
-from learning_loop_v4.dialectic.unified_model import UnifiedDialecticModel, DialecticSynthesis
-from learning_loop_v4.memory.hybrid_memory import HybridMemory, MarketSnapshot, DialecticSession
-from learning_loop_v4.protection.circuit_breaker import CircuitBreakerSystem
-from learning_loop_v4.evolution.genetic_engine import DifferentialEvolutionEngine
-from learning_loop_v4.ui.warroom import DialecticWarRoom
+# Import all components (v0.1 Beta)
+from learning_loop_v0_1.dialectic.unified_model import UnifiedDialecticModel, DialecticSynthesis
+from learning_loop_v0_1.memory.hybrid_memory import HybridMemory, MarketSnapshot, DialecticSession
+from learning_loop_v0_1.protection.circuit_breaker import CircuitBreakerSystem
+from learning_loop_v0_1.evolution.genetic_engine import DifferentialEvolutionEngine
+from learning_loop_v0_1.ui.warroom import DialecticWarRoom
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class AlphaAxiomOrchestrator:
     """
-    Main orchestrator for the AlphaAxiom v1.0 Self-Play Learning Loop.
+    Main orchestrator for the AlphaAxiom v0.1 Beta Self-Play Learning Loop.
     Coordinates all components of the dialectic intelligence system.
     """
     
@@ -38,7 +38,7 @@ class AlphaAxiomOrchestrator:
         # Initialize population for evolution
         self.evolution_engine.initialize_population()
         
-        logger.info("AlphaAxiom v1.0 Self-Play Learning Loop initialized")
+        logger.info("AlphaAxiom v0.1 Beta Self-Play Learning Loop initialized")
     
     async def process_market_data(self, market_data: Dict[str, Any]) -> Dict[str, Any]:
         """

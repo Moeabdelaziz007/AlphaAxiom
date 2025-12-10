@@ -3,9 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 
+interface ApiData {
+  userId: string;
+  createdAt: string;
+}
+
 export function UserInfo() {
   const { isLoaded, isSignedIn, user } = useUser();
-  const [apiData, setApiData] = useState(null);
+  const [apiData, setApiData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -38,7 +43,7 @@ export function UserInfo() {
   return (
     <div className="p-4 bg-gray-800 rounded-lg">
       <h2 className="text-xl font-bold mb-4">User Information</h2>
-      
+
       <div className="space-y-2">
         <p><strong>Name:</strong> {user?.firstName} {user?.lastName}</p>
         <p><strong>Email:</strong> {user?.emailAddresses[0]?.emailAddress}</p>
