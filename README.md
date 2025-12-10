@@ -1,27 +1,22 @@
 <div align="center">
 
+<img src="docs/images/logo.png" alt="Axiom Antigravity Logo" width="200" height="200" style="border-radius: 20%; box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);">
+
 # 🌌 AXIOM ANTIGRAVITY
 
 ### AI Trading Platform & Signal Hub | منصة تداول وإشارات بالذكاء الاصطناعي
 
-![Axiom Antigravity Logo](docs/images/logo.png)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=opensourceinitiative)
+![Status](https://img.shields.io/badge/Status-Stable%20v1.0-blue?style=for-the-badge&logo=rocket)
+![Tech Stack](https://img.shields.io/badge/Stack-Next.js%2019%20%7C%20Python%20%7C%20Workers-000000?style=for-the-badge&logo=next.js)
+![AI Models](https://img.shields.io/badge/AI-Gemini%202.0%20%7C%20GLM--4.5-8E44AD?style=for-the-badge&logo=google-gemini)
+![Telegram Bot](https://img.shields.io/badge/Telegram-Online-2CA5E0?style=for-the-badge&logo=telegram)
 
 **From Signals to Execution — Powered by GLM-4.5 + Gemini 2.0**
 
 **من الإشارات إلى التنفيذ — مدعوم بـ GLM-4.5 + Gemini 2.0**
 
 [![Live Demo](https://img.shields.io/badge/🔴_Live-aitrading.axiomid.app-00F0FF?style=for-the-badge)](https://aitrading.axiomid.app)
-[![MIT License](https://img.shields.io/badge/License-MIT_2025-green.svg?style=for-the-badge)](LICENSE)
-[![Cloudflare](https://img.shields.io/badge/☁️_Cloudflare-Workers-F38020?style=for-the-badge)](https://workers.cloudflare.com)
-[![z.ai](https://img.shields.io/badge/🔮_z.ai-GLM--4.5-9333EA?style=for-the-badge)](https://z.ai)
-[![Gemini](https://img.shields.io/badge/⚡_Google-Gemini_2.0-4285F4?style=for-the-badge)](https://ai.google.dev)
-[![Capital.com](https://img.shields.io/badge/💰_Capital.com-Trading-3B82F6?style=for-the-badge)](https://capital.com)
-
----
-
-*"We don't just signal. We execute."*
-
-*"نحن لا نكتفي بالإشارات. نحن ننفذ."*
 
 </div>
 
