@@ -76,7 +76,7 @@ const SPIDER_AGENTS: SpiderAgent[] = [
         lastRun: '45 min ago',
         totalRuns: 24,
         successRate: 100,
-        model: 'DeepSeek V3.2',
+        model: 'GLM-4.5 Vision',
         cost: '$0.02/day',
         color: 'var(--neon-purple)'
     },
@@ -307,8 +307,8 @@ export default function BotsPage() {
                             <button
                                 onClick={() => toggleAgent(agent.id)}
                                 className={`flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors ${agent.status === 'active'
-                                        ? 'bg-[var(--neon-green)]/20 text-[var(--neon-green)] hover:bg-[var(--neon-green)]/30'
-                                        : 'bg-[var(--surface)] text-white hover:bg-white/10'
+                                    ? 'bg-[var(--neon-green)]/20 text-[var(--neon-green)] hover:bg-[var(--neon-green)]/30'
+                                    : 'bg-[var(--surface)] text-white hover:bg-white/10'
                                     }`}
                             >
                                 {agent.status === 'active' ? (

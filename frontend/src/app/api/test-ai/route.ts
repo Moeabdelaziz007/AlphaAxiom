@@ -8,9 +8,9 @@ export async function POST(request: Request) {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Mock Response based on interaction
-        // In production, this would call DeepSeek API via Cloudflare Worker
+        // In production, this would call Z.ai GLM-4.5 API via Cloudflare Worker
         const mockAnalysis = `
-### 🧠 DeepSeek R1 Analysis
+### 🧠 Z.ai GLM-4.5 Analysis
 **Strategy:** ${model || 'Standard'}
 **Symbol:** ${prompt.includes('EUR') ? 'EURUSD' : prompt.includes('XAU') ? 'XAUUSD' : 'Unknown'}
 

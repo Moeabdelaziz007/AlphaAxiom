@@ -14,7 +14,7 @@ const orbitron = Orbitron({ subsets: ["latin"], variable: '--font-orbitron', wei
 
 export const metadata: Metadata = {
     title: "Axiom Antigravity | AI Forex Trading",
-    description: "AI-Powered Forex Trading Platform with DeepSeek Intelligence",
+    description: "AI-Powered Forex Trading Platform with GLM-4.5 Intelligence",
     manifest: "/manifest.json",
     openGraph: {
         title: "Axiom Antigravity Trading Hub",

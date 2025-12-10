@@ -33,7 +33,7 @@ export default function TestAIPage() {
             const res = await fetch('/api/test-ai', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt, model: 'DeepSeek-R1' })
+                body: JSON.stringify({ prompt, model: 'GLM-4.5' })
             });
             const data = await res.json();
 
@@ -60,7 +60,7 @@ export default function TestAIPage() {
                         AI Strategy Simulator
                     </h1>
                     <p className="text-sm text-[var(--text-muted)] mt-1 font-mono">
-                        Powered by DeepSeek R1 • Simulation Mode • Zero Risk
+                        Powered by Z.ai GLM-4.5 • Simulation Mode • Zero Risk
                     </p>
                 </div>
                 <div className="hidden md:flex items-center gap-2">
@@ -103,8 +103,8 @@ export default function TestAIPage() {
                                     onClick={handleSimulate}
                                     disabled={loading}
                                     className={`flex-1 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${loading
-                                            ? 'bg-[var(--glass-border)] text-[var(--text-dim)] cursor-not-allowed'
-                                            : 'bg-gradient-to-r from-[var(--neon-cyan)] to-[var(--neon-blue)] text-black shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:shadow-[0_0_30px_rgba(0,240,255,0.5)]'
+                                        ? 'bg-[var(--glass-border)] text-[var(--text-dim)] cursor-not-allowed'
+                                        : 'bg-gradient-to-r from-[var(--neon-cyan)] to-[var(--neon-blue)] text-black shadow-[0_0_20px_rgba(0,240,255,0.3)] hover:shadow-[0_0_30px_rgba(0,240,255,0.5)]'
                                         }`}
                                 >
                                     {loading ? <RotateCcw className="w-5 h-5 animate-spin" /> : <Play className="w-5 h-5" />}
@@ -182,8 +182,8 @@ export default function TestAIPage() {
 
                                 {/* Action Advice */}
                                 <div className={`p-4 rounded-xl flex items-center gap-3 ${result.metrics.risk_level === 'High'
-                                        ? 'bg-red-500/10 border border-red-500/30'
-                                        : 'bg-green-500/10 border border-green-500/30'
+                                    ? 'bg-red-500/10 border border-red-500/30'
+                                    : 'bg-green-500/10 border border-green-500/30'
                                     }`}>
                                     <ShieldAlert className={`w-6 h-6 ${result.metrics.risk_level === 'High' ? 'text-red-500' : 'text-green-500'
                                         }`} />

@@ -8,7 +8,7 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
@@ -27,6 +27,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+  // Sync external isOpen prop with internal expanded state on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setIsExpanded(isOpen);
+    }
+  }, [isMobile, isOpen]);
 
   const navItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
