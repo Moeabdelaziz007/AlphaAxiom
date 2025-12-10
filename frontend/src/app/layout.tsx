@@ -1,6 +1,6 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import { NextIntlClientProvider } from 'next-intl';
-import { getLocale, getMessages } from 'next-intl/server';
+import { getLocale, getMessages, setRequestLocale } from 'next-intl/server';
 import './globals.css';
 import { Inter } from 'next/font/google';
 
@@ -17,6 +17,8 @@ export default async function RootLayout({
     children: React.ReactNode;
 }) {
     const locale = await getLocale();
+    // Enable static rendering
+    setRequestLocale(locale);
     const messages = await getMessages();
 
     return (
