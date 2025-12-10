@@ -12,13 +12,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
+  // Combined: My mobile detection + Jules' cleanup pattern
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 1024);
     };
+
     handleResize();
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+
+    // Cleanup to prevent memory leaks (from Jules)
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const navItems = [
@@ -80,37 +86,38 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       </nav>
 
       {/* Bottom Section */}
-      <div className="p-3 border-t border-white/5 space-y-2">
-        {/* System Status */}
-        <div className={`p-3 rounded-xl bg-[#0A0A0A] border border-white/5 flex items-center gap-3 transition-opacity duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 hidden'}`}>
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse box-content border border-green-500/30"></div>
-          <div>
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider">System Status</p>
-            <p className="text-xs font-bold text-green-500">OPERATIONAL</p>
-          </div>
-        </div>
-
-        {/* Logout (Non-functional UI for now, or link to SignOutButton) */}
-        {/* You can wrap a Clerk SignOutButton here if needed */}
+      <div className="p-3 border-t border-white/5">
+        <button className={`
+          w-full flex items-center gap-3 p-3 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 group
+        `}>
+          <LogOut className="w-5 h-5 shrink-0 group-hover:text-red-400" />
+          <span className={`text-sm font-medium whitespace-nowrap transition-all duration-200 ${isExpanded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 absolute'}`}>
+            Logout
+          </span>
+        </button>
       </div>
 
-      {/* Mobile Toggle Button (Visible only on mobile) */}
+      {/* Mobile Close Button */}
+      {isMobile && isExpanded && (
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-4 p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
+
+      {/* Mobile Toggle */}
       {isMobile && !isExpanded && (
         <button
           onClick={() => setIsExpanded(true)}
-          className="fixed top-4 left-4 z-50 p-2 bg-[#050505] border border-white/10 rounded-lg text-white"
+          className="fixed top-6 left-4 p-3 rounded-xl bg-[#050505]/90 backdrop-blur-md border border-white/10 text-white shadow-lg z-50"
         >
-          <ChevronRight size={20} />
-        </button>
-      )}
-      {isMobile && isExpanded && (
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
-        >
-          <X size={20} />
+          <ChevronRight className="w-5 h-5" />
         </button>
       )}
     </aside>
   );
 };
+
+export default Sidebar;

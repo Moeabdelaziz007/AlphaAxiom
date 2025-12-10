@@ -1,5 +1,16 @@
 import { SignIn } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
+import { Suspense } from "react";
+
+// Loading state with Suspense (from Jules)
+function LoadingState() {
+    return (
+        <div className="flex flex-col items-center justify-center p-8">
+            <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-gray-400 text-sm animate-pulse">Establishing Secure Connection...</p>
+        </div>
+    );
+}
 
 export default function CustomSignInPage() {
     return (
@@ -52,42 +63,49 @@ export default function CustomSignInPage() {
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
                 <div className="z-10 w-full max-w-md px-6">
-                    <SignIn
-                        appearance={{
-                            baseTheme: dark,
-                            layout: {
-                                socialButtonsPlacement: "bottom",
-                                socialButtonsVariant: "blockButton",
-                            },
-                            variables: {
-                                colorPrimary: "#2563EB", // Blue-600
-                                colorBackground: "#0A0A0A",
-                                colorText: "white",
-                                colorTextSecondary: "#9CA3AF",
-                                colorInputBackground: "#111",
-                                colorInputText: "white",
-                                borderRadius: "0.75rem",
-                            },
-                            elements: {
-                                rootBox: "w-full",
-                                card: "bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_-10px_rgba(37,99,235,0.1)] rounded-2xl p-8",
-                                headerTitle: "text-2xl font-bold text-white mb-1 font-orbitron tracking-wide",
-                                headerSubtitle: "text-gray-500 text-sm mb-6",
-                                formButtonPrimary: "bg-blue-600 hover:bg-blue-500 text-white transition-all duration-300 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] border-none h-11",
-                                formFieldInput: "bg-[#111] border-white/5 focus:border-blue-500/50 hover:border-white/10 transition-colors h-11 text-[15px]",
-                                formFieldLabel: "text-gray-400 text-xs uppercase tracking-wider mb-1.5",
-                                footerActionLink: "text-blue-400 hover:text-blue-300 font-medium",
-                                identityPreviewText: "text-gray-300",
-                                identityPreviewEditButton: "text-blue-400",
-                                dividerLine: "bg-white/10",
-                                dividerText: "text-gray-600 uppercase text-[10px] tracking-widest",
-                                socialButtonsBlockButton: "bg-white/5 border border-white/5 hover:bg-white/10 transition-colors h-11",
-                                socialButtonsBlockButtonText: "text-gray-300 font-medium",
-                                alert: "bg-red-500/10 border border-red-500/20 text-red-400",
-                                formFieldAction: "text-blue-400 hover:text-blue-300",
-                            }
-                        }}
-                    />
+                    <Suspense fallback={<LoadingState />}>
+                        <SignIn
+                            afterSignInUrl="/dashboard"
+                            redirectUrl="/dashboard"
+                            appearance={{
+                                baseTheme: dark,
+                                layout: {
+                                    socialButtonsPlacement: "bottom",
+                                    socialButtonsVariant: "blockButton",
+                                    showOptionalFields: false,
+                                },
+                                variables: {
+                                    colorPrimary: "#2563EB",
+                                    colorBackground: "#0A0A0A",
+                                    colorText: "white",
+                                    colorTextSecondary: "#9CA3AF",
+                                    colorInputBackground: "#111",
+                                    colorInputText: "white",
+                                    borderRadius: "0.75rem",
+                                },
+                                elements: {
+                                    rootBox: "w-full",
+                                    card: "bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_-10px_rgba(37,99,235,0.1)] rounded-2xl p-8",
+                                    headerTitle: "text-2xl font-bold text-white mb-1 font-orbitron tracking-wide",
+                                    headerSubtitle: "text-gray-500 text-sm mb-6",
+                                    formButtonPrimary: "bg-blue-600 hover:bg-blue-500 text-white transition-all duration-300 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] border-none h-11",
+                                    formFieldInput: "bg-[#111] border-white/5 focus:border-blue-500/50 hover:border-white/10 transition-colors h-11 text-[15px]",
+                                    formFieldLabel: "text-gray-400 text-xs uppercase tracking-wider mb-1.5",
+                                    footerActionLink: "text-blue-400 hover:text-blue-300 font-medium",
+                                    identityPreviewText: "text-gray-300",
+                                    identityPreviewEditButton: "text-blue-400",
+                                    dividerLine: "bg-white/10",
+                                    dividerText: "text-gray-600 uppercase text-[10px] tracking-widest",
+                                    socialButtonsBlockButton: "bg-white/5 border border-white/5 hover:bg-white/10 transition-colors h-11",
+                                    socialButtonsBlockButtonText: "text-gray-300 font-medium",
+                                    alert: "bg-red-500/10 border border-red-500/20 text-red-400",
+                                    alertText: "text-red-400",
+                                    formFieldAction: "text-blue-400 hover:text-blue-300",
+                                    formFieldInputShowPasswordButton: "text-gray-400 hover:text-white",
+                                }
+                            }}
+                        />
+                    </Suspense>
 
                     <div className="mt-8 text-center">
                         <p className="text-[10px] text-gray-600 hover:text-gray-500 transition-colors cursor-pointer">
