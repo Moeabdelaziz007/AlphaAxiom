@@ -113,14 +113,23 @@ export function useMCPHealth() {
 }
 
 /**
- * Hook for multiple symbols (batch)
+ * Hook for multiple symbols (batch) - NOTE: Due to React hooks rules,
+ * this function returns a utility for fetching multiple symbols manually.
+ * For React components, call useSmartMCP individually for each symbol.
  */
-export function useMultipleSymbols(symbols: string[], refreshInterval: number = 60000) {
-    const results = symbols.map((symbol) => useSmartMCP(symbol, refreshInterval));
-
-    return {
-        data: results.map(r => r.data).filter(Boolean),
-        isLoading: results.some(r => r.isLoading),
-        errors: results.filter(r => r.error).map(r => r.error),
+export function fetchMultipleSymbols(symbols: string[]) {
+    const fetchAll = async () => {
+        const promises = symbols.map(async (symbol) => {
+            try {
+                const response = await fetch(`${MCP_BASE_URL}/api/mcp/intelligence?symbol=${symbol}`);
+                const data: MCPResponse = await response.json();
+                return data?.data;
+            } catch {
+                return null;
+            }
+        });
+        return Promise.all(promises);
     };
+
+    return { fetchAll };
 }
