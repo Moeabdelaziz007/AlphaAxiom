@@ -35,7 +35,7 @@ export default function CustomSignInPage() {
                     </div>
 
                     <p className="text-xl text-gray-400 font-light max-w-md mx-auto leading-relaxed border-l-2 border-blue-500/30 pl-6 text-left">
-                        "Advanced Intelligence <br />for Modern Trading."
+                        Advanced Intelligence <br />for Modern Trading.
                     </p>
 
                     <div className="flex items-center justify-center gap-4 pt-4">

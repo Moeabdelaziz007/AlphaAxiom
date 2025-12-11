@@ -70,7 +70,7 @@ export default function AboutPage() {
                     Technical Stack
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {['Next.js 14', 'TypeScript', 'Tailwind CSS', 'Framer Motion', 'Cloudflare Workers', 'Python (Pyodide)', 'DeepSeek R1', 'Groq API'].map((tech) => (
+                    {['Next.js 14', 'TypeScript', 'Tailwind CSS', 'Framer Motion', 'Cloudflare Workers', 'Python (Pyodide)', 'Z.ai GLM-4.5', 'Groq API'].map((tech) => (
                         <div key={tech} className="p-3 bg-[var(--surface)] border border-[var(--glass-border)] rounded-lg text-center text-sm font-mono text-[var(--text-muted)] hover:border-[var(--neon-cyan)] transition-colors">
                             {tech}
                         </div>

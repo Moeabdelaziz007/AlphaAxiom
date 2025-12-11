@@ -45,10 +45,10 @@ export default function SettingsPage() {
             },
             apiKeys: {
                 capital: '••••••••••••CAPITAL',
-                deepseek: '••••••••••••DEEPSEEK'
+                zai_glm: '••••••••••••GLM45'
             }
         });
-        
+
         // Initialize user details
         if (isLoaded && user) {
             setUserDetails({
@@ -58,7 +58,7 @@ export default function SettingsPage() {
                 phone: user.phoneNumbers[0]?.phoneNumber || ''
             });
         }
-        
+
         setLoading(false);
     }, [isLoaded, user]);
 
@@ -75,7 +75,7 @@ export default function SettingsPage() {
 
     const handleUpdateUser = async () => {
         if (!user) return;
-        
+
         setSaving(true);
         try {
             // Update user details through Clerk
@@ -150,9 +150,9 @@ export default function SettingsPage() {
                             <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[var(--neon-purple)] to-[var(--neon-cyan)] p-1">
                                 <div className="w-full h-full bg-[var(--void)] rounded-lg flex items-center justify-center">
                                     {user?.imageUrl ? (
-                                        <img 
-                                            src={user.imageUrl} 
-                                            alt="Profile" 
+                                        <img
+                                            src={user.imageUrl}
+                                            alt="Profile"
                                             className="w-full h-full rounded-lg object-cover"
                                         />
                                     ) : (
@@ -173,7 +173,7 @@ export default function SettingsPage() {
                             <input
                                 type="text"
                                 value={userDetails.firstName}
-                                onChange={(e) => setUserDetails({...userDetails, firstName: e.target.value})}
+                                onChange={(e) => setUserDetails({ ...userDetails, firstName: e.target.value })}
                                 className="w-full bg-[var(--void)] border border-[var(--glass-border)] rounded-lg p-2 text-sm focus:border-[var(--neon-blue)] focus:outline-none"
                             />
                         </div>
@@ -183,7 +183,7 @@ export default function SettingsPage() {
                             <input
                                 type="text"
                                 value={userDetails.lastName}
-                                onChange={(e) => setUserDetails({...userDetails, lastName: e.target.value})}
+                                onChange={(e) => setUserDetails({ ...userDetails, lastName: e.target.value })}
                                 className="w-full bg-[var(--void)] border border-[var(--glass-border)] rounded-lg p-2 text-sm focus:border-[var(--neon-blue)] focus:outline-none"
                             />
                         </div>
@@ -276,8 +276,8 @@ export default function SettingsPage() {
                                         key={level}
                                         onClick={() => updateRisk('level', level)}
                                         className={`py-2 rounded-lg text-sm border transition-all ${settings?.risk?.level === level
-                                                ? 'border-[var(--neon-green)] bg-[var(--neon-green)]/10 text-[var(--neon-green)] shadow-[0_0_10px_rgba(0,255,0,0.2)]'
-                                                : 'border-[var(--glass-border)] text-[var(--text-dim)] hover:border-[var(--neon-green)]/50'
+                                            ? 'border-[var(--neon-green)] bg-[var(--neon-green)]/10 text-[var(--neon-green)] shadow-[0_0_10px_rgba(0,255,0,0.2)]'
+                                            : 'border-[var(--glass-border)] text-[var(--text-dim)] hover:border-[var(--neon-green)]/50'
                                             }`}
                                     >
                                         {level}
@@ -288,75 +288,7 @@ export default function SettingsPage() {
                     </div>
                 </div>
 
-                {/* 2. Strategy Configuration */}
-                <div className="bento-card p-6 border-l-4 border-l-[var(--neon-purple)]">
-                    <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                        <Zap className="w-6 h-6 text-[var(--neon-purple)]" />
-                        Strategy Engine
-                    </h2>
-
-                    <div className="space-y-6">
-                        {/* AEXI Threshold */}
-                        <div>
-                            <div className="flex justify-between mb-2">
-                                <label className="text-sm font-bold flex items-center gap-2">
-                                    AEXI Trigger Threshold <Activity className="w-3 h-3 text-[var(--neon-cyan)]" />
-                                </label>
-                                <span className="text-[var(--neon-purple)] font-mono">{settings?.strategy?.aexiThreshold}/100</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="50"
-                                max="95"
-                                value={settings?.strategy?.aexiThreshold}
-                                onChange={(e) => updateStrategy('aexiThreshold', parseInt(e.target.value))}
-                                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[var(--neon-purple)]"
-                            />
-                            <p className="text-xs text-[var(--text-muted)] mt-1">Minimum score required to trigger a trade signal.</p>
-                        </div>
-
-                        {/* Dream Threshold */}
-                        <div>
-                            <div className="flex justify-between mb-2">
-                                <label className="text-sm font-bold">Dream Machine Threshold</label>
-                                <span className="text-[var(--neon-magenta)] font-mono">{settings?.strategy?.dreamThreshold}/100</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="50"
-                                max="95"
-                                value={settings?.strategy?.dreamThreshold}
-                                onChange={(e) => updateStrategy('dreamThreshold', parseInt(e.target.value))}
-                                className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[var(--neon-magenta)]"
-                            />
-                        </div>
-
-                        {/* Active Timeframes */}
-                        <div>
-                            <label className="text-sm font-bold mb-2 block">Active Timeframes</label>
-                            <div className="flex gap-2 flex-wrap">
-                                {['M5', 'M15', 'H1', 'H4', 'D1'].map((tf) => (
-                                    <button
-                                        key={tf}
-                                        onClick={() => {
-                                            const current = settings?.strategy?.activeTimeframes || [];
-                                            const updated = current.includes(tf)
-                                                ? current.filter((t: string) => t !== tf)
-                                                : [...current, tf];
-                                            updateStrategy('activeTimeframes', updated);
-                                        }}
-                                        className={`px-3 py-1 rounded text-xs font-mono border transition-all ${settings?.strategy?.activeTimeframes?.includes(tf)
-                                                ? 'border-[var(--neon-purple)] bg-[var(--neon-purple)]/20 text-white'
-                                                : 'border-[var(--glass-border)] text-[var(--text-dim)]'
-                                            }`}
-                                    >
-                                        {tf}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* Note: Strategy Engine has been moved to Dashboard > Self-Play Learning Loop */}
 
                 {/* 3. API Keys (Full Width) */}
                 <div className="md:col-span-2 bento-card p-6 border-l-4 border-l-[var(--neon-cyan)]">
@@ -380,11 +312,11 @@ export default function SettingsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-mono text-[var(--neon-purple)]">DeepSeek API Key</label>
+                            <label className="text-sm font-mono text-[var(--neon-purple)]">Z.ai GLM-4.5 API Key</label>
                             <div className="relative">
                                 <input
                                     type="password"
-                                    value={settings?.apiKeys?.deepseek}
+                                    value={settings?.apiKeys?.zai_glm}
                                     readOnly
                                     className="w-full bg-[var(--void)] border border-[var(--glass-border)] rounded-lg p-3 text-sm focus:border-[var(--neon-purple)] focus:outline-none"
                                 />

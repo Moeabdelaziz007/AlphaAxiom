@@ -43,6 +43,15 @@ from agents.math import get_math_agent
 from agents.money import get_money_agent
 from cache.client import create_kv_cache
 
+# 🛡️ INFRASTRUCTURE PROTECTION LAYER (Zero-Cost Compliance)
+from utils.ai_gatekeeper import AIGatekeeper
+from utils.db_batcher import DatabaseBatcher, D1BatchWriter
+from utils.kv_cache import KVCacheLayer, AIResponseCache, DashboardCache
+
+# Initialize global protection instances
+ai_gate = AIGatekeeper(limit=14, window=60, cache_ttl=300)  # 14 RPM, 5min cache
+db_batch = D1BatchWriter(batch_size=50, flush_interval=10)   # 50 records, 10s flush
+
 # ==========================================
 # 🧠 ANTIGRAVITY MoE BRAIN v2.0
 # ==========================================
@@ -114,6 +123,8 @@ async def on_fetch(request, env):
         "/api/candles",   # Chart data
         "/api/dashboard", # Unified dashboard snapshot
         "/api/mcp",       # Smart MCP Intelligence
+        "/api/tick",      # Manual brain heartbeat
+        "/api/brain",     # Brain status monitoring
         "/health",        # System health (for frontend monitoring)
         "/api/health",    # Health endpoint alias
     ]
@@ -199,6 +210,22 @@ async def on_fetch(request, env):
             return await get_dashboard_snapshot(env, headers)
         except ImportError:
             return await get_dashboard_snapshot(env, headers)
+    
+    # ⏱️ UNIFIED TICK - Manual Brain Heartbeat
+    if "api/tick" in url:
+        try:
+            from routes.tick import handle_tick
+            return await handle_tick(request, env, headers)
+        except ImportError as e:
+            return Response.new(json.dumps({"error": f"Tick module error: {e}"}), status=500, headers=headers)
+    
+    # 🧠 BRAIN STATUS - Health Monitoring
+    if "api/brain/status" in url:
+        try:
+            from routes.tick import get_brain_status
+            return await get_brain_status(env, headers)
+        except ImportError as e:
+            return Response.new(json.dumps({"error": f"Brain status error: {e}"}), status=500, headers=headers)
     
     # 🧠 SMART MCP INTELLIGENCE (Zero-Cost AI Signals)
     if "api/mcp" in url:
@@ -797,17 +824,18 @@ async def analyze_with_gemini_rag(symbol, news_text, price_data, env):
 
 Be concise and actionable. Use emojis sparingly."""
 
-    payload = json.dumps({
-        "model": "deepseek-r1-distill-llama-70b",
-        "messages": [
-            {"role": "system", "content": "You are SENTINEL, an expert Wall Street analyst providing actionable trading insights."},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.5,
-        "max_tokens": 500
-    })
-    
-    try:
+    # Define the API call as a closure for the gatekeeper
+    async def call_groq(p_prompt):
+        payload = json.dumps({
+            "model": "deepseek-r1-distill-llama-70b",
+            "messages": [
+                {"role": "system", "content": "You are SENTINEL, an expert Wall Street analyst providing actionable trading insights."},
+                {"role": "user", "content": p_prompt}
+            ],
+            "temperature": 0.5,
+            "max_tokens": 500
+        })
+        
         req_headers = Headers.new({
             "Authorization": f"Bearer {groq_key}",
             "Content-Type": "application/json"
@@ -818,17 +846,62 @@ Be concise and actionable. Use emojis sparingly."""
         data = json.loads(str(response_text))
         
         if "error" in data:
-            error_msg = data.get("error", {}).get("message", "Unknown Error")
-            return f"⚠️ Groq Error: {error_msg}"
+            raise Exception(data.get("error", {}).get("message", "Unknown Error"))
+            
+        return data["choices"][0]["message"]["content"]
+
+    try:
+        # RE-EVALUATION: modifying the instance method is a valid Pythonic strategy for this context.
+        ai_gate._call_ai_api = lambda p, m: call_groq(p)
         
-        content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-        if content:
-            return content
+        result = await ai_gate.ask(prompt, model="deepseek-r1-distill-llama-70b")
         
-        return f"⚠️ Empty response from AI"
+        if result["source"] == "rate_limit_protection":
+            return "⚠️ System Busy (Rate Limit Protection). Please try again in a minute."
+            
+        # ai_gate.ask returns the response if it handled the call, 
+        # BUT AIGatekeeper as implemented in step 1718 has a placeholder _call_ai_api.
+        # We need to monkey-patch or subclass it, or better:
+        # Let's adjust usage to call the API ourselves if gatekeeper says OK.
+        # Actually, looking at ai_gatekeeper.py line 85, it calls self._call_ai_api.
+        # Since we didn't subclass, it returns a placeholder string.
+        #
+        # CORRECTION: We should use the ai_gate to CHECK limits, then call logic.
+        # OR, we subclass AIGatekeeper in worker.py or inject the logic.
+        #
+        # Let's use a simpler pattern: manually check limits if the class allows,
+        # or better, create a subclass right here to handle the implementation detail 
+        # without modifying the utility file again.
+        
+        # Actually, simpler approach:
+        # The AIGatekeeper in utils/ai_gatekeeper.py is generic. 
+        # It calls `self._call_ai_api` which is a placeholder.
+        # We should inject the fetch logic.
+        
+        # Let's just execute the call here if the previous tool created a generic one.
+        # Wait, the AIGatekeeper logic I wrote in Step 1718 *attempts* to call _call_ai_api.
+        # It does not accept a 'runner' function. 
+        
+        # FIX: I will modify the usage to:
+        # 1. Check cache (via gatekeeper methods if available, or just use the cache logic)
+        # 2. Check rate limit
+        # 3. Execute
+        # 4. Update stats
+        
+        # However, ai_gate.ask() encapsulates all this. 
+        # I should have made it accept a callable.
+        # I will modify AIGatekeeper usage to simply rely on the rate limit check
+        # or I will modify the utility file to accept a generic runner.
+        # Modifying the utility file is cleaner for future use. 
+        # But I am in worker.py now.
+        
+        # Let's override the _call_ai_api method of the instance since Python allows it.
+        
+        # If it was a cache hit, or a fresh call handled by _call_ai_api, the content is in result["response"]
+        return result["response"]
     
     except Exception as e:
-        return f"⚠️ System Error: {str(e)}"
+        return f"⚠️ Error: {str(e)}"
 
 
 async def call_gemini_chat(user_message, user_name, env):
@@ -1649,14 +1722,26 @@ async def publish_to_ably(env, channel, data):
 # ==========================================
 
 async def log_trade(env, symbol, side, qty, price):
-    """Log trade to D1 database"""
+    """Log trade to D1 database using Batcher"""
     try:
-        db = env.TRADING_DB
-        await db.prepare(
-            "INSERT INTO trades (symbol, side, qty, price, timestamp) VALUES (?, ?, ?, ?, datetime('now'))"
-        ).bind(symbol, side, qty, price).run()
-    except:
-        pass
+        # Ensure batcher has the current DB binding
+        if not db_batch.db:
+            db_batch.db = env.TRADING_DB
+            
+        # Add to batch
+        await db_batch.insert("trades", {
+            "symbol": symbol,
+            "side": side, 
+            "qty": qty, 
+            "price": price, 
+            "timestamp": datetime.datetime.utcnow().isoformat()
+        })
+        
+        # Start background washer if not running
+        await db_batch.start()
+        
+    except Exception as e:
+        log.error(f"Trade log error: {e}")
 
 
 async def get_trades_count(env):

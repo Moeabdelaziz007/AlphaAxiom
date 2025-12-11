@@ -5,27 +5,28 @@
 
 import os
 from dotenv import load_dotenv
+from app.utils.secrets_manager import secrets
 
 load_dotenv()
 
 # ============================================
 # DEMO MODE (للعروض التقديمية)
 # ============================================
-DEMO_MODE = os.getenv("DEMO_MODE", "true").lower() == "true"
+DEMO_MODE = secrets.get_secret("DEMO_MODE", "true").lower() == "true"
 
 # ============================================
 # ALPACA API (Stocks, Gold, ETFs)
 # Paper Trading: https://app.alpaca.markets/paper/dashboard
 # ============================================
-ALPACA_KEY = os.getenv("ALPACA_KEY", "demo_key")
-ALPACA_SECRET = os.getenv("ALPACA_SECRET", "demo_secret")
-ALPACA_ENDPOINT = os.getenv("ALPACA_ENDPOINT", "https://paper-api.alpaca.markets")
+ALPACA_KEY = secrets.get_secret("ALPACA_KEY", "demo_key")
+ALPACA_SECRET = secrets.get_secret("ALPACA_SECRET", "demo_secret")
+ALPACA_ENDPOINT = secrets.get_secret("ALPACA_ENDPOINT", "https://paper-api.alpaca.markets")
 
 # ============================================
 # BINANCE API (Crypto via Jesse or Direct)
 # ============================================
-BINANCE_KEY = os.getenv("BINANCE_KEY", "")
-BINANCE_SECRET = os.getenv("BINANCE_SECRET", "")
+BINANCE_KEY = secrets.get_secret("BINANCE_KEY", "")
+BINANCE_SECRET = secrets.get_secret("BINANCE_SECRET", "")
 
 # ============================================
 # ASSET MAPPINGS

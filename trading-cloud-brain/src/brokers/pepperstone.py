@@ -15,18 +15,25 @@ For full implementation, requires:
 """
 
 from typing import Dict, List, Optional
+import uuid
 from .base import Broker
+from ..utils.fix_client import SimpleFixClient
 
 
 class PepperstoneProvider(Broker):
     """
-    Pepperstone broker integration via cTrader OpenAPI.
+    Pepperstone broker integration.
+
+    Note: Defaults to FIX API (Protocol 4.4) for order placement as it provides
+    a cleaner serverless implementation compared to cTrader OpenAPI (Protobuf).
     
     Environment Variables:
-        PEPPERSTONE_CLIENT_ID: OAuth2 client ID
-        PEPPERSTONE_CLIENT_SECRET: OAuth2 secret
-        PEPPERSTONE_ACCOUNT_ID: cTrader account ID
-        PEPPERSTONE_ACCESS_TOKEN: OAuth2 access token
+        PEPPERSTONE_FIX_HOST: FIX server host (e.g., fix.pepperstone.com)
+        PEPPERSTONE_FIX_PORT: FIX server port (e.g., 5202)
+        PEPPERSTONE_FIX_SENDER_ID: FIX SenderCompID
+        PEPPERSTONE_FIX_TARGET_ID: FIX TargetCompID (usually cServer)
+        PEPPERSTONE_FIX_PASSWORD: FIX Password
+        PEPPERSTONE_CLIENT_ID: OAuth2 client ID (Optional, for Data)
     """
     
     BASE_URL = "https://api.pepperstone.com"  # Placeholder
@@ -36,13 +43,28 @@ class PepperstoneProvider(Broker):
         Initialize Pepperstone provider.
         
         Args:
-            env: Cloudflare Worker environment
+            env: Cloudflare Worker environment (dict or object)
         """
-        self.env = env
-        self.client_id = str(getattr(env, 'PEPPERSTONE_CLIENT_ID', ''))
-        self.client_secret = str(getattr(env, 'PEPPERSTONE_CLIENT_SECRET', ''))
-        self.account_id = str(getattr(env, 'PEPPERSTONE_ACCOUNT_ID', ''))
-        self.access_token = str(getattr(env, 'PEPPERSTONE_ACCESS_TOKEN', ''))
+        super().__init__("PEPPERSTONE", env)
+
+        # Helper to get env var from dict or object
+        def get_env(key, default):
+            if isinstance(env, dict):
+                return env.get(key, default)
+            return getattr(env, key, default)
+
+        # FIX Credentials
+        self.fix_host = str(get_env('PEPPERSTONE_FIX_HOST', 'h45.p.ctrader.com'))
+        self.fix_port = int(get_env('PEPPERSTONE_FIX_PORT', 5202))
+        self.fix_sender_id = str(get_env('PEPPERSTONE_FIX_SENDER_ID', ''))
+        self.fix_target_id = str(get_env('PEPPERSTONE_FIX_TARGET_ID', 'cServer'))
+        self.fix_password = str(get_env('PEPPERSTONE_FIX_PASSWORD', ''))
+
+        # OAuth Credentials (Legacy/Data)
+        self.client_id = str(get_env('PEPPERSTONE_CLIENT_ID', ''))
+        self.client_secret = str(get_env('PEPPERSTONE_CLIENT_SECRET', ''))
+        self.account_id = str(get_env('PEPPERSTONE_ACCOUNT_ID', ''))
+        self.access_token = str(get_env('PEPPERSTONE_ACCESS_TOKEN', ''))
     
     async def get_account_summary(self) -> Dict:
         """
@@ -71,7 +93,7 @@ class PepperstoneProvider(Broker):
                          order_type: str = "MARKET", price: float = None,
                          stop_loss: float = None, take_profit: float = None) -> Dict:
         """
-        Place order via cTrader OpenAPI.
+        Place order via FIX API.
         
         Args:
             symbol: Trading symbol
@@ -85,12 +107,59 @@ class PepperstoneProvider(Broker):
         Returns:
             dict: Order result
         """
-        # TODO: Implement cTrader order placement
-        return {
-            "broker": "PEPPERSTONE",
-            "status": "STUB_NOT_IMPLEMENTED",
-            "message": "Pepperstone cTrader integration pending"
-        }
+        if order_type.upper() != "MARKET":
+            return {
+                "broker": "PEPPERSTONE",
+                "status": "ERROR",
+                "message": "Only MARKET orders are supported in this version"
+            }
+
+        if stop_loss is not None or take_profit is not None:
+            return {
+                "broker": "PEPPERSTONE",
+                "status": "ERROR",
+                "message": "Stop Loss and Take Profit are not supported in FIX implementation yet"
+            }
+
+        client = SimpleFixClient(
+            host=self.fix_host,
+            port=self.fix_port,
+            sender_id=self.fix_sender_id,
+            target_id=self.fix_target_id,
+            password=self.fix_password,
+            ssl_enabled=True
+        )
+
+        try:
+            await client.connect()
+            logged_in = await client.logon()
+
+            if not logged_in:
+                return {
+                    "broker": "PEPPERSTONE",
+                    "status": "ERROR",
+                    "message": "FIX Logon Failed"
+                }
+
+            cl_ord_id = f"PEPPER-{uuid.uuid4().hex[:8]}"
+            result = await client.place_market_order(symbol, side, units, cl_ord_id)
+
+            await client.logout()
+
+            return {
+                "broker": "PEPPERSTONE",
+                **result
+            }
+
+        except Exception as e:
+            self.log.error(f"Pepperstone FIX Order Error: {str(e)}")
+            return {
+                "broker": "PEPPERSTONE",
+                "status": "ERROR",
+                "message": str(e)
+            }
+        finally:
+            await client.disconnect()
     
     async def close_position(self, position_id: str) -> Dict:
         """Close position."""

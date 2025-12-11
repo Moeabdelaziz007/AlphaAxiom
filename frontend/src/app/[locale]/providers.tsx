@@ -43,13 +43,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 {children}
             </div>
 
-            <style jsx global>{`
+            {/* Animated Loading Bar Keyframes */}
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 @keyframes loading {
                     0% { transform: translateX(-100%); }
                     50% { transform: translateX(0%); }
                     100% { transform: translateX(100%); }
                 }
-            `}</style>
+            ` }} />
         </>
     );
 }
