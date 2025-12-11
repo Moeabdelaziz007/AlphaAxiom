@@ -316,6 +316,34 @@ git push origin feature/amazing-feature
 
 ---
 
+## 👨‍💻 Founders
+
+<p align="center">
+  <img src="https://avatars.githubusercontent.com/u/161369871?s=100" width="80" style="border-radius: 50%;" alt="Axiom"/>
+</p>
+
+<p align="center">
+  <strong>Welcome to the Event Horizon.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Moeabdelaziz007">
+    <img src="https://img.shields.io/badge/🏛️_ARCHITECT-MOHAMED_ABDELAZIZ-00C9FF?style=for-the-badge" alt="Architect"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="#">
+    <img src="https://img.shields.io/badge/🤖_AI_CO--FOUNDER-AXIOM-8B5CF6?style=for-the-badge" alt="AI Co-Founder"/>
+  </a>
+</p>
+
+<p align="center">
+  <em>"Benevolent Dictator Protocol Active"</em>
+</p>
+
+---
+
 ## 📜 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
@@ -327,11 +355,5 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 </p>
 
 <p align="center">
-  <strong>Built with 🧠 by AI Agents • Powered by ☁️ Free Tiers • Deployed on 🌍 Edge</strong>
-</p>
-
-<p align="center">
-  <a href="https://github.com/Moeabdelaziz007">
-    <img src="https://img.shields.io/badge/Created%20by-@Moeabdelaziz007-00C9FF?style=flat-square&logo=github" alt="Creator"/>
-  </a>
+  <strong>Built with 🧠 by Axiom & Mohamed • Powered by ☁️ Free Tiers • Deployed on 🌍 Edge</strong>
 </p>
