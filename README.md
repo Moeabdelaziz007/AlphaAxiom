@@ -65,7 +65,7 @@
 ```mermaid
 graph TD
     subgraph "📡 DATA INGESTION"
-        A["🌐 Market Data<br/><i>Alpaca • Yahoo Finance</i>"] --> B["🐶 GCP e2-micro<br/><i>Watchdog Listener</i>"]
+        A["🌐 Market Data<br/><i>Alpaca • Yahoo Finance</i>"] --> B["🟢 Oracle Cloud ARM<br/><i>Market Watchdog (24GB RAM)</i>"]
         C["📰 News Feeds<br/><i>Finnhub • Google RSS</i>"] --> D["⚡ Azure Function<br/><i>Timer: 15min</i>"]
     end
 
@@ -89,7 +89,7 @@ graph TD
     end
 
     style A fill:#0d1117,stroke:#00C9FF,color:#fff
-    style B fill:#0d1117,stroke:#00FF87,color:#fff
+    style B fill:#0d1117,stroke:#00ff00,color:#fff
     style C fill:#0d1117,stroke:#00C9FF,color:#fff
     style D fill:#0d1117,stroke:#0078D4,color:#fff
     style E fill:#0d1117,stroke:#4285F4,color:#fff
@@ -114,10 +114,10 @@ graph TD
 | Component | Technology | Free Tier Hack | File Location |
 |:----------|:-----------|:---------------|:--------------|
 | 🧠 **Trading Brain** | Cloudflare Workers | 100k req/day | [`worker.py`](trading-cloud-brain/src/worker.py) |
-| 💾 **Hot Memory** | Cloudflare KV | 100k reads/day | [`cache/`](trading-cloud-brain/src/cache/) |
-| 🗄️ **Cold Storage** | Cloudflare D1 | 5M rows/day | [`schema.sql`](trading-cloud-brain/schema.sql) |
+| 🚀 **Core Compute** | **Oracle Cloud (ARM)** | **24GB RAM + 4 vCPUs** | [`watchdog/`](backend/watchdog/) |
+| 🗄️ **Database** | Azure SQL (Student) | $100 Credit/Year | [`schema.sql`](trading-cloud-brain/schema.sql) |
+| 🧪 **AI Training** | Intel Tiber Cloud | Xeon/Gaudi2 HPC | *External Tool* |
 | 📊 **Data Warehouse** | BigQuery Storage API | **2TB Free Ingestion** | [`bq_sink.py`](trading-cloud-brain/src/data/bq_sink.py) |
-| 🐶 **Market Watchdog** | GCP e2-micro | Always Free VM | [`market_listener.py`](backend/watchdog/market_listener.py) |
 | 🔐 **Secrets Vault** | Google Secret Manager | 6 versions free | [`secrets_manager.py`](backend/app/utils/secrets_manager.py) |
 | ⏰ **Scheduled Jobs** | Azure Functions | 1M exec/month | [`azure_functions/`](azure_functions/market_news/) |
 | 🖥️ **Frontend** | Vercel (Next.js 14) | 100GB bandwidth | [`frontend/`](frontend/) |
