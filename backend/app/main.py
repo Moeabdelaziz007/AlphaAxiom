@@ -15,6 +15,8 @@ from datetime import datetime
 from app.ai.sentinel_agent import SentinelAgent
 from app.ai.dual_brain import DualBrain, run_strategy_updater
 from app.config import DEMO_MODE
+from app.adapters.tradingview import TradingViewWebhook, convert_tv_to_internal
+from app.utils.secrets_manager import secrets
 
 # ==============================================
 # APP INITIALIZATION
@@ -109,6 +111,29 @@ async def execute_trade(order: OrderRequest):
         auto_risk=order.auto_risk
     )
     return result
+
+@app.post("/api/webhook/tradingview")
+async def tradingview_webhook(webhook_data: TradingViewWebhook):
+    """
+    Handle webhooks from TradingView.
+    """
+    try:
+        # Adapter Pattern: Convert TV format to Internal format
+        internal_order_data = convert_tv_to_internal(webhook_data)
+
+        # Execute Trade using the same logic as /api/trade
+        result = sentinel.execute_trade(
+            symbol=internal_order_data["symbol"],
+            side=internal_order_data["side"],
+            amount=internal_order_data["amount"],
+            sl_price=internal_order_data["stop_loss"],
+            tp_price=internal_order_data["take_profit"],
+            auto_risk=internal_order_data["auto_risk"]
+        )
+        return {"status": "success", "source": "tradingview", "result": result}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/positions")
 async def get_positions():

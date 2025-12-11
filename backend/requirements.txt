@@ -19,3 +19,6 @@ numpy>=1.24.0
 aiohttp>=3.8.0
 psutil>=5.9.0
 websockets>=10.0
+
+# Cloud Infrastructure
+google-cloud-secret-manager>=2.16.0
