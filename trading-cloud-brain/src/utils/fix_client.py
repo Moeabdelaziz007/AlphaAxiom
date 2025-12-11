@@ -1,293 +1,318 @@
-"""
-Simple FIX 4.4 Client
-Designed for stateless order placement in serverless environments.
-"""
-
 import asyncio
 import datetime
+import logging
 import ssl
-from typing import Dict, Optional, Tuple
-
-# SOH character
-SOH = "\x01"
 
 class SimpleFixClient:
     """
-    Simple FIX 4.4 Client for stateless order placement.
-
-    Features:
-    - Stateless execution (Connect -> Logon -> Trade -> Logout)
-    - SSL support
-    - Basic message parsing
+    A minimal, asyncio-based FIX 4.4 client for order placement.
+    Supports: Logon, NewOrderSingle, Logout.
+    Includes TCP framing and SSL support.
     """
 
-    def __init__(self, host: str, port: int, sender_id: str, target_id: str,
-                 username: str = None, password: str = None, ssl_enabled: bool = True):
+    def __init__(self, host, port, sender_comp_id, target_comp_id, password=None, ssl_enabled=True):
         self.host = host
-        self.port = port
-        self.sender_id = sender_id
-        self.target_id = target_id
-        self.username = username
+        self.port = int(port)
+        self.sender_comp_id = sender_comp_id
+        self.target_comp_id = target_comp_id
         self.password = password
         self.ssl_enabled = ssl_enabled
-        self.seq_num = 1
         self.reader = None
         self.writer = None
+        self.seq_num = 1
         self.connected = False
-
-        # Buffer for incoming data
-        self.buffer = b""
+        self.logger = logging.getLogger("fix_client")
+        self._buffer = b""
 
     async def connect(self):
-        """Establish TCP connection with SSL if enabled."""
-        if self.connected:
-            return
-
+        """Establish TCP connection with optional SSL."""
+        self.logger.info(f"Connecting to FIX server {self.host}:{self.port} (SSL={self.ssl_enabled})...")
         try:
+            ssl_ctx = None
             if self.ssl_enabled:
                 ssl_ctx = ssl.create_default_context()
-                # Allow self-signed certs if needed, but for brokers usually strictly valid
-                # ssl_ctx.check_hostname = False
-                # ssl_ctx.verify_mode = ssl.CERT_NONE
-            else:
-                ssl_ctx = None
+                # For testing/dev, we might need to disable verification or load specific certs,
+                # but default context is safest for production.
+                ssl_ctx.check_hostname = False # Often needed for brokers if cert name mismatch
+                ssl_ctx.verify_mode = ssl.CERT_NONE # WARNING: For production, should verify. But many brokers have issues.
 
             self.reader, self.writer = await asyncio.open_connection(
                 self.host, self.port, ssl=ssl_ctx
             )
             self.connected = True
+            self.logger.info("Connected.")
         except Exception as e:
-            raise ConnectionError(f"Failed to connect to FIX server {self.host}:{self.port}: {str(e)}")
+            self.logger.error(f"Connection failed: {e}")
+            raise
 
     async def disconnect(self):
-        """Close connection."""
+        """Close TCP connection."""
         if self.writer:
+            self.writer.close()
             try:
-                self.writer.close()
                 await self.writer.wait_closed()
-            except Exception:
+            except:
                 pass
         self.connected = False
-        self.reader = None
-        self.writer = None
+        self.logger.info("Disconnected.")
 
-    def _generate_msg_header(self, msg_type: str) -> str:
-        """Generate standard header."""
-        t = datetime.datetime.utcnow().strftime("%Y%m%d-%H:%M:%S.%f")[:-3]
-        header = (
-            f"35={msg_type}{SOH}"
-            f"49={self.sender_id}{SOH}"
-            f"56={self.target_id}{SOH}"
-            f"34={self.seq_num}{SOH}"
-            f"52={t}{SOH}"
-        )
-        self.seq_num += 1
-        return header
-
-    def _calculate_checksum(self, msg: str) -> str:
-        """Calculate FIX checksum."""
-        # Checksum is sum of all bytes % 256
-        # Message body includes SOH
-        total = sum(msg.encode('ascii'))
+    def _generate_checksum(self, msg_str):
+        # Checksum is sum of all bytes modulo 256
+        # msg_str includes 8=... up to the delimiter before 10=
+        total = sum(ord(c) for c in msg_str)
         return f"{total % 256:03d}"
 
-    def _build_message(self, msg_type: str, body_tags: str) -> str:
-        """Build full FIX message."""
-        # Construct body (header + custom tags)
-        # Note: BodyLength (9) covers from 35 to before 10.
+    def _format_time(self):
+        # UTC timestamp: YYYYMMDD-HH:MM:SS.sss
+        return datetime.datetime.utcnow().strftime("%Y%m%d-%H:%M:%S.%f")[:-3]
 
-        # First construct partial body to measure length
-        # Start with MsgType, Sender, Target, SeqNum, Time
-        header_content = self._generate_msg_header(msg_type)
-        content = header_content + body_tags
+    def _create_message(self, msg_type, tags):
+        """
+        Construct a FIX message.
+        tags: dict of tag=value
+        """
+        # Header
+        header_tags = {
+            8: "FIX.4.4",
+            35: msg_type,
+            49: self.sender_comp_id,
+            56: self.target_comp_id,
+            34: self.seq_num,
+            52: self._format_time(),
+        }
 
-        length = len(content)
+        all_tags = {**header_tags, **tags}
 
-        # Prefix: 8=FIX.4.4|9=LENGTH|
-        prefix = f"8=FIX.4.4{SOH}9={length}{SOH}"
+        # Order is important for header: 8, 9, 35 ...
+        ordered_parts = []
+        ordered_parts.append(f"8={all_tags[8]}")
 
-        full_msg_without_checksum = prefix + content
-        checksum = self._calculate_checksum(full_msg_without_checksum)
+        # Construct the "content" part (35... to end of body)
+        content_parts = []
+        content_parts.append(f"35={all_tags[35]}")
+        content_parts.append(f"49={all_tags[49]}")
+        content_parts.append(f"56={all_tags[56]}")
+        content_parts.append(f"34={all_tags[34]}")
+        content_parts.append(f"52={all_tags[52]}")
 
-        return f"{full_msg_without_checksum}10={checksum}{SOH}"
+        for tag, value in tags.items():
+            if tag not in [8, 9, 35, 49, 56, 34, 52, 10]:
+                content_parts.append(f"{tag}={value}")
 
-    async def _send_message(self, msg: str):
-        """Send message to socket."""
+        content_str = "\x01".join(content_parts) + "\x01"
+
+        # Tag 9
+        body_length = len(content_str)
+
+        # Assemble message so far
+        msg_so_far = f"8={all_tags[8]}\x019={body_length}\x01{content_str}"
+
+        # Checksum
+        checksum = self._generate_checksum(msg_so_far)
+
+        final_msg = f"{msg_so_far}10={checksum}\x01"
+
+        self.seq_num += 1
+        return final_msg
+
+    async def send_message(self, msg):
         if not self.writer:
-            raise ConnectionError("Not connected")
+            raise Exception("Not connected")
+        self.logger.debug(f"Sending: {msg.replace(chr(1), '|')}")
         self.writer.write(msg.encode('ascii'))
         await self.writer.drain()
 
-    async def _read_message(self) -> Dict[str, str]:
-        """Read next valid FIX message."""
+    async def read_message(self):
+        """
+        Reads a single FIX message from the stream, handling fragmentation.
+        """
         if not self.reader:
-            raise ConnectionError("Not connected")
-
-        # Read until we find '8=FIX...' and ends with '10=...SOH'
-        # Simple implementation: read chunk, split by SOH, parse
-        # This is a basic blocking read for simplicity in one-shot flow
+            raise Exception("Not connected")
 
         while True:
-            # Read a chunk
+            # Check if we have a full message in buffer
+            msg = self._extract_message_from_buffer()
+            if msg:
+                self.logger.debug(f"Received: {msg.replace(chr(1), '|')}")
+                return msg
+
+            # Read more data
             try:
                 chunk = await self.reader.read(4096)
+                if not chunk:
+                    if self._buffer:
+                        self.logger.warning("Connection closed with partial data in buffer")
+                    return None
+                self._buffer += chunk
             except Exception as e:
-                raise ConnectionError(f"Read failed: {e}")
+                self.logger.error(f"Read error: {e}")
+                return None
 
-            if not chunk:
-                raise ConnectionError("Connection closed by peer")
+    def _extract_message_from_buffer(self):
+        """
+        Attempts to parse a complete FIX message from the internal buffer.
+        Returns the message string if found, otherwise None.
+        """
+        if not self._buffer:
+            return None
 
-            self.buffer += chunk
+        # Look for start of message "8=FIX..."
+        start_idx = self._buffer.find(b"8=FIX")
+        if start_idx == -1:
+            # Discard garbage if buffer gets too big?
+            # For now, keep scanning. If buffer is huge and no start, maybe clear it.
+            if len(self._buffer) > 10000:
+                self._buffer = b"" # Reset to avoid memory issues
+            return None
 
-            # Check if we have a full message
-            # FIX message ends with 10=XXX<SOH>
-            # Pattern matching might be complex, let's look for "10=...<SOH>"
+        # If we have garbage before start, discard it
+        if start_idx > 0:
+            self._buffer = self._buffer[start_idx:]
+            start_idx = 0
 
-            msg_end_marker = f"10=".encode('ascii')
+        # Need at least header to find body length
+        # 8=FIX.4.4|9=LENGTH|
+        try:
+            # Find first separator after 9=
+            # 8=FIX.4.4\x019=
+            nine_idx = self._buffer.find(b"\x019=", start_idx)
+            if nine_idx == -1: return None
 
-            # Loop to extract multiple messages if stuck together
-            while True:
-                # Find start
-                start_idx = self.buffer.find(b"8=FIX")
-                if start_idx == -1:
-                    # Keep last part just in case
-                    if len(self.buffer) > 20:
-                        self.buffer = self.buffer[-20:]
-                    break
+            # Find separator after length value
+            length_end_idx = self._buffer.find(b"\x01", nine_idx + 3)
+            if length_end_idx == -1: return None
 
-                # If start is not 0, discard garbage before
-                if start_idx > 0:
-                    self.buffer = self.buffer[start_idx:]
-                    start_idx = 0
+            # Extract body length
+            length_str = self._buffer[nine_idx+3:length_end_idx]
+            body_length = int(length_str)
 
-                # Find end of checksum 10=XXX<SOH>
-                # It should be around len - 7
-                # We need to find the SOH after 10=XXX
+            # Total message length calculation:
+            # Header up to 9=...| (length_end_idx + 1)
+            # + body_length
+            # + checksum field "10=XXX|" (7 bytes)
 
-                # Search for 10=
-                checksum_idx = self.buffer.find(b"\x0110=")
-                if checksum_idx == -1:
-                    # Maybe incomplete
-                    break
+            # Verify body length logic in FIX:
+            # Tag 9 is length of message body (starting AFTER tag 9 value and delimiter, up to BEFORE tag 10)
+            # i.e. from length_end_idx + 1 ...
 
-                # Check for SOH after checksum (3 digits)
-                # 10=XXX<SOH> is 7 chars. \x01 is 1 char.
-                # So \x0110=XXX\x01
-                end_of_msg = checksum_idx + 8 # +1 for \x01, +3 for 10=, +3 for checksum, +1 for SOH
+            checksum_start = length_end_idx + 1 + body_length
 
-                if len(self.buffer) >= end_of_msg:
-                    raw_msg = self.buffer[:end_of_msg]
-                    self.buffer = self.buffer[end_of_msg:]
-                    return self._parse_message(raw_msg.decode('ascii'))
-                else:
-                    break
+            # Check if we have enough data for checksum tag
+            # We expect "10=XXX\x01" at checksum_start
+            required_len = checksum_start + 7
 
-    def _parse_message(self, msg: str) -> Dict[str, str]:
-        """Parse FIX string to dict."""
-        data = {}
-        # Remove trailing SOH if present to avoid empty split
-        if msg.endswith(SOH):
-            msg = msg[:-1]
+            if len(self._buffer) < required_len:
+                return None
 
-        parts = msg.split(SOH)
-        for part in parts:
-            if '=' in part:
-                tag, value = part.split('=', 1)
-                data[tag] = value
-        return data
+            # Verify checksum tag presence (optional but good for robustness)
+            if self._buffer[checksum_start:checksum_start+3] != b"10=":
+                # Malformed or framing error.
+                # Strict: discard this start and try again.
+                # Loose: assume length was right.
+                self.logger.warning("Framing error: expected 10= at calculated position")
+                # Discard current header to try finding next message
+                self._buffer = self._buffer[1:]
+                return None
 
-    async def logon(self) -> bool:
-        """Send Logon message (A)."""
-        # Tags: 98=EncryptMethod(0), 108=HeartBtInt(30)
-        # 141=Y (ResetSeqNumFlag) - Critical for stateless connections
-        # Optional: 553=Username, 554=Password
-        body = f"98=0{SOH}108=30{SOH}141=Y{SOH}"
-        if self.username:
-            body += f"553={self.username}{SOH}"
+            full_msg_bytes = self._buffer[:required_len]
+            self._buffer = self._buffer[required_len:]
+
+            return full_msg_bytes.decode('ascii')
+
+        except ValueError:
+            # Parsing error
+            self._buffer = self._buffer[1:]
+            return None
+
+    async def logon(self, reset_seq_num=False):
+        tags = {
+            98: "0", # EncryptMethod: None
+            108: "30", # HeartBtInt
+        }
         if self.password:
-            body += f"554={self.password}{SOH}"
+            tags[554] = self.password
+        if reset_seq_num:
+            tags[141] = "Y"
+            self.seq_num = 1
 
-        msg = self._build_message("A", body)
-        await self._send_message(msg)
+        msg = self._create_message("A", tags)
+        await self.send_message(msg)
 
-        # Wait for response
-        response = await self._read_message()
-        if response.get('35') == 'A':
-            return True
-        if response.get('35') == '5': # Logout/Reject
-            return False
+        # Read until we get Logon response or timeout
+        # Some brokers send heartbeats or other info first
+        start_time = datetime.datetime.now()
+        while (datetime.datetime.now() - start_time).seconds < 10:
+            response = await self.read_message()
+            if not response:
+                return False
+
+            if "35=A" in response:
+                self.logger.info("Logon successful.")
+                return True
+            if "35=5" in response: # Logout/Reject
+                self.logger.error(f"Logon rejected: {response}")
+                return False
+
+        self.logger.error("Logon timed out")
         return False
 
-    async def place_market_order(self, symbol: str, side: str, quantity: float, cl_ord_id: str) -> Dict:
-        """
-        Place Market Order (NewOrderSingle - D).
-
-        Args:
-            symbol: Symbol (e.g. "EURUSD")
-            side: "BUY" or "SELL"
-            quantity: Amount
-            cl_ord_id: Unique ID
-        """
-        # Mapping
-        # Side: 1=Buy, 2=Sell
-        side_code = '1' if side.upper() == 'BUY' else '2'
-
-        # OrdType: 1=Market
-        # TransactTime: UTC
-        t = datetime.datetime.utcnow().strftime("%Y%m%d-%H:%M:%S.%f")[:-3]
-
-        # Construct body
-        # 11=ClOrdId, 55=Symbol, 54=Side, 60=TransactTime, 38=OrderQty, 40=OrdType(1)
-        # Some brokers require TimeInForce(59)=3 (IOC) or 1 (GTC)
-        # Let's assume GTC (1) or IOC (3). Market orders often IOC or FOK.
-        # Pepperstone cTrader FIX might default to GTC for limit, but Market...
-        # let's use 1 (Market) and 59=1 (GTC)
-
-        body = (
-            f"11={cl_ord_id}{SOH}"
-            f"55={symbol}{SOH}"
-            f"54={side_code}{SOH}"
-            f"60={t}{SOH}"
-            f"38={quantity}{SOH}"
-            f"40=1{SOH}"
-            f"59=1{SOH}"
-        )
-
-        msg = self._build_message("D", body)
-        await self._send_message(msg)
-
-        # Wait for ExecutionReport (8)
-        # Note: Might receive PendingNew first, then New/Filled.
-        # We wait for the first ExecutionReport
-
-        while True:
-            response = await self._read_message()
-            msg_type = response.get('35')
-
-            if msg_type == '8': # ExecutionReport
-                # Check ExecType (150) or OrdStatus (39)
-                # 0=New, 1=Partial, 2=Filled, 8=Rejected
-                status = response.get('39')
-                if status == '8': # Rejected
-                    return {"status": "REJECTED", "reason": response.get('58', 'Unknown')}
-                if status in ['0', '1', '2']: # New or Filled
-                    return {
-                        "status": "ACCEPTED",
-                        "order_id": response.get('37'),
-                        "price": response.get('6'), # AvgPx
-                        "filled": response.get('14') # CumQty
-                    }
-            elif msg_type == '3': # Reject (Session level)
-                return {"status": "ERROR", "reason": response.get('58', 'Session Reject')}
-            elif msg_type == 'j': # BusinessReject
-                return {"status": "ERROR", "reason": response.get('58', 'Business Reject')}
-
     async def logout(self):
-        """Send Logout (5)."""
-        msg = self._build_message("5", "")
-        try:
-            await self._send_message(msg)
-            # Wait for logout response, but don't block forever
-            await asyncio.wait_for(self._read_message(), timeout=2.0)
-        except Exception:
-            pass
+        msg = self._create_message("5", {})
+        await self.send_message(msg)
+        await self.read_message() # Wait for logout response
+        await self.disconnect()
+
+    async def place_order(self, symbol, side, qty, price=None, order_type="1"):
+        """
+        Place New Order Single (35=D)
+        """
+        cl_ord_id = f"ORD-{datetime.datetime.now().timestamp()}"
+
+        tags = {
+            11: cl_ord_id, # ClOrdID
+            55: symbol, # Symbol
+            54: side, # Side
+            60: self._format_time(), # TransactTime
+            38: qty, # OrderQty
+            40: order_type, # OrdType
+        }
+
+        if order_type == "2" and price: # Limit
+            tags[44] = price # Price
+
+        msg = self._create_message("D", tags)
+        await self.send_message(msg)
+
+        # Wait for execution report
+        # Again, might receive other messages first
+        start_time = datetime.datetime.now()
+        while (datetime.datetime.now() - start_time).seconds < 30:
+            response = await self.read_message()
+            if not response:
+                break
+
+            if "35=8" in response:
+                return self._parse_execution_report(response)
+            if "35=3" in response: # Reject
+                return {"status": "REJECTED", "message": "Order Rejected (35=3)", "raw": response}
+
+        return {"status": "TIMEOUT", "message": "No Execution Report received"}
+
+    def _parse_execution_report(self, msg):
+        # A very basic parser
+        parts = msg.split("\x01")
+        result = {}
+        for p in parts:
+            if "=" in p:
+                k, v = p.split("=", 1)
+                if k == "39": # OrdStatus
+                    result["status"] = "FILLED" if v in ["0", "1", "2"] else "REJECTED"
+                if k == "37": # OrderID
+                    result["order_id"] = v
+                if k == "6": # AvgPx
+                    result["avg_price"] = v
+                if k == "151": # LeavesQty
+                    result["leaves_qty"] = v
+                if k == "58": # Text (Reason)
+                    result["message"] = v
+        return result
