@@ -27,6 +27,7 @@
 
 | Skill | Level | Mastery | Triggers |
 |-------|-------|---------|----------|
+| **FIX Protocol 4.4** | Gen 3 | █████████░ | "Raw TCP", "Financial messaging", "Low latency" |
 | **GLM-4.5 Signal Gen** | Gen 3 | ████████░░ | "LLM trading", "AI signals" |
 | **Gemini 2.0 Flash** | Gen 2 | ██████░░░░ | "Chart analysis", "1M context" |
 | **GLM-4.5 (z.ai)** | Gen 2 | ██████░░░░ | "Agentic AI", "Complex trading logic" |
@@ -42,10 +43,12 @@
 | **Kelly Criterion** | Gen 1 | █████░░░░░ | "Optimal sizing", "Position size" |
 | **Position Sizing** | Gen 2 | ██████░░░░ | "Risk per trade", "Volatility sizing" |
 
-### ☁️ Cloudflare Mastery (UPGRADED)
+### ☁️ Cloud & Data Engineering (MASTERED)
 
 | Skill | Level | Mastery | Triggers |
 |-------|-------|---------|----------|
+| **Oracle Cloud (ARM)** | Gen 3 | █████████░ | "24GB RAM", "Always Free", "Docker Host" |
+| **BigQuery Streaming** | Gen 3 | █████████░ | "Storage Write API", "Zero-Cost Ingestion" |
 | **Workers Python** | Gen 3 | ████████░░ | "Serverless", "Edge compute" |
 | **D1 Database** | Gen 2 | ███████░░░ | "SQL edge", "Trade history" |
 | **R2 Storage** | Gen 2 | ██████░░░░ | "Object storage", "Market archives" |
