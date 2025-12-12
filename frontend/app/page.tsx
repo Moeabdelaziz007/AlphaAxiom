@@ -11,7 +11,8 @@ export default function QuantumDashboard() {
   const { isConnected, isConnecting, account, signals, logs, connect } = useQuantumSocket()
 
   const handleDownload = () => {
-    window.open("https://github.com/quantum-trading-engine/releases", "_blank")
+    // Download AlphaReceiver EA from GitHub
+    window.open("https://github.com/Moeabdelaziz007/AlphaAxiom/raw/main/mql5/AlphaReceiver.mq5", "_blank")
   }
 
   return (
