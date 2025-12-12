@@ -130,25 +130,27 @@ export function useQuantumSocket() {
   }, [])
 
   const connect = useCallback(() => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) return
+    if (wsRef.current) return
 
     setState((prev) => ({ ...prev, isConnecting: true, error: null }))
-    addLog("[SYSTEM] Attempting connection to Quantum Engine...", "info")
+    addLog("[SYSTEM] Connecting to AQT Brain (oracle.axiomid.app)...", "info")
 
     try {
-      const ws = new WebSocket("wss://localhost:8765")
+      // Use SSE (EventSource) instead of WebSocket to connect to MCP Server
+      const mcpUrl = process.env.NEXT_PUBLIC_MCP_URL || "https://oracle.axiomid.app/sse"
+      const eventSource = new EventSource(mcpUrl)
 
-      ws.onopen = () => {
+      eventSource.onopen = () => {
         setState((prev) => ({
           ...prev,
           isConnected: true,
           isConnecting: false,
           error: null,
         }))
-        addLog("[SYSTEM] Connected to Quantum Engine ✓", "success")
+        addLog("[SYSTEM] Connected to AQT Brain ✓", "success")
       }
 
-      ws.onmessage = (event) => {
+      eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data)
 
@@ -168,33 +170,27 @@ export function useQuantumSocket() {
         }
       }
 
-      ws.onerror = () => {
-        setState((prev) => ({
-          ...prev,
-          isConnecting: false,
-          error: "Connection failed. Is the engine running?",
-        }))
-        addLog("[ERROR] WebSocket connection error", "error")
-      }
-
-      ws.onclose = () => {
+      eventSource.onerror = () => {
         setState((prev) => ({
           ...prev,
           isConnected: false,
           isConnecting: false,
+          error: "Connection failed. Check if AQT Brain is running.",
         }))
-        addLog("[SYSTEM] Disconnected from Quantum Engine", "error")
+        addLog("[ERROR] SSE connection error - retrying...", "error")
+        eventSource.close()
         wsRef.current = null
       }
 
-      wsRef.current = ws
+      // Store reference (reusing wsRef for simplicity)
+      wsRef.current = eventSource as unknown as WebSocket
     } catch {
       setState((prev) => ({
         ...prev,
         isConnecting: false,
-        error: "Failed to create WebSocket connection",
+        error: "Failed to create SSE connection",
       }))
-      addLog("[ERROR] Failed to initialize WebSocket", "error")
+      addLog("[ERROR] Failed to initialize SSE", "error")
     }
   }, [addLog])
 
