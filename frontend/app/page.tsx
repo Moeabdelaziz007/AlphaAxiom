@@ -6,6 +6,8 @@ import { StatusIndicator } from "@/components/status-indicator"
 import { AccountCard } from "@/components/account-card"
 import { SignalsCard } from "@/components/signals-card"
 import { ConsoleCard } from "@/components/console-card"
+import { TradingChart } from "@/components/trading-chart"
+import { NeuralTopology } from "@/components/neural-topology"
 
 export default function QuantumDashboard() {
   const { isConnected, isConnecting, account, signals, logs, connect } = useQuantumSocket()
@@ -21,7 +23,10 @@ export default function QuantumDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative selection:bg-[#39FF14]/30">
+      {/* Background Neural Network */}
+      <NeuralTopology />
+
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -56,9 +61,14 @@ export default function QuantumDashboard() {
           </div>
         )}
 
+        {/* TradingView Chart - Full Width */}
+        <div className="mb-6">
+          <TradingChart symbol="BTCUSD" theme="dark" />
+        </div>
+
         {/* Bento Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {/* Account Card - Spans full width on mobile, 1 col on larger */}
+          {/* Account Card */}
           <div className="lg:col-span-1">
             <AccountCard account={account} />
           </div>
@@ -68,7 +78,7 @@ export default function QuantumDashboard() {
             <SignalsCard signals={signals} />
           </div>
 
-          {/* Console Card - Takes remaining space */}
+          {/* Console Card */}
           <div className="md:col-span-2 lg:col-span-1">
             <ConsoleCard logs={logs} />
           </div>
