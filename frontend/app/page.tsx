@@ -11,11 +11,10 @@ export default function QuantumDashboard() {
   const { isConnected, isConnecting, account, signals, logs, connect } = useQuantumSocket()
 
   const handleDownload = () => {
-    // Create a temporary link to force download
+    // Download AlphaReceiver EA from local public folder
     const link = document.createElement('a')
-    link.href = "https://raw.githubusercontent.com/Moeabdelaziz007/AlphaAxiom/main/mql5/AlphaReceiver.mq5"
+    link.href = "/AlphaReceiver.mq5"
     link.download = "AlphaReceiver.mq5"
-    link.target = "_blank"
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
