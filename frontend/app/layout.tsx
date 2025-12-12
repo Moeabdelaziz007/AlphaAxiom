@@ -7,34 +7,66 @@ import "./globals.css"
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
-  title: "AlphaQuanTopology Dashboard",
-  description: "AQT Neural-powered trading engine control panel",
-  generator: "v0.app",
-  manifest: "/manifest.json",
-  icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
-  },
-}
-
+// Theme color for browser bar (Elite Level)
 export const viewport: Viewport = {
-  themeColor: "#0d0f14",
+  themeColor: "#0a0a0a",
   width: "device-width",
   initialScale: 1,
+}
+
+export const metadata: Metadata = {
+  title: "AlphaQuanTopology (AQT)",
+  description: "AI-Powered Quantum Trading Dashboard - Real-time neural signal analysis",
+  generator: "v0.app",
+
+  // PWA Manifest
+  manifest: "/manifest.json",
+
+  // Elite Icons Strategy (Dynamic Dark/Light + Safari Pinned Tab)
+  icons: {
+    icon: [
+      { url: "/icon-light-32x32.png", media: "(prefers-color-scheme: light)" },
+      { url: "/icon-dark-32x32.png", media: "(prefers-color-scheme: dark)" },
+      { url: "/favicon.ico" }, // Fallback
+    ],
+    shortcut: ["/favicon.ico"],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        rel: "mask-icon", // Safari Pinned Tab
+        url: "/safari-pinned-tab.svg",
+        color: "#39FF14", // Neon green brand color
+      },
+    ],
+  },
+
+  // Open Graph (Facebook, LinkedIn, etc.)
+  openGraph: {
+    title: "AlphaQuanTopology | AI Trading",
+    description: "Real-time AI logic and execution dashboard.",
+    url: "https://aqt.axiomid.app",
+    siteName: "AxiomID Platform",
+    images: [
+      {
+        url: "https://aqt.axiomid.app/api/og",
+        width: 1200,
+        height: 630,
+        alt: "AQT Dashboard Interface",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+
+  // Twitter / X Cards
+  twitter: {
+    card: "summary_large_image",
+    title: "AlphaQuanTopology (AQT)",
+    description: "Execute trades with Quantum AI precision.",
+    images: ["https://aqt.axiomid.app/twitter-image.png"],
+  },
 }
 
 export default function RootLayout({
@@ -51,3 +83,4 @@ export default function RootLayout({
     </html>
   )
 }
+
