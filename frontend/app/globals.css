@@ -1,10 +1,12 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* ==========================================
+   🎨 DESIGN TOKEN SYSTEM - Cyberpunk Fintech
+   ========================================== */
 
-/* Cyberpunk fintech dark theme with neon green (#39FF14) accent */
 :root {
+  /* ============ Base Colors (oklch) ============ */
   --background: oklch(0.13 0.01 250);
   --foreground: oklch(0.95 0 0);
   --card: oklch(0.16 0.01 250);
@@ -39,9 +41,65 @@
   --sidebar-border: oklch(0.28 0.01 250);
   --sidebar-ring: oklch(0.85 0.25 130);
 
-  /* Custom neon green */
-  --neon: #39ff14;
-  --neon-glow: 0 0 10px rgba(57, 255, 20, 0.5);
+  /* ============ Brand Colors (Hex) ============ */
+  --color-primary-cyan: #00F0FF;
+  --color-accent-pink: #FF00AA;
+  --color-neon-green: #39FF14;
+  
+  /* ============ Background Layers ============ */
+  --color-bg-base: #050505;
+  --color-bg-elevated: #0A0A0A;
+  --color-bg-glass: rgba(0, 0, 0, 0.8);
+  --color-bg-glass-light: rgba(0, 0, 0, 0.6);
+  
+  /* ============ Glassmorphism ============ */
+  --color-glass-border: rgba(255, 255, 255, 0.05);
+  --color-glass-border-hover: rgba(255, 255, 255, 0.1);
+  --backdrop-blur: 24px;
+  --backdrop-blur-sm: 12px;
+  --backdrop-blur-lg: 40px;
+  
+  /* ============ Sentiment Colors ============ */
+  --color-sentiment-bullish: #00FF88;
+  --color-sentiment-bearish: #FF3366;
+  --color-sentiment-neutral: #888888;
+  
+  /* ============ Sentiment Glows ============ */
+  --glow-bullish: 0 0 20px rgba(0, 255, 136, 0.4);
+  --glow-bullish-strong: 0 0 40px rgba(0, 255, 136, 0.6);
+  --glow-bearish: 0 0 20px rgba(255, 51, 102, 0.4);
+  --glow-bearish-strong: 0 0 40px rgba(255, 51, 102, 0.6);
+  --glow-neutral: 0 0 20px rgba(136, 136, 136, 0.3);
+  --glow-primary: 0 0 20px rgba(0, 240, 255, 0.3);
+  --glow-primary-strong: 0 0 40px rgba(0, 240, 255, 0.5);
+  --glow-neon: 0 0 10px rgba(57, 255, 20, 0.5);
+  --glow-neon-strong: 0 0 30px rgba(57, 255, 20, 0.7);
+  
+  /* ============ Gradient Stops ============ */
+  --gradient-bullish-start: rgba(0, 255, 136, 0.5);
+  --gradient-bullish-end: rgba(0, 255, 136, 0.1);
+  --gradient-bearish-start: rgba(255, 51, 102, 0.5);
+  --gradient-bearish-end: rgba(255, 51, 102, 0.1);
+  --gradient-neutral-start: rgba(136, 136, 136, 0.5);
+  --gradient-neutral-end: rgba(136, 136, 136, 0.1);
+  --gradient-cyber-start: rgba(0, 240, 255, 0.5);
+  --gradient-cyber-mid: rgba(168, 85, 247, 0.5);
+  --gradient-cyber-end: rgba(0, 240, 255, 0.5);
+  
+  /* ============ Animation Timing ============ */
+  --animation-pulse-slow: 3s;
+  --animation-pulse-medium: 2s;
+  --animation-pulse-fast: 1s;
+  --animation-glow: 2s;
+  --animation-gradient: 3s;
+  
+  /* ============ Shadows ============ */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-cyber: 0 0 20px rgba(0, 240, 255, 0.2);
+  --shadow-neon: 0 0 20px rgba(57, 255, 20, 0.3);
 }
 
 .dark {
@@ -118,7 +176,11 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-neon: var(--neon);
+  
+  /* Custom color mappings */
+  --color-neon: var(--color-neon-green);
+  --color-cyber: var(--color-primary-cyan);
+  --color-accent-alt: var(--color-accent-pink);
 }
 
 @layer base {
@@ -130,18 +192,61 @@
   }
 }
 
-/* Neon glow effects */
+/* ==========================================
+   🎨 UTILITY CLASSES
+   ========================================== */
+
+/* Neon Effects */
 .neon-text {
-  color: var(--neon);
-  text-shadow: var(--neon-glow);
+  color: var(--color-neon-green);
+  text-shadow: var(--glow-neon);
 }
 
 .neon-border {
-  border-color: var(--neon);
-  box-shadow: var(--neon-glow);
+  border-color: var(--color-neon-green);
+  box-shadow: var(--glow-neon);
 }
 
-/* Terminal scrollbar */
+.cyber-text {
+  color: var(--color-primary-cyan);
+  text-shadow: var(--glow-primary);
+}
+
+.cyber-border {
+  border-color: var(--color-primary-cyan);
+  box-shadow: var(--glow-primary);
+}
+
+/* Glassmorphism */
+.glass-card {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(var(--backdrop-blur));
+  border: 1px solid var(--color-glass-border);
+}
+
+.glass-card-light {
+  background: var(--color-bg-glass-light);
+  backdrop-filter: blur(var(--backdrop-blur-sm));
+  border: 1px solid var(--color-glass-border);
+}
+
+/* Sentiment Styles */
+.sentiment-bullish {
+  color: var(--color-sentiment-bullish);
+  text-shadow: var(--glow-bullish);
+}
+
+.sentiment-bearish {
+  color: var(--color-sentiment-bearish);
+  text-shadow: var(--glow-bearish);
+}
+
+.sentiment-neutral {
+  color: var(--color-sentiment-neutral);
+  text-shadow: var(--glow-neutral);
+}
+
+/* Terminal Scrollbar */
 .terminal-scroll::-webkit-scrollbar {
   width: 6px;
 }
@@ -156,5 +261,113 @@
 }
 
 .terminal-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--neon);
+  background: var(--color-neon-green);
+}
+
+/* ==========================================
+   🎬 ANIMATIONS
+   ========================================== */
+
+/* Gradient Animation */
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x var(--animation-gradient) ease infinite;
+}
+
+/* Pulse Glow */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow var(--animation-pulse-medium) ease-in-out infinite;
+}
+
+/* Sentiment Pulse */
+@keyframes pulse-bullish {
+  0%, 100% { 
+    box-shadow: var(--glow-bullish);
+    opacity: 0.5;
+  }
+  50% { 
+    box-shadow: var(--glow-bullish-strong);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-bearish {
+  0%, 100% { 
+    box-shadow: var(--glow-bearish);
+    opacity: 0.5;
+  }
+  50% { 
+    box-shadow: var(--glow-bearish-strong);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-neutral {
+  0%, 100% { 
+    box-shadow: var(--glow-neutral);
+    opacity: 0.5;
+  }
+  50% { 
+    box-shadow: var(--glow-neutral);
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-bullish {
+  animation: pulse-bullish var(--animation-glow) ease-in-out infinite;
+}
+
+.animate-pulse-bearish {
+  animation: pulse-bearish var(--animation-glow) ease-in-out infinite;
+}
+
+.animate-pulse-neutral {
+  animation: pulse-neutral var(--animation-glow) ease-in-out infinite;
+}
+
+/* ==========================================
+   ♿ ACCESSIBILITY
+   ========================================== */
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animate-gradient-x,
+  .animate-pulse-glow,
+  .animate-pulse-bullish,
+  .animate-pulse-bearish,
+  .animate-pulse-neutral {
+    animation: none !important;
+  }
+}
+
+/* Focus Indicators */
+:focus-visible {
+  outline: 2px solid var(--color-primary-cyan);
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-glass-border: rgba(255, 255, 255, 0.3);
+    --color-glass-border-hover: rgba(255, 255, 255, 0.5);
+  }
 }

@@ -50,7 +50,7 @@ export function TradingChart({ symbol = "BTCUSD", theme = "dark" }: TradingChart
     }, [symbol, theme])
 
     return (
-        <div className="tradingview-widget-container h-full w-full min-h-[600px] rounded-lg border border-border bg-card overflow-hidden">
+        <div className="tradingview-widget-container relative h-full w-full min-h-[600px] rounded-lg border border-border bg-card overflow-hidden z-10">
             <div id="tradingview_widget" ref={containerRef} className="h-full w-full" />
         </div>
     )

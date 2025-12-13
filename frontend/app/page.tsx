@@ -23,7 +23,7 @@ export default function QuantumDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative selection:bg-[#39FF14]/30">
+    <div className="min-h-screen bg-background relative" style={{ selectionBackgroundColor: "var(--color-neon-green)", selectionOpacity: 0.3 }}>
       {/* Background Neural Network */}
       <NeuralTopology />
 
@@ -31,8 +31,11 @@ export default function QuantumDashboard() {
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#39FF14]/10">
-              <Zap className="h-5 w-5 text-[#39FF14]" />
+            <div 
+              className="flex h-9 w-9 items-center justify-center rounded-lg"
+              style={{ backgroundColor: "rgba(57, 255, 20, 0.1)" }}
+            >
+              <Zap className="h-5 w-5" style={{ color: "var(--color-neon-green)" }} />
             </div>
             <div>
               <h1 className="text-base font-semibold tracking-tight text-foreground">AlphaQuanTopology</h1>
@@ -87,7 +90,7 @@ export default function QuantumDashboard() {
         {/* Footer Stats */}
         <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#39FF14]"></span>
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--color-neon-green)" }}></span>
             <span>Latency: 12ms</span>
           </div>
           <div className="flex items-center gap-2">

@@ -107,6 +107,13 @@ Located in: `connector/spiders/news_spider.py`
 - **Styling:** TailwindCSS (`tailwindcss`), Lucide Icons (`lucide-react`)
 - **Auth:** Firebase SDK (`firebase`)
 - **Charts:** Recharts (`recharts`)
+- **Design System:** "Sentient Glass" (CSS Variables + Framer Motion)
+
+### Intelligence Hub (New)
+
+- **Engine:** Perplexity Sonar (via automated cron)
+- **Database:** Cloudflare D1 (`news`, `briefings`)
+- **UI:** Sentient Glass Dashboard (`/news`)
 
 ## 🚀 Setup Guide
 

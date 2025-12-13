@@ -95,9 +95,27 @@ async def on_fetch(request, env):
         401: Unauthorized (missing X-System-Key)
         500: Internal server error
     """
+    """
     url = str(request.url)
     method = str(request.method)
+
+    # 1. 🆕 MODULAR ROUTER (Priority Dispatch)
+    # Tries to handle request via new architecture first
+    try:
+        from router import dispatch_request
+        response = await dispatch_request(request, env)
+        if response is not None:
+            return response
+    except ImportError:
+        # Graceful fallback if router.py not pending deployment
+        print("⚠️ Router module not found, falling back to legacy monolith")
+    except Exception as e:
+        print(f"⚠️ Router Dispatch Error: {str(e)}")
+        # Fallback to legacy handling
+        pass
     
+    # 2. 🛡️ LEGACY MONOLITH (Fallback)
+
     # 🆔 CORRELATION ID: Inject for request tracing
     correlation_id = request.headers.get("X-Correlation-ID") or log.new_correlation_id()
     log.set_correlation_id(correlation_id)
