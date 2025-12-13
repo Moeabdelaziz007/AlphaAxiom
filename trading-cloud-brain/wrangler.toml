@@ -37,7 +37,7 @@ id = "d44af3dedb9d4625825c90b1fff479ed"
 [[d1_databases]]
 binding = "TRADING_DB"
 database_name = "trading-brain-db"
-database_id = "9d4168e4-391c-4b79-a20a-6661e599fde6"
+database_id = "bd219ce9-30f6-42a5-b615-f9de7516ef0c"
 
 # 🧊 COLD STORAGE: R2 Bucket
 [[r2_buckets]]

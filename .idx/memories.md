@@ -4,6 +4,84 @@
 
 ## 📅 سجل الجلسات
 
+### الجلسة: 13 ديسمبر 2025 (02:30) - 🧠 Intelligence Hub & D1 Integration
+
+**📦 Phase 5: Cloudflare D1 Data Persistence (COMPLETE!):**
+
+- ✅ **D1 Database:** Created `TRADING_DB` with `news` + `briefings` tables.
+- ✅ **Worker Push API:** `/api/news/push` for Spider → D1 ingestion.
+- ✅ **Worker Read API:** `/api/news/latest` + `/api/briefing/save` + `/api/briefing/latest`.
+- ✅ **Spider Update:** `news_spider.py` now pushes to Cloudflare Edge.
+- ✅ **Security:** `INTERNAL_SECRET` configured via `wrangler secret put`.
+
+**🤖 Phase 6: AQT Intelligence Hub (IN PROGRESS):**
+
+- ✅ **Perplexity Research:** Pricing analysis, $5/month strategy documented.
+- ✅ **AI Editor Script:** `connector/intelligence/daily_brief.py` for automated analysis.
+- ✅ **Sentient Glass UI:** Revolutionary `/news` dashboard with:
+  - `PulsingOrb` (AI brain indicator)
+  - `GlitchText` (cyberpunk headers)
+  - `Typewriter` (AI summary animation)
+  - `NeonTag` (market drivers)
+  - `GlassCard` (animated gradient borders)
+  - Framer Motion staggered animations
+
+**🛠️ Technical Updates:**
+
+- Installed `framer-motion` for animations.
+- Updated `schema.sql` with `briefings` table.
+- Added `NEXT_PUBLIC_WORKER_URL` to frontend env.
+- Fixed Spider session closure bug (await vs create_task).
+
+**Skills Acquired:**
+
+- Cloudflare D1 Python bindings (Workers)
+- Framer Motion typewriter/glitch effects
+- Iron Man HUD-style dashboard design
+
+---
+
+### الجلسة: 12 ديسمبر 2025 (22:00) - 🧠 Multi-AI & Firebase Auth
+
+**🤖 Phase 2: Multi-AI Integration (COMPLETE!):**
+
+- ✅ **AI Router (`connector/ai/router.py`):** Unified interface for multiple providers.
+- ✅ **Groq Provider:** Llama 3.1 70B on LPU (877 tok/s) for Sentinel (speed).
+- ✅ **Z.AI Provider:** GLM-4.6 for Analyst (deep reasoning).
+- ✅ **Gemini Provider:** `google-genai` SDK, Gemini 2.0 Flash.
+- ✅ **OpenRouter Provider:** Backup/Consensus via unified API.
+
+**🔐 Phase 3: Firebase Authentication (COMPLETE!):**
+
+- ✅ **Firebase Config (`lib/firebase.ts`):** Initialized app with env vars.
+- ✅ **AuthContext (`contexts/AuthContext.tsx`):** Global user state, Google/Email methods.
+- ✅ **Login Page (`/login`):** "Axiom Access" UI with tabs for Email/Phone/Google.
+- ✅ **LoginForm Component:** Full implementation with Google SVG, tabbed modes.
+
+**📈 TradingView Chart Debug:**
+
+- ✅ Increased `min-height` to 600px for better rendering.
+- ✅ Improved script cleanup in `useEffect` to prevent duplicates.
+
+**📰 Intelligence Layer (News Spider):**
+
+- ✅ Deployed to Oracle Cloud, fetching Coindesk/Cointelegraph.
+- ✅ Frontend styled logs with cyan color + 📰 emoji.
+
+**🏦 AWS MT5 Setup:**
+
+- ✅ User connected to Windows Server via RDP.
+- ✅ MT5 downloaded and demo account created.
+- ⏳ AlphaReceiver EA pending installation.
+
+**Skills Acquired:**
+
+- Firebase Auth with Next.js App Router
+- Multi-provider AI architecture (OpenAI-compatible SDKs)
+- MCP JSON-RPC 2.0 notification parsing
+
+---
+
 ### الجلسة: 12 ديسمبر 2025 (13:00) - 🚀 AQT Brain Goes Live
 
 **🎯 AQT MCP Server Deployment (SUCCESS!):**

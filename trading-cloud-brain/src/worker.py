@@ -350,6 +350,115 @@ async def on_fetch(request, env):
             }), headers=headers)
         except Exception as e:
             return Response.new(json.dumps({"error": str(e)}), status=400, headers=headers)
+
+    # ==========================================
+    # 📰 NEWS INGESTION (Oracle -> Edge -> D1)
+    # ==========================================
+    if "/api/news/push" in url and method == "POST":
+        auth_header = request.headers.get("X-Internal-Secret")
+        internal_secret = str(getattr(env, 'INTERNAL_SECRET', ''))
+        
+        # 1. Security Check
+        if not auth_header or auth_header != internal_secret:
+            return Response.new("Unauthorized Access 🚫", status=401)
+            
+        # 2. Insert Logic
+        try:
+            body_js = await request.json()
+            body = json.loads(JSON.stringify(body_js))
+            
+            # Prepare SQL (Python binding style for D1)
+            stmt = env.TRADING_DB.prepare(
+                "INSERT OR IGNORE INTO news (source, title, link, sentiment) VALUES (?, ?, ?, ?)"
+            ).bind(
+                body.get("source"),
+                body.get("title"),
+                body.get("link"),
+                body.get("sentiment", "neutral")
+            )
+            
+            await stmt.run()
+            
+            return Response.new(json.dumps({"success": True}), headers=headers)
+        except Exception as e:
+            return Response.new(f"Database Error: {str(e)}", status=500)
+    
+    # ==========================================
+    # 🤖 AI READ: Get Latest Headlines for Analysis
+    # ==========================================
+    if "/api/news/latest" in url and method == "GET":
+        try:
+            # Parse limit from query string (default 50)
+            limit = 50
+            if "?" in url:
+                params = dict(p.split("=") for p in url.split("?")[1].split("&") if "=" in p)
+                limit = int(params.get("limit", 50))
+            
+            result = await env.TRADING_DB.prepare(
+                "SELECT id, source, title, published_at FROM news ORDER BY published_at DESC LIMIT ?"
+            ).bind(limit).all()
+            
+            # Format for AI consumption
+            news_list = []
+            for row in result.results:
+                news_list.append({
+                    "id": row.id,
+                    "source": row.source,
+                    "title": row.title,
+                    "published_at": str(row.published_at)
+                })
+            
+            return Response.new(json.dumps({"news": news_list, "count": len(news_list)}), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({"error": str(e)}), status=500, headers=headers)
+    
+    # ==========================================
+    # 🤖 AI WRITE: Save Daily Briefing
+    # ==========================================
+    if "/api/briefing/save" in url and method == "POST":
+        auth_header = request.headers.get("X-Internal-Secret")
+        internal_secret = str(getattr(env, 'INTERNAL_SECRET', ''))
+        
+        if not auth_header or auth_header != internal_secret:
+            return Response.new("Unauthorized Access 🚫", status=401)
+        
+        try:
+            body_js = await request.json()
+            body = json.loads(JSON.stringify(body_js))
+            
+            stmt = env.TRADING_DB.prepare(
+                "INSERT INTO briefings (summary, sentiment) VALUES (?, ?)"
+            ).bind(
+                body.get("summary"),
+                body.get("sentiment", "neutral")
+            )
+            
+            await stmt.run()
+            
+            return Response.new(json.dumps({"success": True, "message": "Briefing Saved ✅"}), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({"error": str(e)}), status=500, headers=headers)
+    
+    # ==========================================
+    # 📊 GET: Retrieve Latest Briefing for Dashboard
+    # ==========================================
+    if "/api/briefing/latest" in url and method == "GET":
+        try:
+            result = await env.TRADING_DB.prepare(
+                "SELECT id, summary, sentiment, created_at FROM briefings ORDER BY created_at DESC LIMIT 1"
+            ).first()
+            
+            if result:
+                return Response.new(json.dumps({
+                    "id": result.id,
+                    "summary": result.summary,
+                    "sentiment": result.sentiment,
+                    "created_at": str(result.created_at)
+                }), headers=headers)
+            else:
+                return Response.new(json.dumps({"message": "No briefings available yet"}), headers=headers)
+        except Exception as e:
+            return Response.new(json.dumps({"error": str(e)}), status=500, headers=headers)
     
     # AlphaAPI: Get Latest Signal (External - for MT5 Clients)
     if "api/v1/signals/latest" in url and method == "GET":

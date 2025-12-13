@@ -53,3 +53,6 @@ coverage/
 *.pem
 .vercel
 strategy_cache.json
+
+# Cloudflare
+.wrangler/

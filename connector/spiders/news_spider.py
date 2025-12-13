@@ -8,13 +8,18 @@ import asyncio
 import aiohttp
 from xml.etree import ElementTree as ET
 from datetime import datetime
-from typing import Callable, Set
+from typing import Callable, Set, List, Tuple
+import os
 
 # RSS Feed Sources (Free, Real-time)
 RSS_FEEDS = [
     ("Coindesk", "https://www.coindesk.com/arc/outboundfeeds/rss/"),
     ("Cointelegraph", "https://cointelegraph.com/rss"),
 ]
+
+# Cloudflare Worker Configuration
+WORKER_URL = os.getenv("WORKER_URL", "https://trading-brain-v1.amrikyy1.workers.dev/api/news/push")
+INTERNAL_SECRET = os.getenv("INTERNAL_SECRET", "")  # Set via environment
 
 class NewsSpider:
     """Async spider that fetches crypto news from RSS feeds."""
@@ -35,8 +40,32 @@ class NewsSpider:
     def _default_handler(self, source: str, title: str, link: str):
         """Default handler logs to console."""
         print(f"[SPIDER-01] {source}: {title}")
-    
-    async def fetch_feed(self, session: aiohttp.ClientSession, name: str, url: str):
+        
+    async def push_to_cloud(self, session: aiohttp.ClientSession, title: str, link: str, source: str):
+        """Sending data to the Edge (D1)"""
+        headers = {
+            "Content-Type": "application/json",
+            "X-Internal-Secret": INTERNAL_SECRET
+        }
+        payload = {
+            "source": source,
+            "title": title,
+            "link": link,
+            "sentiment": "neutral" 
+        }
+        
+        try:
+            async with session.post(WORKER_URL, json=payload, headers=headers) as resp:
+                if resp.status == 200:
+                    print(f"✅ [D1 SYNC] Saved: {title[:30]}...")
+                elif resp.status == 401:
+                    print("⛔ [D1 AUTH] Unauthorized! Check INTERNAL_SECRET.")
+                else:
+                    print(f"⚠️ [D1 FAIL] Status {resp.status} for {title[:30]}...")
+        except Exception as e:
+            print(f"❌ [D1 ERROR] Connection failed: {str(e)}")
+
+    async def fetch_feed(self, session: aiohttp.ClientSession, name: str, url: str) -> List[Tuple[str, str, str]]:
         """Fetch and parse a single RSS feed."""
         try:
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
@@ -88,9 +117,13 @@ class NewsSpider:
                 if isinstance(result, list):
                     all_news.extend(result)
             
-            # Emit news events
+            # Emit events & Push to D1
             for source, title, link in all_news:
+                # 1. Local Callback
                 self.on_news(source, title, link)
+                
+                # 2. Persist to D1 (Await to ensure session stays open)
+                await self.push_to_cloud(session, title, link, source)
             
             return len(all_news)
     
@@ -98,17 +131,21 @@ class NewsSpider:
         """Start the continuous spider loop."""
         self._running = True
         print(f"[SPIDER-01] Starting news spider (interval: {self.interval}s)")
+        print(f"[SPIDER-01] Target Worker: {WORKER_URL}")
         
-        # Initial fetch
-        count = await self.run_once()
-        print(f"[SPIDER-01] Initial fetch: {count} new articles")
+        # Initial wait to let connections settle
+        await asyncio.sleep(1)
         
         # Background loop
         while self._running:
+            try:
+                count = await self.run_once()
+                if count > 0:
+                    print(f"[SPIDER-01] Processed {count} new articles")
+            except Exception as e:
+                print(f"[SPIDER-01] Critical Loop Error: {e}")
+                
             await asyncio.sleep(self.interval)
-            count = await self.run_once()
-            if count > 0:
-                print(f"[SPIDER-01] Found {count} new articles")
     
     def stop(self):
         """Stop the spider loop."""
