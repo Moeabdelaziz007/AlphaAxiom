@@ -4,19 +4,52 @@
 
 ---
 
-## 🎯 Long-Term Roadmap: Axiom RESET
+## 🏛️ The Axiom Architecture (Master Hierarchy)
 
-> **"Egypt's First AI Operating System"** - The Digital Workforce
+> **"Every Agent needs a Soul. Every Soul needs a Home."**
 
-### The Grand Vision
+```
+        👑 AXIOM ID (The Soul)
+              │
+              │  Solana Blockchain
+              │  On-chain Identity for every Agent
+              ▼
+        🌍 AXIOM RESET (The Economy)
+              │
+              │  Egypt's First AI OS
+              │  Marketplace for Digital Workforce
+              ▼
+        🚀 AQT - ANTIGRAVITY (The Spearhead)  ◄── [CURRENT FOCUS]
+              │
+              │  AI Trading Engine
+              │  Revenue Generation + Tech Proof
+              ▼
+        💰 RESOURCES → FUND THE EMPIRE
+```
 
-We are NOT just building a trading bot. We are building an **AI Operating System** to automate the entire economy of Egypt and MENA.
+### The Hierarchy Explained
 
-### The Agent Squad (Future Phases)
+| Level | Name | Repo | Purpose | Status |
+|-------|------|------|---------|--------|
+| 👑 **1** | Axiom ID | `axiom-id` | On-chain Identity (Rust/Solana) | 🔴 Paused |
+| 🌍 **2** | Axiom RESET | `axiom-reset-official` | AI Agent Marketplace | 🔴 Paused |
+| 🚀 **3** | AQT (Antigravity) | `AlphaAxiom` | Trading Engine | 🟢 **ACTIVE** |
+
+### Design Directive
+
+**Build AQT with future Axiom ID integration in mind:**
+
+- Keep modules decoupled (Wallet layer can be swapped)
+- Agent identity stored in config (future: on-chain)
+- Transaction signatures ready for Solana integration
+
+---
+
+## 🎯 Long-Term Roadmap: The Agent Squad
 
 | Agent | Domain | Status |
 |-------|--------|--------|
-| **⚡ Antigravity (AQT)** | AI Trading Engine | 🟢 **ACTIVE (Spearhead)** |
+| **⚡ Antigravity (AQT)** | AI Trading Engine | 🟢 **ACTIVE** |
 | 🍽️ Sofra | Restaurant OS | 🟡 Coming Soon |
 | 🛒 Tajer | Smart Store | 🟡 Coming Soon |
 | 🚚 Tirs | Delivery Fleet | 🟡 Coming Soon |
@@ -27,12 +60,6 @@ We are NOT just building a trading bot. We are building an **AI Operating System
 | 🏛️ Watheeq | GovTech Navigator | 🔴 Phase 3 |
 | 🧳 Murshid | Tourism Guide | 🔴 Phase 3 |
 | 🔧 Sanay3y | Technician OS | 🔴 Phase 3 |
-
-### The Spearhead Strategy
-
-**AQT is the Foundation.** If we master the chaos of global financial markets, building all other agents becomes trivial. AQT generates resources and proves the technology.
-
-**Current Directive:** 100% Focus on AQT. No distractions.
 
 ---
 

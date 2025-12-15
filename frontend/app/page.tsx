@@ -1,4 +1,5 @@
-"use client"
+eu   client"
+
 
 import { Zap } from "lucide-react"
 import { useQuantumSocket } from "@/hooks/use-quantum-socket"
