@@ -65,6 +65,13 @@
 
 ## 📅 سجل الجلسات
 
+### الجلسة: 15 ديسمبر 2025 (13:15) - ☁️ Infrastructure Reboot (AWS) (Active)
+
+- **AWS Instance:** `m7i-flex.large` (Windows Server 2025).
+- **IP:** `54.162.158.245`.
+- **Key:** Converted `AQT.ppk` -> `AQT.pem` for Mac RDP access.
+- **Context:** User recalled old Azure Student Credit ($100), verified in legacy logs. Transitioned to AWS for performance.
+
 ### الجلسة: 15 ديسمبر 2025 (10:50) - 🕵️ Grand Audit & Identity Confirmation
 
 **✅ Audit Results (System Reconnaissance):**
