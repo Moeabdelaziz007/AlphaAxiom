@@ -2,6 +2,40 @@
 
 > *سجل حي للقرارات الرئيسية، المهارات المكتسبة، والسياق للمستقبل.*
 
+---
+
+## 🎯 Long-Term Roadmap: Axiom RESET
+
+> **"Egypt's First AI Operating System"** - The Digital Workforce
+
+### The Grand Vision
+
+We are NOT just building a trading bot. We are building an **AI Operating System** to automate the entire economy of Egypt and MENA.
+
+### The Agent Squad (Future Phases)
+
+| Agent | Domain | Status |
+|-------|--------|--------|
+| **⚡ Antigravity (AQT)** | AI Trading Engine | 🟢 **ACTIVE (Spearhead)** |
+| 🍽️ Sofra | Restaurant OS | 🟡 Coming Soon |
+| 🛒 Tajer | Smart Store | 🟡 Coming Soon |
+| 🚚 Tirs | Delivery Fleet | 🟡 Coming Soon |
+| 📚 Ostaz | AI Tutor | 🟡 Coming Soon |
+| 💊 Dr. Moe | Pharmacy Guardian | 🔴 Phase 2 |
+| 🏠 Aqar | Housing Agent | 🔴 Phase 2 |
+| 🌾 Falah | Agri-Intelligence | 🔴 Phase 3 |
+| 🏛️ Watheeq | GovTech Navigator | 🔴 Phase 3 |
+| 🧳 Murshid | Tourism Guide | 🔴 Phase 3 |
+| 🔧 Sanay3y | Technician OS | 🔴 Phase 3 |
+
+### The Spearhead Strategy
+
+**AQT is the Foundation.** If we master the chaos of global financial markets, building all other agents becomes trivial. AQT generates resources and proves the technology.
+
+**Current Directive:** 100% Focus on AQT. No distractions.
+
+---
+
 ## 📅 سجل الجلسات
 
 ### الجلسة: 15 ديسمبر 2025 (10:50) - 🕵️ Grand Audit & Identity Confirmation
