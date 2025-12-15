@@ -8,11 +8,16 @@ import os
 import requests
 import json
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configuration
 WORKER_URL = os.getenv("WORKER_URL", "https://trading-brain-v1.amrikyy1.workers.dev")
 INTERNAL_SECRET = os.getenv("INTERNAL_SECRET", "")  # Set via environment
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY", "")
+
 
 # Perplexity Settings (Price Optimization: sonar)
 PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
