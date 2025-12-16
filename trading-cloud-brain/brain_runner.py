@@ -1,69 +1,99 @@
 """
 ============================================
-🧠 BRAIN RUNNER - The Heartbeat of AlphaAxiom
+🧠 BRAIN RUNNER v2.0 - Institutional Trading AI
 ============================================
 
-24/7 Trading Brain that:
-1. Connects to MT5 on the same Windows Server
-2. Fetches real-time OHLCV data
-3. Runs InstitutionalCipher analysis (DeepSeek + Gemini)
-4. Sends signals to Oracle API when confidence >= 80%
+MERGED VERSION combining:
+- Our: MT5 direct integration, demo mode, embedded cipher
+- DeepSeek: async pattern, logging to file, parallel analysis, VWAP stops
 
-Run with: python brain_runner.py
+Features:
+1. Async/await for concurrent analysis (DeepSeek)
+2. MT5 direct integration (Our - faster on same server)
+3. Professional logging with file handler (DeepSeek)
+4. Demo mode fallback (Our - safe testing)
+5. VWAP-based stop loss calculation (DeepSeek)
+6. Parallel symbol analysis (DeepSeek)
 
-Author: AlphaAxiom Team
-Version: 1.0.0
+Author: AlphaAxiom Team + DeepSeek Research
+Version: 2.0.0 (Production Grade)
 """
 
+import asyncio
 import time
 import json
-import requests
+import logging
 import numpy as np
-from datetime import datetime
-from typing import Dict, List, Optional
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any
+from pathlib import Path
 
-# Try to import MT5 - will work on Windows with MT5 installed
+# Setup professional logging (DeepSeek)
+log_dir = Path("logs")
+log_dir.mkdir(exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(levelname)s | %(message)s',
+    handlers=[
+        logging.FileHandler(log_dir / "brain_runner.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Try to import optional dependencies
 try:
     import MetaTrader5 as mt5
     MT5_AVAILABLE = True
 except ImportError:
     MT5_AVAILABLE = False
-    print("⚠️ MetaTrader5 library not available. Running in DEMO mode.")
+    logger.warning("MetaTrader5 library not available. Running in DEMO mode.")
+
+try:
+    import aiohttp
+    AIOHTTP_AVAILABLE = True
+except ImportError:
+    AIOHTTP_AVAILABLE = False
+    import requests  # Fallback to sync requests
+
 
 # ============================================
 # CONFIGURATION
 # ============================================
 
 class BrainConfig:
-    """Brain Runner Configuration"""
+    """Brain Runner Configuration - Production optimized"""
     
     # MT5 Settings
     MT5_LOGIN = 5043654138  # Demo account
-    MT5_PASSWORD = ""  # Will prompt or use env
+    MT5_PASSWORD = ""
     MT5_SERVER = "MetaQuotes-Demo"
     
-    # Trading Symbols
+    # Trading Symbols (Multi-asset)
     SYMBOLS = ["EURUSD", "GBPUSD", "USDJPY", "USDCHF"]
     
-    # Timeframe (M5 = 5 minutes)
-    TIMEFRAME = 5  # mt5.TIMEFRAME_M5 when available
-    CANDLE_COUNT = 500  # Number of candles to fetch
+    # Timeframe
+    TIMEFRAME_MINUTES = 5
+    CANDLE_COUNT = 500
     
-    # Signal Settings
-    MIN_CONFIDENCE = 80  # Minimum confidence to send signal
+    # Signal Thresholds
+    CONFIDENCE_THRESHOLD = 80  # 80% minimum
     
-    # API Endpoint
+    # API Settings
     SIGNAL_API_URL = "https://oracle.axiomid.app/api/v1/signals/push"
+    API_KEY = "aw-windows-local-key"
+    
+    # Risk Management
+    MAX_RISK_PERCENT = 2.0  # 2% per trade
+    MAX_POSITION_SIZE = 0.1  # Max 0.1 lot
     
     # Loop Settings
-    SLEEP_SECONDS = 300  # 5 minutes (matches M5 timeframe)
-    
-    # Logging
-    VERBOSE = True
+    ANALYSIS_INTERVAL_SECONDS = 300  # 5 minutes
 
 
 # ============================================
-# INSTITUTIONAL CIPHER (Embedded for Portability)
+# VECTORIZED INDICATORS (Optimized)
 # ============================================
 
 def vectorized_ema(prices: np.ndarray, period: int) -> np.ndarray:
@@ -84,14 +114,18 @@ def vectorized_sma(prices: np.ndarray, period: int) -> np.ndarray:
     return np.convolve(prices, kernel, mode='same')
 
 
-class InstitutionalCipherLite:
+# ============================================
+# INSTITUTIONAL CIPHER (Embedded + Enhanced)
+# ============================================
+
+class InstitutionalCipherEngine:
     """
-    Lightweight version of InstitutionalCipher for deployment.
+    Institutional Cipher Engine - Enhanced with VWAP stops
     
     Combines:
-    - WaveTrend Oscillator (Momentum)
-    - Smart Money Flow (Volume-weighted)
-    - VWAP Context
+    - WaveTrend Oscillator
+    - Smart Money Flow
+    - VWAP with Standard Deviation Bands
     - Divergence Detection
     """
     
@@ -102,9 +136,12 @@ class InstitutionalCipherLite:
     WT_OVERBOUGHT = 60
     MF_PERIOD = 60
     MF_MULTIPLIER = 150
-    MIN_CONFIDENCE = 80
+    CONFIDENCE_THRESHOLD = 80
     
-    def analyze(
+    def __init__(self):
+        self.last_analysis = {}
+    
+    async def analyze(
         self,
         symbol: str,
         open_: np.ndarray,
@@ -113,7 +150,27 @@ class InstitutionalCipherLite:
         close: np.ndarray,
         volume: np.ndarray
     ) -> Dict:
-        """Main analysis function."""
+        """Async analysis for concurrent processing."""
+        # Run sync analysis in executor to not block
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None,
+            self._sync_analyze,
+            symbol, open_, high, low, close, volume
+        )
+    
+    def _sync_analyze(
+        self,
+        symbol: str,
+        open_: np.ndarray,
+        high: np.ndarray,
+        low: np.ndarray,
+        close: np.ndarray,
+        volume: np.ndarray
+    ) -> Dict:
+        """Synchronous analysis logic."""
+        
+        epsilon = 1e-10
         
         # ============================================
         # 1. WAVETREND CALCULATION
@@ -122,7 +179,6 @@ class InstitutionalCipherLite:
         esa = vectorized_ema(hlc3, self.WT_CHANNEL_LEN)
         diff = np.abs(hlc3 - esa)
         d = vectorized_ema(diff, self.WT_CHANNEL_LEN)
-        epsilon = 1e-10
         ci = (hlc3 - esa) / (0.015 * d + epsilon)
         wt1 = vectorized_ema(ci, self.WT_AVERAGE_LEN)
         wt2 = vectorized_sma(wt1, 4)
@@ -132,7 +188,6 @@ class InstitutionalCipherLite:
         wt1_prev = wt1[-2] if len(wt1) > 1 else wt1_current
         wt2_prev = wt2[-2] if len(wt2) > 1 else wt2_current
         
-        # Crossovers
         cross_up = (wt1_prev <= wt2_prev) and (wt1_current > wt2_current)
         cross_down = (wt1_prev >= wt2_prev) and (wt1_current < wt2_current)
         is_oversold = wt1_current < self.WT_OVERSOLD
@@ -150,135 +205,192 @@ class InstitutionalCipherLite:
         is_increasing = mf_current > mf_prev
         
         # ============================================
-        # 3. VWAP CONTEXT
+        # 3. VWAP WITH BANDS (DeepSeek Enhancement)
         # ============================================
         tp = (high + low + close) / 3.0
         cum_tp_vol = np.cumsum(tp * volume)
         cum_vol = np.cumsum(volume)
         vwap = cum_tp_vol / (cum_vol + epsilon)
+        
+        # Standard deviation for bands
+        squared_diff = (tp - vwap) ** 2
+        cum_squared_diff = np.cumsum(squared_diff * volume)
+        variance = cum_squared_diff / (cum_vol + epsilon)
+        std_dev = np.sqrt(variance)
+        
         vwap_current = vwap[-1]
+        std_current = std_dev[-1]
         price_current = close[-1]
+        
+        # VWAP Bands
+        vwap_upper1 = vwap_current + std_current
+        vwap_lower1 = vwap_current - std_current
+        vwap_upper2 = vwap_current + 2 * std_current
+        vwap_lower2 = vwap_current - 2 * std_current
+        
         below_vwap = price_current < vwap_current
+        above_vwap = price_current > vwap_current
         
         # ============================================
-        # 4. SCORING (AND-Gate Logic)
+        # 4. CONFIDENCE SCORING (AND-Gate Logic)
         # ============================================
         score = 0
         reasons = []
+        metadata = {}
         
-        # Momentum Gate (30 points)
+        # Gate 1: WaveTrend Momentum (30 points)
         if cross_up and is_oversold:
             score += 30
             reasons.append(f"WT Oversold Cross ({wt1_current:.1f})")
+            metadata['cross_up'] = True
+            metadata['oversold'] = True
         elif cross_down and is_overbought:
             score += 30
             reasons.append(f"WT Overbought Cross ({wt1_current:.1f})")
+            metadata['cross_down'] = True
         elif cross_up:
             score += 15
             reasons.append("WT Bullish Cross")
+            metadata['cross_up'] = True
         elif cross_down:
             score += 15
             reasons.append("WT Bearish Cross")
         
-        # Money Flow Gate (25 points)
+        # Gate 2: Money Flow (25 points)
         if is_accumulation and is_increasing:
             score += 25
             reasons.append("Smart Money Accumulating")
+            metadata['mf_confirmation'] = True
         elif not is_accumulation and not is_increasing:
             score += 25
             reasons.append("Smart Money Distributing")
+            metadata['mf_confirmation'] = True
         elif is_increasing:
             score += 12
             reasons.append("Money Flow Rising")
         
-        # Context Gate (25 points)
+        # Gate 3: VWAP Context (25 points)
         if below_vwap and (cross_up or is_oversold):
             score += 25
             reasons.append("Below VWAP (Discount Zone)")
-        elif not below_vwap and (cross_down or is_overbought):
+        elif above_vwap and (cross_down or is_overbought):
             score += 25
             reasons.append("Above VWAP (Premium Zone)")
+            metadata['price_above_vwap'] = True
         elif below_vwap:
             score += 12
             reasons.append("Below VWAP")
         
-        # Trend Bonus (20 points)
-        # Simple trend: price above/below SMA200
+        # Gate 4: Trend Alignment (20 points)
         if len(close) >= 200:
             sma200 = np.mean(close[-200:])
             if price_current > sma200 and (cross_up or is_accumulation):
                 score += 20
-                reasons.append("Above SMA200 (Bullish)")
+                reasons.append("Above SMA200")
             elif price_current < sma200 and (cross_down or not is_accumulation):
                 score += 20
-                reasons.append("Below SMA200 (Bearish)")
+                reasons.append("Below SMA200")
+        
+        # Volatility adjustment (DeepSeek)
+        recent_volatility = np.std(close[-20:]) / np.mean(close[-20:])
+        if recent_volatility > 0.005:  # High volatility
+            score = int(score * 0.8)
+            reasons.append("⚠️ High Volatility Adjustment")
         
         # ============================================
         # 5. FINAL DECISION
         # ============================================
         action = "NONE"
-        if score >= self.MIN_CONFIDENCE:
+        if score >= self.CONFIDENCE_THRESHOLD:
             if cross_up or (is_accumulation and is_oversold):
                 action = "BUY"
             elif cross_down or (not is_accumulation and is_overbought):
                 action = "SELL"
+        
+        # ============================================
+        # 6. STOP LOSS / TAKE PROFIT (DeepSeek VWAP-based)
+        # ============================================
+        stop_loss = 0  # 0 means EA will calculate
+        take_profit = 0
+        
+        if action == "BUY":
+            # Stop below recent low or VWAP-1SD
+            recent_low = np.min(low[-10:])
+            stop_loss = min(recent_low, vwap_lower1)
+            take_profit = vwap_upper1
+        elif action == "SELL":
+            recent_high = np.max(high[-10:])
+            stop_loss = max(recent_high, vwap_upper1)
+            take_profit = vwap_lower1
+        
+        # Position size based on confidence (DeepSeek)
+        lot_size = round(0.01 * (score / 100), 2)
         
         return {
             "symbol": symbol,
             "action": action,
             "confidence": min(score, 100),
             "reasons": reasons,
+            "entry_price": float(price_current),
+            "stop_loss": float(stop_loss),
+            "take_profit": float(take_profit),
+            "lot_size": lot_size,
+            "metadata": metadata,
             "indicators": {
                 "wt1": round(float(wt1_current), 2),
                 "wt2": round(float(wt2_current), 2),
-                "mf": round(float(mf_current), 2),
+                "money_flow": round(float(mf_current), 2),
                 "vwap": round(float(vwap_current), 5),
                 "price": round(float(price_current), 5)
-            }
+            },
+            "timestamp": datetime.utcnow().isoformat()
         }
 
 
 # ============================================
-# MT5 CONNECTION
+# MT5 CONNECTOR (Our Implementation)
 # ============================================
 
 class MT5Connector:
-    """MetaTrader 5 Connection Manager"""
+    """MetaTrader 5 Direct Connection (faster on same server)"""
     
     def __init__(self, config: BrainConfig):
         self.config = config
         self.connected = False
     
-    def connect(self) -> bool:
+    async def connect(self) -> bool:
         """Initialize connection to MT5."""
         if not MT5_AVAILABLE:
-            print("⚠️ MT5 library not available. Using DEMO mode.")
+            logger.warning("MT5 library not available. Using DEMO mode.")
             return False
         
-        if not mt5.initialize():
-            print(f"❌ MT5 initialize() failed: {mt5.last_error()}")
+        # Run in executor to not block
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, mt5.initialize)
+        
+        if not result:
+            logger.error(f"MT5 initialize() failed: {mt5.last_error()}")
             return False
         
-        print(f"✅ MT5 initialized: {mt5.terminal_info().name}")
+        logger.info(f"✅ MT5 initialized: {mt5.terminal_info().name}")
         self.connected = True
         return True
     
-    def get_candles(self, symbol: str, count: int = 500) -> Optional[Dict]:
+    async def get_candles(self, symbol: str, count: int = 500) -> Optional[Dict]:
         """Fetch OHLCV candles from MT5."""
         if not self.connected or not MT5_AVAILABLE:
             return self._get_demo_candles(symbol, count)
         
-        # Get timeframe constant
-        timeframe = mt5.TIMEFRAME_M5  # 5-minute candles
-        
-        # Fetch rates
-        rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, count)
+        loop = asyncio.get_event_loop()
+        rates = await loop.run_in_executor(
+            None,
+            lambda: mt5.copy_rates_from_pos(symbol, mt5.TIMEFRAME_M5, 0, count)
+        )
         
         if rates is None or len(rates) == 0:
-            print(f"⚠️ No data for {symbol}")
-            return None
+            logger.warning(f"No data for {symbol}, using demo data")
+            return self._get_demo_candles(symbol, count)
         
-        # Convert to arrays
         return {
             "open": np.array([r[1] for r in rates], dtype=np.float64),
             "high": np.array([r[2] for r in rates], dtype=np.float64),
@@ -288,209 +400,255 @@ class MT5Connector:
         }
     
     def _get_demo_candles(self, symbol: str, count: int) -> Dict:
-        """Generate demo candles for testing without MT5."""
+        """Generate demo candles for testing."""
         np.random.seed(int(time.time()) % 1000)
         
-        # Simulate realistic price data
         if "JPY" in symbol:
-            base_price = 150.0
-            volatility = 0.5
+            base_price, volatility = 150.0, 0.5
         elif "CHF" in symbol:
-            base_price = 0.88
-            volatility = 0.002
+            base_price, volatility = 0.88, 0.002
         else:
-            base_price = 1.05
-            volatility = 0.002
+            base_price, volatility = 1.05, 0.002
         
-        # Random walk
         returns = np.random.randn(count) * volatility
         close = base_price * np.exp(np.cumsum(returns))
         
-        high = close + np.abs(np.random.randn(count)) * volatility
-        low = close - np.abs(np.random.randn(count)) * volatility
-        open_ = close + np.random.randn(count) * volatility * 0.5
-        volume = np.random.exponential(1000, count)
-        
         return {
-            "open": open_,
-            "high": high,
-            "low": low,
+            "open": close + np.random.randn(count) * volatility * 0.5,
+            "high": close + np.abs(np.random.randn(count)) * volatility,
+            "low": close - np.abs(np.random.randn(count)) * volatility,
             "close": close,
-            "volume": volume
+            "volume": np.random.exponential(1000, count)
         }
     
-    def disconnect(self):
+    async def disconnect(self):
         """Clean shutdown."""
         if MT5_AVAILABLE and self.connected:
             mt5.shutdown()
-            print("🔌 MT5 disconnected")
+            logger.info("🔌 MT5 disconnected")
 
 
 # ============================================
-# SIGNAL BROADCASTER
+# ORACLE API CLIENT (Async - DeepSeek Pattern)
 # ============================================
 
-class SignalBroadcaster:
-    """Sends signals to the Oracle API."""
+class OracleAPIClient:
+    """Async API client for sending signals to Oracle."""
     
     def __init__(self, config: BrainConfig):
         self.config = config
         self.signals_sent = 0
+        self.session = None
     
-    def send_signal(self, signal: Dict) -> bool:
+    async def __aenter__(self):
+        if AIOHTTP_AVAILABLE:
+            self.session = aiohttp.ClientSession()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            await self.session.close()
+    
+    async def send_signal(self, signal: Dict) -> Dict[str, Any]:
         """Send signal to Oracle API."""
+        payload = {
+            "action": signal["action"],
+            "symbol": signal["symbol"],
+            "confidence": signal["confidence"],
+            "sl": signal.get("stop_loss", 0),
+            "tp": signal.get("take_profit", 0),
+            "quantity": signal.get("lot_size", 0.01),
+            "reason": " | ".join(signal["reasons"][:3])
+        }
+        
         try:
-            payload = {
-                "action": signal["action"],
-                "symbol": signal["symbol"],
-                "confidence": signal["confidence"],
-                "sl": 0,  # EA calculates safe SL
-                "tp": 0,  # EA calculates safe TP
-                "reason": " | ".join(signal["reasons"][:3])
-            }
-            
-            response = requests.post(
-                self.config.SIGNAL_API_URL,
-                json=payload,
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                print(f"   ✅ Signal sent! ID: {result.get('signal_id', 'N/A')}")
-                self.signals_sent += 1
-                return True
+            if AIOHTTP_AVAILABLE and self.session:
+                async with self.session.post(
+                    self.config.SIGNAL_API_URL,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    result = await response.json()
+                    if response.status == 200:
+                        self.signals_sent += 1
+                        logger.info(f"   ✅ Signal sent! ID: {result.get('signal_id', 'N/A')}")
+                        return {"success": True, "response": result}
+                    else:
+                        logger.error(f"   ❌ API Error: {response.status}")
+                        return {"success": False, "error": str(response.status)}
             else:
-                print(f"   ❌ API Error: {response.status_code}")
-                return False
-                
+                # Fallback to sync requests
+                response = requests.post(
+                    self.config.SIGNAL_API_URL,
+                    json=payload,
+                    timeout=10
+                )
+                if response.status_code == 200:
+                    self.signals_sent += 1
+                    result = response.json()
+                    logger.info(f"   ✅ Signal sent! ID: {result.get('signal_id', 'N/A')}")
+                    return {"success": True, "response": result}
+                else:
+                    logger.error(f"   ❌ API Error: {response.status_code}")
+                    return {"success": False, "error": str(response.status_code)}
+                    
         except Exception as e:
-            print(f"   ❌ Broadcast failed: {e}")
-            return False
+            logger.error(f"   ❌ Broadcast failed: {e}")
+            return {"success": False, "error": str(e)}
 
 
 # ============================================
-# BRAIN RUNNER - MAIN CLASS
+# BRAIN RUNNER (Async - DeepSeek Pattern)
 # ============================================
 
-class BrainRunner:
+class InstitutionalBrain:
     """
-    🧠 The Heartbeat of AlphaAxiom
+    🧠 Institutional Trading Brain - Production Grade
     
-    Runs continuously, analyzing markets and sending signals.
+    Runs 24/7, analyzing markets and sending high-confidence signals.
     """
     
     def __init__(self):
         self.config = BrainConfig()
         self.mt5 = MT5Connector(self.config)
-        self.cipher = InstitutionalCipherLite()
-        self.broadcaster = SignalBroadcaster(self.config)
-        self.running = False
+        self.cipher = InstitutionalCipherEngine()
+        self.api_client = OracleAPIClient(self.config)
+        self.last_analysis_time = {}
         self.cycles = 0
+        self.running = False
     
-    def start(self):
+    async def start(self):
         """Start the brain loop."""
-        print("=" * 60)
-        print("🧠 ALPHAXIOM BRAIN RUNNER")
-        print("=" * 60)
-        print(f"   Symbols: {', '.join(self.config.SYMBOLS)}")
-        print(f"   Timeframe: M{self.config.TIMEFRAME}")
-        print(f"   Min Confidence: {self.config.MIN_CONFIDENCE}%")
-        print(f"   API: {self.config.SIGNAL_API_URL}")
-        print("=" * 60)
+        logger.info("=" * 60)
+        logger.info("🧠 INSTITUTIONAL BRAIN v2.0 - Starting")
+        logger.info("=" * 60)
+        logger.info(f"   Symbols: {', '.join(self.config.SYMBOLS)}")
+        logger.info(f"   Timeframe: M{self.config.TIMEFRAME_MINUTES}")
+        logger.info(f"   Confidence Threshold: {self.config.CONFIDENCE_THRESHOLD}%")
+        logger.info(f"   API: {self.config.SIGNAL_API_URL}")
+        logger.info("=" * 60)
         
         # Connect to MT5
-        self.mt5.connect()
+        await self.mt5.connect()
         
-        # Start loop
+        # Start async loop
         self.running = True
-        self._run_loop()
+        async with self.api_client:
+            await self._run_continuous_analysis()
     
-    def _run_loop(self):
-        """Main analysis loop."""
+    async def _run_continuous_analysis(self):
+        """Main analysis loop - runs every 5 minutes."""
         while self.running:
-            self.cycles += 1
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            print(f"\n🔄 Cycle #{self.cycles} | {timestamp}")
-            print("-" * 40)
-            
-            for symbol in self.config.SYMBOLS:
-                self._analyze_symbol(symbol)
-            
-            # Summary
-            print("-" * 40)
-            print(f"💤 Sleeping {self.config.SLEEP_SECONDS}s until next cycle...")
-            print(f"   Total signals sent: {self.broadcaster.signals_sent}")
-            
-            # Sleep until next candle
             try:
-                time.sleep(self.config.SLEEP_SECONDS)
-            except KeyboardInterrupt:
-                print("\n🛑 Stopping Brain Runner...")
-                self.stop()
+                self.cycles += 1
+                current_time = datetime.utcnow()
+                timestamp = current_time.strftime("%Y-%m-%d %H:%M:%S")
+                
+                logger.info(f"\n🔄 Cycle #{self.cycles} | {timestamp}")
+                logger.info("-" * 40)
+                
+                # Parallel analysis of all symbols (DeepSeek pattern)
+                tasks = [
+                    self._analyze_symbol(symbol)
+                    for symbol in self.config.SYMBOLS
+                ]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                
+                # Process results
+                signals_this_cycle = 0
+                for i, result in enumerate(results):
+                    if isinstance(result, Exception):
+                        logger.error(f"   ❌ {self.config.SYMBOLS[i]}: {result}")
+                    elif result and result.get("action") != "NONE":
+                        signals_this_cycle += 1
+                
+                # Summary
+                logger.info("-" * 40)
+                logger.info(f"💤 Sleeping {self.config.ANALYSIS_INTERVAL_SECONDS}s until next cycle...")
+                logger.info(f"   This cycle signals: {signals_this_cycle}")
+                logger.info(f"   Total signals sent: {self.api_client.signals_sent}")
+                
+                # Wait until next candle close
+                await asyncio.sleep(self.config.ANALYSIS_INTERVAL_SECONDS)
+                
+            except asyncio.CancelledError:
+                logger.info("🛑 Brain Runner cancelled")
                 break
+            except Exception as e:
+                logger.error(f"❌ Error in main loop: {e}")
+                await asyncio.sleep(60)  # Wait 1 minute before retry
     
-    def _analyze_symbol(self, symbol: str):
+    async def _analyze_symbol(self, symbol: str) -> Optional[Dict]:
         """Analyze a single symbol."""
-        # Fetch data
-        candles = self.mt5.get_candles(symbol, self.config.CANDLE_COUNT)
-        
-        if candles is None:
-            print(f"   ⚠️ {symbol}: No data")
-            return
-        
-        # Run analysis
-        result = self.cipher.analyze(
-            symbol,
-            candles["open"],
-            candles["high"],
-            candles["low"],
-            candles["close"],
-            candles["volume"]
-        )
-        
-        action = result["action"]
-        confidence = result["confidence"]
-        reasons = result["reasons"]
-        
-        # Log result
-        if action != "NONE" and confidence >= self.config.MIN_CONFIDENCE:
-            # High-quality signal!
-            print(f"   🌊 {symbol}: {action} | Conf: {confidence}/100")
-            print(f"      Reasons: {', '.join(reasons)}")
+        try:
+            # Fetch data
+            candles = await self.mt5.get_candles(symbol, self.config.CANDLE_COUNT)
             
-            # Broadcast to API
-            self.broadcaster.send_signal(result)
-        else:
-            # No signal or low confidence
-            if self.config.VERBOSE:
-                print(f"   💤 {symbol}: {action} | Conf: {confidence}/100 (below threshold)")
+            if candles is None:
+                logger.warning(f"   ⚠️ {symbol}: No data")
+                return None
+            
+            # Run analysis
+            result = await self.cipher.analyze(
+                symbol,
+                candles["open"],
+                candles["high"],
+                candles["low"],
+                candles["close"],
+                candles["volume"]
+            )
+            
+            action = result["action"]
+            confidence = result["confidence"]
+            reasons = result["reasons"]
+            
+            # Log result
+            if action != "NONE" and confidence >= self.config.CONFIDENCE_THRESHOLD:
+                logger.info(f"   🌊 {symbol}: {action} | Conf: {confidence}/100")
+                logger.info(f"      Reasons: {', '.join(reasons[:3])}")
+                logger.info(f"      SL: {result['stop_loss']:.5f} | TP: {result['take_profit']:.5f}")
+                
+                # Send to API
+                await self.api_client.send_signal(result)
+                return result
+            else:
+                logger.info(f"   💤 {symbol}: {action} | Conf: {confidence}/100 (below threshold)")
+                return None
+                
+        except Exception as e:
+            logger.error(f"   ❌ {symbol}: Analysis failed - {e}")
+            return None
     
-    def stop(self):
+    async def stop(self):
         """Stop the brain runner."""
         self.running = False
-        self.mt5.disconnect()
+        await self.mt5.disconnect()
         
-        print("\n" + "=" * 60)
-        print("🧠 BRAIN RUNNER STOPPED")
-        print("=" * 60)
-        print(f"   Total Cycles: {self.cycles}")
-        print(f"   Signals Sent: {self.broadcaster.signals_sent}")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("🧠 INSTITUTIONAL BRAIN STOPPED")
+        logger.info("=" * 60)
+        logger.info(f"   Total Cycles: {self.cycles}")
+        logger.info(f"   Signals Sent: {self.api_client.signals_sent}")
+        logger.info("=" * 60)
 
 
 # ============================================
 # ENTRY POINT
 # ============================================
 
-if __name__ == "__main__":
-    brain = BrainRunner()
+async def main():
+    """Main entry point."""
+    brain = InstitutionalBrain()
     
     try:
-        brain.start()
+        await brain.start()
     except KeyboardInterrupt:
-        brain.stop()
+        logger.info("\n🛑 Keyboard interrupt received")
+        await brain.stop()
     except Exception as e:
-        print(f"❌ Fatal Error: {e}")
-        brain.stop()
+        logger.error(f"❌ Fatal Error: {e}")
+        await brain.stop()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
