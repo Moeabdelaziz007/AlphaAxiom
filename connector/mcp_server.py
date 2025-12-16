@@ -48,6 +48,31 @@ except ImportError:
 # Initialize the MCP Server
 mcp = FastMCP("AlphaQuanTopology (AQT)")
 
+# ============= SIGNAL STORAGE (For MT5 EA) =============
+LATEST_SIGNAL = {"status": "waiting"}
+
+# HTTP Routes for Signal API (Used by AlphaReceiver.mq5)
+from starlette.responses import JSONResponse
+from starlette.routing import Route
+
+async def get_latest_signal(request):
+    """GET /api/v1/signals/latest - Called by MT5 EA"""
+    return JSONResponse(LATEST_SIGNAL)
+
+async def push_signal(request):
+    """POST /api/v1/signals/push - Called by Brain to push new signals"""
+    global LATEST_SIGNAL
+    try:
+        data = await request.json()
+        LATEST_SIGNAL = data
+        return JSONResponse({"ok": True})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+# Add routes to the underlying Starlette app
+mcp._app.routes.append(Route("/api/v1/signals/latest", get_latest_signal, methods=["GET"]))
+mcp._app.routes.append(Route("/api/v1/signals/push", push_signal, methods=["POST"]))
+
 # ============= TOOLS =============
 
 @mcp.tool()
