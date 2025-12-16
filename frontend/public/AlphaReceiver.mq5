@@ -13,7 +13,7 @@
 
 //--- Input Parameters
 input string   ApiKey       = "aw-windows-local-key";                  // Your AlphaAxiom API Key
-input string   GatewayUrl   = "http://localhost:8000/api/v1/signals/latest"; // API Endpoint (Localhost)
+input string   GatewayUrl   = "http://127.0.0.1:8000/api/v1/signals/latest"; // API Endpoint (Localhost)
 input int      PollingMs    = 5000;                                    // Poll Interval (milliseconds)
 input double   RiskPercent  = 1.0;                                     // Risk % per trade
 input int      MagicNumber  = 888888;                                  // Magic Number
