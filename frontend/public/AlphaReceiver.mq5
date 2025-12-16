@@ -191,21 +191,36 @@ void ExecuteSignal(string action, string symbol, double quantity, double sl, dou
     quantity = MathMax(minLot, MathMin(maxLot, NormalizeDouble(quantity, 2)));
     quantity = MathRound(quantity / lotStep) * lotStep;
     
-    //--- Execute based on action
+    //--- Execute based on action (WITHOUT SL/TP to avoid broker rejection)
     bool success = false;
     string comment = "AlphaAxiom: " + StringSubstr(reason, 0, 20);
+    ulong ticket = 0;
     
     if(action == "BUY")
     {
-        success = trade.Buy(quantity, tradingSymbol, 0, sl, tp, comment);
+        // Open BUY without SL/TP first
+        success = trade.Buy(quantity, tradingSymbol, 0, 0, 0, comment);
         if(success)
-            Print("🟢 BUY Executed: ", tradingSymbol, " | Qty: ", quantity, " | Ticket: ", trade.ResultOrder());
+        {
+            ticket = trade.ResultOrder();
+            Print("🟢 BUY Executed: ", tradingSymbol, " | Qty: ", quantity, " | Ticket: ", ticket);
+            
+            // Now apply safe SL/TP
+            ApplySafeStops(ticket, tradingSymbol, "BUY", sl, tp);
+        }
     }
     else if(action == "SELL")
     {
-        success = trade.Sell(quantity, tradingSymbol, 0, sl, tp, comment);
+        // Open SELL without SL/TP first
+        success = trade.Sell(quantity, tradingSymbol, 0, 0, 0, comment);
         if(success)
-            Print("🔴 SELL Executed: ", tradingSymbol, " | Qty: ", quantity, " | Ticket: ", trade.ResultOrder());
+        {
+            ticket = trade.ResultOrder();
+            Print("🔴 SELL Executed: ", tradingSymbol, " | Qty: ", quantity, " | Ticket: ", ticket);
+            
+            // Now apply safe SL/TP
+            ApplySafeStops(ticket, tradingSymbol, "SELL", sl, tp);
+        }
     }
     else
     {
@@ -215,6 +230,99 @@ void ExecuteSignal(string action, string symbol, double quantity, double sl, dou
     if(!success && (action == "BUY" || action == "SELL"))
     {
         Print("❌ Trade failed: ", trade.ResultRetcodeDescription());
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Apply Safe Stop Loss and Take Profit after trade execution        |
+//+------------------------------------------------------------------+
+void ApplySafeStops(ulong ticket, string symbol, string action, double requestedSL, double requestedTP)
+{
+    // Wait a moment for position to be registered
+    Sleep(500);
+    
+    // Find the position by ticket
+    if(!PositionSelectByTicket(ticket))
+    {
+        Print("⚠️ Could not select position for SL/TP modification");
+        return;
+    }
+    
+    double entryPrice = PositionGetDouble(POSITION_PRICE_OPEN);
+    double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+    int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
+    
+    // Get broker's minimum stop level (in points)
+    long stopsLevel = SymbolInfoInteger(symbol, SYMBOL_TRADE_STOPS_LEVEL);
+    if(stopsLevel == 0) stopsLevel = 10; // Default if not specified
+    
+    // Add buffer (20 points extra for safety)
+    double minDistance = (stopsLevel + 20) * point;
+    
+    // Calculate safe SL and TP
+    double safeSL = 0;
+    double safeTP = 0;
+    
+    if(action == "BUY")
+    {
+        // For BUY: SL below entry, TP above entry
+        if(requestedSL > 0)
+        {
+            safeSL = MathMin(requestedSL, entryPrice - minDistance);
+        }
+        else
+        {
+            // Default: 50 pips SL if not specified
+            safeSL = entryPrice - (50 * point * 10);
+        }
+        
+        if(requestedTP > 0)
+        {
+            safeTP = MathMax(requestedTP, entryPrice + minDistance);
+        }
+        else
+        {
+            // Default: 100 pips TP (1:2 risk-reward)
+            safeTP = entryPrice + (100 * point * 10);
+        }
+    }
+    else // SELL
+    {
+        // For SELL: SL above entry, TP below entry
+        if(requestedSL > 0)
+        {
+            safeSL = MathMax(requestedSL, entryPrice + minDistance);
+        }
+        else
+        {
+            // Default: 50 pips SL if not specified
+            safeSL = entryPrice + (50 * point * 10);
+        }
+        
+        if(requestedTP > 0)
+        {
+            safeTP = MathMin(requestedTP, entryPrice - minDistance);
+        }
+        else
+        {
+            // Default: 100 pips TP (1:2 risk-reward)
+            safeTP = entryPrice - (100 * point * 10);
+        }
+    }
+    
+    // Normalize prices
+    safeSL = NormalizeDouble(safeSL, digits);
+    safeTP = NormalizeDouble(safeTP, digits);
+    
+    // Modify the position with safe SL/TP
+    if(trade.PositionModify(ticket, safeSL, safeTP))
+    {
+        Print("🛡️ Safe SL/TP Applied: SL=", safeSL, " | TP=", safeTP);
+    }
+    else
+    {
+        Print("⚠️ SL/TP Modification failed: ", trade.ResultRetcodeDescription());
+        Print("   Entry: ", entryPrice, " | Attempted SL: ", safeSL, " | Attempted TP: ", safeTP);
     }
 }
 
