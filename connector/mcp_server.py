@@ -45,9 +45,6 @@ except ImportError:
     
     mt5 = MockMT5()
 
-# Initialize the MCP Server
-mcp = FastMCP("AlphaQuanTopology (AQT)")
-
 # ============= SIGNAL STORAGE (For MT5 EA) =============
 LATEST_SIGNAL = {"status": "waiting"}
 
@@ -57,7 +54,7 @@ from starlette.routing import Route
 
 async def get_latest_signal(request):
     """GET /api/v1/signals/latest - Called by MT5 EA"""
-    return JSONResponse(LATEST_SIGNAL)
+    return JSONResponse(LATEST_SIGNAL, headers={"Access-Control-Allow-Origin": "*"})
 
 async def push_signal(request):
     """POST /api/v1/signals/push - Called by Brain to push new signals"""
@@ -65,13 +62,18 @@ async def push_signal(request):
     try:
         data = await request.json()
         LATEST_SIGNAL = data
-        return JSONResponse({"ok": True})
+        return JSONResponse({"ok": True}, headers={"Access-Control-Allow-Origin": "*"})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=400)
 
-# Add routes to the underlying Starlette app
-mcp._app.routes.append(Route("/api/v1/signals/latest", get_latest_signal, methods=["GET"]))
-mcp._app.routes.append(Route("/api/v1/signals/push", push_signal, methods=["POST"]))
+# Define custom routes for signal API
+signal_routes = [
+    Route("/api/v1/signals/latest", get_latest_signal, methods=["GET"]),
+    Route("/api/v1/signals/push", push_signal, methods=["POST"]),
+]
+
+# Initialize the MCP Server with custom routes
+mcp = FastMCP("AlphaQuanTopology (AQT)", custom_routes=signal_routes)
 
 # ============= TOOLS =============
 
