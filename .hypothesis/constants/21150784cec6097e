@@ -1,0 +1,4 @@
+# file: /app/trading-cloud-brain/src/engine/portfolio_manager.py
+# hypothesis_version: 6.148.7
+
+[0.0, 0.02, 0.1, 0.8, 'buy', 'pnl', 'side', 'size']

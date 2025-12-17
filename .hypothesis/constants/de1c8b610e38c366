@@ -1,0 +1,4 @@
+# file: /app/trading-cloud-brain/src/engine/alpha_loop.py
+# hypothesis_version: 6.148.7
+
+[-4.0, 0.0, 0.1, 0.25, 0.5, 0.55, 0.6, 0.9, 1.0, 2.0, -200, 100, 120, 2000, 2010, 3600, 50000, 51000, 52000, '\nAfter Evolution:', 'AlphaState', 'BTCUSDT', 'Before Evolution:', 'MFI < 25', 'MFI Oversold Bounce', 'Price > VWAP', 'VWAP Trend Follow', 'XAUUSD', '__main__', 'alpha_state.json', 'avg_pnl', 'buy', 'cipher', 'condition', 'generation', 'last_evolution', 'last_updated', 'mfi', 'momentum', 'name', 'new', 'news', 'old', 'patterns_found', 'performance', 'performance_history', 'price_above_vwap', 'r', 'reversal', 'rsi', 'sample_size', 'sell', 'sharpe', 'strategy_weights', 'timestamp', 'total', 'total_pnl', 'version', 'w', 'weight_changes', 'win_rate', '═', '█', '🧬 Alpha Loop Demo\n']

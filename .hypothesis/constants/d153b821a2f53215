@@ -1,0 +1,4 @@
+# file: /app/trading-cloud-brain/src/brokers/binance_connector.py
+# hypothesis_version: 6.148.7
+
+[0.0, 100, 500, 1000, '1m', 'Binance', 'Content-Type', 'GET', 'GTC', 'LIMIT', 'LONG', 'MARKET', 'POST', 'SHORT', 'X-MBX-APIKEY', 'amount', 'application/json', 'ask', 'askPrice', 'asks', 'asset', 'balances', 'bid', 'bidPrice', 'bids', 'change24h', 'close', 'entryPrice', 'error', 'executedQty', 'free', 'high', 'lastPrice', 'leverage', 'locked', 'low', 'open', 'orderId', 'origQty', 'permissions', 'positionAmt', 'price', 'priceChangePercent', 'quantity', 'side', 'signature', 'status', 'symbol', 'time', 'timeInForce', 'timestamp', 'type', 'unRealizedProfit', 'unrealizedPnl', 'updateTime', 'utf-8', 'volume', 'volume24h']

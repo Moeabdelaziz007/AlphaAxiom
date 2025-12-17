@@ -1,0 +1,4 @@
+# file: /app/trading-cloud-brain/src/adapters/mt5_adapter.py
+# hypothesis_version: 6.148.7
+
+[0.0, 100, '15m', '1d', '1h', '1m', '30m', '4h', '5m', 'AxiomAlpha', 'D1', 'H1', 'H4', 'M1', 'M15', 'M30', 'M5', 'No position found', 'Position closed', 'Unknown error', 'XM Global', 'ask', 'balance', 'bid', 'buy', 'close', 'comment', 'current_price', 'd1', 'equity', 'high', 'low', 'mt5', 'online', 'open', 'open_price', 'price', 'profit', 'sell', 'status', 'success', 'symbol', 'ticket', 'time', 'type', 'volume', '🔌 MT5 disconnected']

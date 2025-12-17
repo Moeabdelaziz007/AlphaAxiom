@@ -1,0 +1,4 @@
+# file: /app/trading-cloud-brain/src/engine/cipher.py
+# hypothesis_version: 6.148.7
+
+[0.0, 0.1, 0.6, 0.9, 1.0, 50.0, 100.0, 100, '1h', 'Insufficient Data', 'No clear signal', 'buy', 'close', 'high', 'low', 'neutral', 'sell', 'strong_buy', 'strong_sell', 'volume']

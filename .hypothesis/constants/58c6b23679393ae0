@@ -1,0 +1,4 @@
+# file: /app/trading-cloud-brain/src/adapters/bybit_adapter.py
+# hypothesis_version: 6.148.7
+
+[0.0, 100, '1', '15', '15m', '1d', '1h', '1m', '240', '30', '30m', '4h', '5', '5m', '60', 'Buy', 'D', 'Market', 'No position found', 'Position closed', 'Sell', 'Unknown error', 'avgPrice', 'bybit', 'close', 'd1', 'high', 'lastPrice', 'leverage', 'low', 'markPrice', 'open', 'orderId', 'result', 'retCode', 'retMsg', 'side', 'size', 'startTime', 'symbol', 'time', 'unrealisedPnl', 'unrealisedPnlPcnt', 'volume', '🔌 Bybit disconnected']

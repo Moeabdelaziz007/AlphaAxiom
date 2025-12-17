@@ -6,6 +6,7 @@ Supports Forex, Metals, and Indices via MT5 Bridge.
 """
 
 import logging
+import asyncio
 from typing import Dict, List, Optional, Any
 
 from .base import (

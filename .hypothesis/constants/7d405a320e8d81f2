@@ -1,0 +1,4 @@
+# file: /app/trading-cloud-brain/src/brokers/mt5_broker.py
+# hypothesis_version: 6.148.7
+
+[30.0, 100, '/', 'AlphaAxiom', 'Authorization', 'H1', 'XM Global', 'action', 'bars_count', 'candles', 'comment', 'error', 'offline', 'positions', 'status', 'stop_loss', 'success', 'symbol', 'take_profit', 'ticket', 'timeframe', 'volume']

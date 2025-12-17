@@ -1,0 +1,4 @@
+# file: /app/trading-cloud-brain/src/webhook_listener.py
+# hypothesis_version: 6.148.7
+
+[100, 403, 8000, '*', '***', '/', '/health', '/signals/clear', '/signals/history', '/webhook', '0.0.0.0', '1.0.0', 'AXIOM_WEBHOOK_SECRET', 'Invalid passphrase', 'Leverage multiplier', 'Position size', 'Security passphrase', 'Stop loss price', 'Take profit price', '__main__', 'cleared', 'executed', 'healthy', 'history', 'message', 'online', 'order_id', 'passphrase', 'pending_signals', 'processed', 'queued', 'received_at', 'service', 'signal', 'status', 'success', 'timestamp']

@@ -1,0 +1,4 @@
+# file: /app/trading-cloud-brain/src/engine/news_filter.py
+# hypothesis_version: 6.148.7
+
+[0.0, 30.0, 'API Error', 'Authorization', 'Content-Type', 'LOW', 'MEDIUM', 'No summary available', 'PERPLEXITY_API_KEY', 'UNKNOWN', '```', '```json', 'application/json', 'choices', 'citations', 'content', 'message', 'messages', 'model', 'red_folder_warning', 'risk_level', 'role', 'sentiment_score', 'sonar-reasoning-pro', 'summary', 'system', 'user']

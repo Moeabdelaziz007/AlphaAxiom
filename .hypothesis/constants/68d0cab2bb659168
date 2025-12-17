@@ -1,0 +1,4 @@
+# file: /app/trading-cloud-brain/src/brokers/gateway.py
+# hypothesis_version: 6.148.7
+
+[100, 'M5', 'amount', 'broker.gateway', 'side', 'sl_pips', 'symbol', 'tp_pips']
